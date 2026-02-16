@@ -11,8 +11,14 @@ const Sidebar = () => {
     const role = user.role;
 
     const links = [
-        { name: 'Dashboard', path: role === 'Platform Admin' ? '/admin' : role === 'Company Owner' ? '/owner' : role === 'Project Manager' ? '/manager' : '/employee', icon: <LayoutDashboard size={20} /> },
-        // Role specific links will go here or be conditional
+        { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, roles: ['SUPER_ADMIN'] },
+        { name: 'Companies', path: '/admin/companies', icon: <Briefcase size={20} />, roles: ['SUPER_ADMIN'] },
+        { name: 'Users', path: '/admin/users', icon: <Users size={20} />, roles: ['SUPER_ADMIN'] },
+        { name: 'Settings', path: '/admin/settings', icon: <Calendar size={20} />, roles: ['SUPER_ADMIN'] },
+
+        { name: 'Dashboard', path: '/owner', icon: <LayoutDashboard size={20} />, roles: ['COMPANY_OWNER'] },
+        { name: 'Dashboard', path: '/manager', icon: <LayoutDashboard size={20} />, roles: ['PROJECT_MANAGER'] },
+        { name: 'Dashboard', path: '/employee', icon: <LayoutDashboard size={20} />, roles: ['EMPLOYEE'] },
     ];
 
     if (role === 'Company Owner' || role === 'Project Manager') {
@@ -35,10 +41,11 @@ const Sidebar = () => {
 
             <nav>
                 <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {links.map((link) => (
+                    {links.filter(link => link.roles && link.roles.includes(role)).map((link) => (
                         <li key={link.path}>
                             <NavLink
                                 to={link.path}
+                                end
                                 className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
                                 style={({ isActive }) => ({
                                     display: 'flex',
@@ -56,6 +63,21 @@ const Sidebar = () => {
                             </NavLink>
                         </li>
                     ))}
+
+                    {(role === 'COMPANY_OWNER' || role === 'PROJECT_MANAGER') && (
+                        <>
+                            <li><NavLink to="/projects" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><Briefcase size={20} /> Projects</NavLink></li>
+                            <li><NavLink to="/tasks" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><ListTodo size={20} /> Tasks</NavLink></li>
+                            <li><NavLink to="/team" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><Users size={20} /> Team</NavLink></li>
+                            <li><NavLink to="/reports" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><BarChart size={20} /> Reports</NavLink></li>
+                        </>
+                    )}
+                    {role === 'EMPLOYEE' && (
+                        <>
+                            <li><NavLink to="/tasks" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><ListTodo size={20} /> My Tasks</NavLink></li>
+                            <li><NavLink to="/time-logs" className="nav-link" style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem' }}><Clock size={20} /> Time Logs</NavLink></li>
+                        </>
+                    )}
                 </ul>
             </nav>
 

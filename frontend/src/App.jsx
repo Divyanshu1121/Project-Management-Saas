@@ -40,19 +40,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
     return (
         <Routes>
-            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
-            {/* Registration is now handled manually/internally */}
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Protected Routes */}
             <Route path="/" element={<Layout />}>
-                {/* Default Redirect based on Role */}
                 <Route index element={<NavigateToDashboard />} />
 
                 {/* Super Admin */}
                 <Route
-                    path="admin"
+                    path="admin/*"
                     element={
                         <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
                             <AdminDashboard />

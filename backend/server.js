@@ -25,6 +25,8 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/sprints', require('./routes/sprintRoutes'));
 app.use('/api/time-logs', require('./routes/timeLogRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/company', require('./routes/companyUserRoutes'));
+app.use('/api/company', require('./routes/companyDashboardRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');

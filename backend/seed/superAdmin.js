@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs'); // Imported as per requirements, but hashing is handled by User model
 const User = require('../models/User');
 const connectDB = require('../config/db');
 
@@ -13,20 +14,22 @@ const seedSuperAdmin = async () => {
 
         if (superAdminExists) {
             console.log('Super Admin already exists');
-            process.exit();
+            process.exit(0);
         }
 
-        const superAdmin = await User.create({
+        // Password hashing is handled by the User model's pre-save hook.
+        // We pass the plain text password here.
+        await User.create({
             name: 'Super Admin',
-            email: 'admin@platform.com',
-            password: 'password123', // Will be hashed by pre-save hook
+            email: 'admin@saas.com',
+            password: 'Admin@123',
             role: 'SUPER_ADMIN',
         });
 
-        console.log(`Super Admin created: ${superAdmin.email}`);
-        process.exit();
+        console.log('Super Admin created successfully');
+        process.exit(0);
     } catch (error) {
-        console.error(error);
+        console.error('Error seeding Super Admin:', error);
         process.exit(1);
     }
 };

@@ -4,7 +4,6 @@ const generateToken = require('../utils/generateToken');
 const createProjectManager = async (userData, companyId) => {
     const { name, email, password } = userData;
 
-    // Check availability
     const userExists = await User.findOne({ email });
     if (userExists) {
         throw new Error('User already exists');
@@ -27,8 +26,9 @@ const createProjectManager = async (userData, companyId) => {
     };
 };
 
-const getAllUsers = async (companyId) => {
-    return await User.find({ companyId }).select('-password');
+const getAllUsers = async (companyId = null) => {
+    const query = companyId ? { companyId } : {};
+    return await User.find(query).select('-password').populate('companyId', 'name');
 };
 
 module.exports = {
