@@ -6,13 +6,14 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/auth/Login';
 // import Register from './pages/auth/Register';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import OwnerDashboard from './pages/owner/OwnerDashboard';
+import CompanyDashboard from './pages/owner/CompanyDashboard';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import Unauthorized from './pages/auth/Unauthorized'; // To be created
 
 // Components
 import Layout from './components/layout/Layout';
+import SettingsPage from './pages/common/SettingsPage';
 
 // Additional Pages (Fixed imports)
 // import CreateProject from './pages/projects/CreateProject'; // Verify if this exists
@@ -57,12 +58,12 @@ function App() {
                     }
                 />
 
-                {/* Company Owner */}
+                {/* Company Leadership (CEO, CTO, CFO, COO, OWNER) */}
                 <Route
-                    path="owner"
+                    path="company"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER']}>
-                            <OwnerDashboard />
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard />
                         </ProtectedRoute>
                     }
                 />
@@ -86,6 +87,16 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                {/* Shared Settings Route */}
+                <Route
+                    path="settings"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE']}>
+                            <SettingsPage />
+                        </ProtectedRoute>
+                    }
+                />
             </Route>
 
             <Route path="*" element={<Navigate to="/login" />} />
@@ -104,7 +115,11 @@ const NavigateToDashboard = () => {
         case 'SUPER_ADMIN':
             return <Navigate to="/admin" />;
         case 'COMPANY_OWNER':
-            return <Navigate to="/owner" />;
+        case 'CEO':
+        case 'CTO':
+        case 'CFO':
+        case 'COO':
+            return <Navigate to="/company" />;
         case 'PROJECT_MANAGER':
             return <Navigate to="/manager" />;
         case 'EMPLOYEE':

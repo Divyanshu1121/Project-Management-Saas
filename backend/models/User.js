@@ -17,13 +17,24 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['SUPER_ADMIN', 'COMPANY_OWNER', 'PROJECT_MANAGER', 'EMPLOYEE'],
+        role: {
+            type: String,
+            enum: ['SUPER_ADMIN', 'COMPANY_OWNER', 'CEO', 'PROJECT_MANAGER', 'EMPLOYEE', 'CTO', 'CFO', 'COO'],
+            default: 'EMPLOYEE',
+        },
         default: 'EMPLOYEE',
     },
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
         // Optional for SUPER_ADMIN, required for others (enforced in validation/controller usually)
+    },
+    empId: {
+        type: String,
+    },
+    teamId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team',
     },
 }, { timestamps: true });
 

@@ -63,13 +63,8 @@ const Navbar = () => {
                         </div>
                         <ul style={{ listStyle: 'none', padding: '0.5rem 0', margin: 0 }}>
                             <li>
-                                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#374151', textDecoration: 'none', transition: 'bg 0.2s' }} className="dropdown-item">
+                                <Link to={user.role === 'SUPER_ADMIN' ? "/admin/settings" : "/settings"} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#374151', textDecoration: 'none', transition: 'bg 0.2s' }} className="dropdown-item">
                                     <User size={16} /> Profile
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/settings" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#374151', textDecoration: 'none', transition: 'bg 0.2s' }} className="dropdown-item">
-                                    <Settings size={16} /> Settings
                                 </Link>
                             </li>
                             <li style={{ borderTop: '1px solid #f3f4f6', marginTop: '0.5rem', paddingTop: '0.5rem' }}>

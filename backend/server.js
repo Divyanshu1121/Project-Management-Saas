@@ -27,6 +27,7 @@ app.use('/api/time-logs', require('./routes/timeLogRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/company', require('./routes/companyUserRoutes'));
 app.use('/api/company', require('./routes/companyDashboardRoutes'));
+app.use('/api/company/teams', require('./routes/companyTeamRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');

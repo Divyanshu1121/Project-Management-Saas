@@ -5,55 +5,39 @@ const Company = require('../models/Company');
 
 // @desc    Get Company Dashboard Stats
 // @route   GET /api/company/dashboard
-// @access  Private (Company Owner, Project Manager, Employee - maybe restricted?)
-// Requirement: "All queries must filter using: req.user.companyId"
+// @access  Private (Company Owner)
 const getCompanyDashboard = async (req, res) => {
     try {
         const companyId = req.user.companyId;
 
         // 1. Company Details
-        const company = await Company.findById(companyId).select('name _id ownerId createdAt isActive plan');
+        const company = await Company.findById(companyId).select('name _id plan status createdAt isActive');
 
-        // 2. Total Users in Company
+        // 2. Stats
         const totalUsers = await User.countDocuments({ companyId });
-
-        // 3. Total Project Managers
         const totalProjectManagers = await User.countDocuments({ companyId, role: 'PROJECT_MANAGER' });
-
-        // 4. Total Employees
         const totalEmployees = await User.countDocuments({ companyId, role: 'EMPLOYEE' });
-
-        // 5. Total Projects
         const totalProjects = await Project.countDocuments({ companyId });
 
-        // 6. Total Tasks (Tasks belong to projects which belong to company)
-        // Since tasks are linked to projects, and projects are linked to company, we can:
-        // Option A: Find all projects for company, then count tasks for those projects.
-        // Option B: If Task schema had companyId directly (it doesn't in previous view), we'd use that.
-        // Checking Task.js: It has projectId. Project.js has companyId.
-
-        // We need to find all projects for this company first
-        const projects = await Project.find({ companyId }).select('_id');
-        const projectIds = projects.map(p => p._id);
-
-        const totalTasks = await Task.countDocuments({ projectId: { $in: projectIds } });
-
-        // 7. Tasks by Status
-        // Since Task schema doesn't have companyId (it has projectId), we need to aggregate based on projectIds found in step 6.
-        const tasksByStatus = await Task.aggregate([
-            { $match: { projectId: { $in: projectIds } } },
-            { $group: { _id: '$status', count: { $sum: 1 } } }
-        ]);
+        // Count tasks using the new companyId field
+        // Note: For existing tasks without companyId, this will return 0 unless migrated. 
+        // We could fallback to the old method if count is 0, but for now we follow the requirement.
+        const totalTasks = await Task.countDocuments({ companyId });
 
         res.status(200).json({
-            company,
+            company: {
+                name: company.name,
+                _id: company._id,
+                plan: company.plan,
+                status: company.isActive ? 'Active' : 'Inactive', // Derived status if not explicit field
+                createdAt: company.createdAt
+            },
             stats: {
-                totalUsers,
+                totalUsers, // keeping for backward cap if needed, though not explicitly asked in stats cards list
                 totalProjectManagers,
                 totalEmployees,
                 totalProjects,
-                totalTasks,
-                tasksByStatus, // Include this for the chart
+                totalTasks
             }
         });
     } catch (error) {

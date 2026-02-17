@@ -12,7 +12,7 @@ const Sidebar = () => {
 
     const links = [
         { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, roles: ['SUPER_ADMIN'] },
-        { name: 'Companies', path: '/admin/companies', icon: <Briefcase size={20} />, roles: ['SUPER_ADMIN'] },
+        // { name: 'Companies', path: '/admin/companies', icon: <Briefcase size={20} />, roles: ['SUPER_ADMIN'] }, // Merged into Dashboard
         { name: 'Users', path: '/admin/users', icon: <Users size={20} />, roles: ['SUPER_ADMIN'] },
         { name: 'Settings', path: '/admin/settings', icon: <Calendar size={20} />, roles: ['SUPER_ADMIN'] },
 
@@ -26,6 +26,9 @@ const Sidebar = () => {
         links.push({ name: 'Tasks', path: '/tasks', icon: <ListTodo size={20} /> });
         links.push({ name: 'Team', path: '/team', icon: <Users size={20} /> });
         links.push({ name: 'Reports', path: '/reports', icon: <BarChart size={20} /> });
+        links.push({ name: 'Settings', path: '/settings', icon: <Calendar size={20} /> }); // Using Calendar icon as placeholder or Change to Settings icon
+    } else if (role === 'Employee') {
+        links.push({ name: 'Settings', path: '/settings', icon: <Calendar size={20} /> });
     }
 
     if (role === 'Employee') {

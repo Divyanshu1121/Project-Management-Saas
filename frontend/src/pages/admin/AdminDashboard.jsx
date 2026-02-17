@@ -7,8 +7,15 @@ const AdminDashboard = () => {
     return (
         <div style={{ padding: '2rem' }}>
             <Routes>
-                <Route path="/" element={<DashboardStatsView />} />
-                <Route path="companies" element={<CompaniesView />} />
+                <Route path="/" element={
+                    <>
+                        <DashboardStatsView />
+                        <div style={{ marginTop: '2rem' }}>
+                            <CompaniesView />
+                        </div>
+                    </>
+                } />
+                {/* <Route path="companies" element={<CompaniesView />} />  Merged into main dashboard */}
                 <Route path="users" element={<UsersView />} />
                 <Route path="settings" element={<SettingsView />} />
                 <Route path="*" element={<Navigate to="/admin" />} />
@@ -237,10 +244,13 @@ const UsersView = () => {
     );
 };
 
+import ProfileView from '../../components/common/ProfileView';
+
+// ... (existing imports and code)
+
 const SettingsView = () => (
-    <div className="card">
-        <h3>Settings</h3>
-        <p style={{ color: '#666', marginTop: '1rem' }}>Global platform settings will typically go here.</p>
+    <div style={{ padding: '1rem' }}>
+        <ProfileView />
     </div>
 );
 

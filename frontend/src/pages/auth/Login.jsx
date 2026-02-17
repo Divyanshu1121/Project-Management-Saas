@@ -22,7 +22,14 @@ const Login = () => {
 
             switch (res.data.role) {
                 case 'SUPER_ADMIN': navigate('/admin'); break;
-                case 'COMPANY_OWNER': navigate('/owner'); break;
+                // Redirect all leadership roles to the same company dashboard
+                case 'COMPANY_OWNER':
+                case 'CEO':
+                case 'CTO':
+                case 'CFO':
+                case 'COO':
+                    navigate('/company');
+                    break;
                 case 'PROJECT_MANAGER': navigate('/manager'); break;
                 case 'EMPLOYEE': navigate('/employee'); break;
                 default: navigate('/');
