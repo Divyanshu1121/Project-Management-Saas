@@ -3,14 +3,11 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const Company = require('../models/Company');
 
-// @desc    Get Company Dashboard Stats
-// @route   GET /api/company/dashboard
-// @access  Private (Company Owner)
+
 const getCompanyDashboard = async (req, res) => {
     try {
         const companyId = req.user.companyId;
 
-        // 1. Company Details
         const company = await Company.findById(companyId).select('name _id plan status createdAt isActive');
 
         // 2. Stats
@@ -19,9 +16,6 @@ const getCompanyDashboard = async (req, res) => {
         const totalEmployees = await User.countDocuments({ companyId, role: 'EMPLOYEE' });
         const totalProjects = await Project.countDocuments({ companyId });
 
-        // Count tasks using the new companyId field
-        // Note: For existing tasks without companyId, this will return 0 unless migrated. 
-        // We could fallback to the old method if count is 0, but for now we follow the requirement.
         const totalTasks = await Task.countDocuments({ companyId });
 
         res.status(200).json({

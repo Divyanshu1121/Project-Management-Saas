@@ -5,7 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
 router.post('/', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), createProject);
-router.get('/', protect, getProjects); // accessible by all authenticated users in the company
+router.get('/', protect, getProjects);
 router.delete('/:id', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), require('../controllers/projectController').deleteProject);
 
 module.exports = router;

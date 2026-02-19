@@ -12,7 +12,6 @@ const createProject = async (projectData, managerId, companyId) => {
 };
 
 const getProjects = async (companyId) => {
-    // Only fetch projects for the user's company
     return await Project.find({ companyId })
         .populate('createdBy', 'name')
         .sort({ createdAt: -1 });
@@ -24,11 +23,9 @@ const deleteProject = async (projectId, companyId) => {
         throw new Error('Project not found');
     }
 
-    // Delete associated tasks
     const taskDeleteResult = await Task.deleteMany({ projectId });
     console.log(`Service: Deleted ${taskDeleteResult.deletedCount} tasks for Project ID: ${projectId}`);
 
-    // Delete project
     await Project.findByIdAndDelete(projectId);
     console.log(`Service: Deleted Project ID: ${projectId}`);
 

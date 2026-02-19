@@ -1,9 +1,6 @@
 const Team = require('../models/Team');
 const User = require('../models/User');
 
-// @desc    Create a new team
-// @route   POST /api/company/teams
-// @access  Private (Leadership only)
 const createTeam = async (req, res) => {
     try {
         const { name } = req.body;
@@ -27,16 +24,13 @@ const createTeam = async (req, res) => {
     }
 };
 
-// @desc    Get all teams for the company
-// @route   GET /api/company/teams
-// @access  Private (Leadership only)
 const getTeams = async (req, res) => {
     try {
         const companyId = req.user.companyId;
 
         const teams = await Team.find({ companyId })
             .populate('createdBy', 'name')
-            .populate('members', 'name email role')
+            .populate('members', 'name email role empId')
             .sort({ createdAt: -1 });
 
         res.json(teams);
@@ -46,9 +40,6 @@ const getTeams = async (req, res) => {
     }
 };
 
-// @desc    Delete a team
-// @route   DELETE /api/company/teams/:id
-// @access  Private (Leadership only)
 const deleteTeam = async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
@@ -57,7 +48,6 @@ const deleteTeam = async (req, res) => {
             return res.status(404).json({ message: 'Team not found' });
         }
 
-        // Ensure the team belongs to the user's company
         if (team.companyId.toString() !== req.user.companyId.toString()) {
             return res.status(403).json({ message: 'Not authorized to delete this team' });
         }
@@ -70,9 +60,6 @@ const deleteTeam = async (req, res) => {
     }
 };
 
-// @desc    Add member to team
-// @route   POST /api/company/teams/:id/members
-// @access  Private (Leadership only)
 const addMember = async (req, res) => {
     try {
         const { userId } = req.body;
@@ -104,9 +91,6 @@ const addMember = async (req, res) => {
     }
 };
 
-// @desc    Remove member from team
-// @route   DELETE /api/company/teams/:id/members/:userId
-// @access  Private (Leadership only)
 const removeMember = async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
@@ -133,10 +117,88 @@ const removeMember = async (req, res) => {
     }
 };
 
+const updateEmployee = async (req, res) => {
+    try {
+        const { name, email, teamId } = req.body;
+        const companyId = req.user.companyId;
+
+        // Find the employee and ensure they belong to the same company
+        const employee = await User.findOne({ _id: req.params.id, companyId, role: 'EMPLOYEE' });
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found in your company' });
+        }
+
+        // Update allowed fields only
+        if (name) employee.name = name;
+        if (email) employee.email = email;
+        await employee.save();
+
+        // Handle team transfer if a new teamId is provided
+        if (teamId && teamId !== '') {
+            const newTeam = await Team.findOne({ _id: teamId, companyId });
+            if (!newTeam) {
+                return res.status(404).json({ message: 'Target team not found in your company' });
+            }
+
+            // Remove from all current teams in this company
+            await Team.updateMany(
+                { companyId, members: employee._id },
+                { $pull: { members: employee._id } }
+            );
+
+            // Add to new team if not already a member
+            if (!newTeam.members.includes(employee._id)) {
+                newTeam.members.push(employee._id);
+                await newTeam.save();
+            }
+        }
+
+        res.json({
+            _id: employee._id,
+            name: employee.name,
+            email: employee.email,
+            empId: employee.empId,
+            role: employee.role,
+            companyId: employee.companyId,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const updateTeam = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const companyId = req.user.companyId;
+
+        const team = await Team.findOne({ _id: req.params.id, companyId });
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found in your company' });
+        }
+
+        if (name && name.trim()) team.name = name.trim();
+        if (description !== undefined) team.description = description;
+
+        await team.save();
+
+        const updated = await Team.findById(team._id)
+            .populate('createdBy', 'name')
+            .populate('members', 'name email role empId');
+
+        res.json(updated);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
     createTeam,
     getTeams,
     deleteTeam,
     addMember,
-    removeMember
+    removeMember,
+    updateEmployee,
+    updateTeam
 };
