@@ -8,7 +8,7 @@ const leadershipRoles = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'VP'];
 
 router.route('/')
     .post(protect, roleCheck(leadershipRoles), createTeam)
-    .get(protect, roleCheck(leadershipRoles), getTeams);
+    .get(protect, roleCheck([...leadershipRoles, 'PROJECT_MANAGER']), getTeams);
 
 router.route('/:id')
     .delete(protect, roleCheck(leadershipRoles), deleteTeam)

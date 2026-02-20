@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Users, ChevronDown, ChevronRight, Building2, Mail, Shield, BarChart3, Settings as SettingsIcon } from 'lucide-react';
+import CompanyTable from './CompanyTable';
 
 const AdminDashboard = () => {
+    const location = useLocation();
+    const currentTab = location.pathname.split('/').pop() || 'admin';
 
     return (
-        <div style={{ padding: '2rem' }}>
+        <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
             <Routes>
                 <Route path="/" element={
                     <>
                         <DashboardStatsView />
-                        <div style={{ marginTop: '2rem' }}>
+                        <div style={{ marginTop: '2.5rem' }}>
                             <CompaniesView />
                         </div>
                     </>
@@ -73,7 +77,7 @@ const CompaniesView = () => {
 
     const fetchData = async () => {
         try {
-            const res = await api.get('/companies');
+            const res = await api.get('/admin/companies');
             setCompanies(res.data);
             setLoading(false);
         } catch (err) { console.error(err); setLoading(false); }
@@ -115,6 +119,7 @@ const CompaniesView = () => {
             alert(err.response?.data?.message || 'Error deleting company');
         }
     };
+
     const handleToggleStatus = async (company) => {
         try {
             await api.put(`/companies/${company._id}`, { isActive: !company.isActive });
@@ -125,67 +130,47 @@ const CompaniesView = () => {
     };
 
     const filteredCompanies = companies.filter(c => {
-        const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.ownerId?.email?.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+            c.owner?.email?.toLowerCase().includes(search.toLowerCase());
         if (statusFilter === "ACTIVE") return matchesSearch && c.isActive;
         if (statusFilter === "PAUSED") return matchesSearch && !c.isActive;
         return matchesSearch;
     }).sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading companies...</div>;
 
     return (
-        <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3>Registered Companies</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}>
-                        <option value="ALL">All Status</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="PAUSED">Paused</option>
-                    </select>
-                    <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} style={{ padding: '0.5rem 1rem', border: '1px solid #ddd', borderRadius: '4px', background: 'white', cursor: 'pointer' }}>
-                        Sort {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>Registered Companies</h3>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>Overview of all tenants and their platform usage</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
+                        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ padding: '0.5rem 0.75rem', border: 'none', fontSize: '0.85rem', color: '#475569', outline: 'none' }}>
+                            <option value="ALL">All Status</option>
+                            <option value="ACTIVE">Active Only</option>
+                            <option value="PAUSED">Paused Only</option>
+                        </select>
+                        <div style={{ width: '1px', background: '#e2e8f0' }} />
+                        <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} style={{ padding: '0.5rem 0.75rem', border: 'none', background: 'white', cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
+                            Sort {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+                        </button>
+                    </div>
+                    <input type="text" placeholder="Search companies..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', width: '280px', fontSize: '0.85rem', outline: 'none' }} />
+                    <button className="btn btn-primary" onClick={handleOpenCreate} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Building2 size={16} /> New Company
                     </button>
-                    <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', width: '250px' }} />
-                    <button className="btn btn-primary" onClick={handleOpenCreate}>+ New Company</button>
                 </div>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
-                            <th style={{ padding: '1rem' }}>Sr No.</th>
-                            <th style={{ padding: '1rem' }}>ID</th>
-                            <th style={{ padding: '1rem' }}>Company</th>
-                            <th style={{ padding: '1rem' }}>Owner</th>
-                            <th style={{ padding: '1rem' }}>Plan</th>
-                            <th style={{ padding: '1rem' }}>Status</th>
-                            <th style={{ padding: '1rem' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredCompanies.map((company, index) => (
-                            <tr key={company._id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '1rem' }}>{index + 1}</td>
-                                <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.9rem' }} title={company._id}>{company._id.substring(0, 6)}...{company._id.substring(company._id.length - 4)}</td>
-                                <td style={{ padding: '1rem' }}>{company.name}</td>
-                                <td style={{ padding: '1rem' }}>{company.ownerId?.name}<br /><small style={{ color: '#666' }}>{company.ownerId?.email}</small></td>
-                                <td style={{ padding: '1rem' }}><span style={{ padding: '0.25rem 0.5rem', background: '#f3f4f6', borderRadius: '4px' }}>{company.plan}</span></td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{ padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.85rem', background: company.isActive ? '#dcfce7' : '#ffedd5', color: company.isActive ? '#166534' : '#9a3412', cursor: 'pointer' }} onClick={() => handleToggleStatus(company)}>
-                                        {company.isActive ? 'Active' : 'Paused'}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <button onClick={() => handleOpenEdit(company)} style={{ marginRight: '0.5rem', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer' }}>Edit</button>
-                                    <button onClick={() => handleDelete(company._id)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <CompanyTable
+                companies={filteredCompanies}
+                onEdit={handleOpenEdit}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+            />
 
             {showModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
@@ -221,24 +206,135 @@ const CompaniesView = () => {
 
 const UsersView = () => {
     const [users, setUsers] = useState([]);
-    useEffect(() => { api.get('/users').then(res => setUsers(res.data)).catch(console.error); }, []);
+    const [expanded, setExpanded] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.get('/admin/users').then(res => {
+            setUsers(res.data);
+            setLoading(false);
+        }).catch(err => {
+            console.error(err);
+            setLoading(false);
+        });
+    }, []);
+
+    const toggle = (companyId) => {
+        setExpanded(prev => ({ ...prev, [companyId]: !prev[companyId] }));
+    };
+
+    const grouped = React.useMemo(() => {
+        return users.reduce((acc, u) => {
+            const cid = u.companyId?._id || 'unassigned';
+            if (!acc[cid]) {
+                acc[cid] = {
+                    name: u.companyId?.name || 'Unassigned / System Admins',
+                    members: []
+                };
+            }
+            acc[cid].members.push(u);
+            return acc;
+        }, {});
+    }, [users]);
+
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading platform users...</div>;
+
     return (
-        <div className="card">
-            <h3 style={{ marginBottom: '1rem' }}>Platform Users</h3>
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead><tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}><th style={{ padding: '1rem' }}>Name</th><th style={{ padding: '1rem' }}>Email</th><th style={{ padding: '1rem' }}>Role</th><th style={{ padding: '1rem' }}>Company</th></tr></thead>
-                    <tbody>
-                        {users.map((user) => (
-                            <tr key={user._id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '1rem' }}>{user.name}</td>
-                                <td style={{ padding: '1rem' }}>{user.email}</td>
-                                <td style={{ padding: '1rem' }}><span style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.85rem' }}>{user.role}</span></td>
-                                <td style={{ padding: '1rem' }}>{user.companyId?.name || 'N/A'}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                    <Users size={20} />
+                </div>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>Platform Administrators</h2>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Authorized company owners and system admins</p>
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {Object.entries(grouped).map(([cid, group]) => {
+                    const isOpen = expanded[cid];
+                    return (
+                        <div key={cid} style={{ background: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                            {/* Company Header / Toggle */}
+                            <div
+                                onClick={() => toggle(cid)}
+                                style={{
+                                    padding: '1rem 1.25rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    cursor: 'pointer',
+                                    background: isOpen ? '#f8fafc' : 'white',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ color: '#94a3b8' }}>
+                                        {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                    </div>
+                                    <div style={{ width: 32, height: 32, borderRadius: '6px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                        <Building2 size={16} />
+                                    </div>
+                                    <div>
+                                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: '#1e293b' }}>{group.name}</h4>
+                                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{group.members.length} member{group.members.length !== 1 ? 's' : ''}</span>
+                                    </div>
+                                </div>
+                                <span style={{ padding: '0.25rem 0.75rem', borderRadius: '2rem', background: '#f1f5f9', color: '#475569', fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Details
+                                </span>
+                            </div>
+
+                            {/* Members Table (Accordion Content) */}
+                            {isOpen && (
+                                <div style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid #f1f5f9' }}>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+                                            <thead>
+                                                <tr style={{ textAlign: 'left', borderBottom: '1px solid #f1f5f9' }}>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Member Name</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Email Address</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>System Role</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {group.members.map((user) => (
+                                                    <tr key={user._id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                                        <td style={{ padding: '1rem 0.5rem' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700 }}>
+                                                                    {user.name.charAt(0)}
+                                                                </div>
+                                                                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>{user.name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '1rem 0.5rem', fontSize: '0.85rem', color: '#64748b' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                                <Mail size={12} /> {user.email}
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '1rem 0.5rem' }}>
+                                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.6rem', borderRadius: '4px', background: '#eff6ff', color: '#1e40af', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                                <Shield size={10} /> {user.role}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+
+                {users.length === 0 && !loading && (
+                    <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        No users found on the platform.
+                    </div>
+                )}
             </div>
         </div>
     );

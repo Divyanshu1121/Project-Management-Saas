@@ -1,5 +1,4 @@
 const Project = require('../models/Project');
-
 const Task = require('../models/Task');
 
 const createProject = async (projectData, managerId, companyId) => {
@@ -14,7 +13,27 @@ const createProject = async (projectData, managerId, companyId) => {
 const getProjects = async (companyId) => {
     return await Project.find({ companyId })
         .populate('createdBy', 'name')
+        .populate('teamAssigned', 'name')
         .sort({ createdAt: -1 });
+};
+
+const updateProject = async (projectId, companyId, data) => {
+    const project = await Project.findOne({ _id: projectId, companyId });
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    const allowedFields = ['name', 'description', 'status', 'startDate', 'deadline', 'teamAssigned'];
+    allowedFields.forEach(field => {
+        if (data[field] !== undefined) {
+            project[field] = data[field];
+        }
+    });
+
+    await project.save();
+    return await Project.findById(projectId)
+        .populate('createdBy', 'name')
+        .populate('teamAssigned', 'name');
 };
 
 const deleteProject = async (projectId, companyId) => {
@@ -35,5 +54,6 @@ const deleteProject = async (projectId, companyId) => {
 module.exports = {
     createProject,
     getProjects,
+    updateProject,
     deleteProject,
 };

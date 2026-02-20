@@ -2,24 +2,36 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-// Pages (Placeholders for now)
+// Auth pages
 import Login from './pages/auth/Login';
-// import Register from './pages/auth/Register';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import CompanyDashboard from './pages/owner/CompanyDashboard';
-import ManagerDashboard from './pages/manager/ManagerDashboard';
-import EmployeeDashboard from './pages/employee/EmployeeDashboard';
-import Unauthorized from './pages/auth/Unauthorized'; // To be created
+import Unauthorized from './pages/auth/Unauthorized';
 
-// Components
+// Layout
 import Layout from './components/layout/Layout';
-import SettingsPage from './pages/common/SettingsPage';
 
-// Additional Pages (Fixed imports)
-// import CreateProject from './pages/projects/CreateProject'; // Verify if this exists
-// import ProjectDetails from './pages/projects/ProjectDetails'; // Verify if this exists
-// import TimeLogsPage from './pages/tasks/TimeLogsPage'; // Verify if this exists
-// import ReportsPage from './pages/reports/ReportsPage'; // Verify if this exists
+// Admin
+import AdminDashboard from './pages/admin/AdminDashboard';
+
+// Company (Owner panel)
+import CompanyDashboard from './pages/owner/CompanyDashboard';
+
+// Manager
+import ManagerDashboard from './pages/manager/ManagerDashboard';
+import ProjectsPage from './pages/manager/ProjectsPage';
+import ProjectView from './pages/manager/ProjectView';
+import ManagerTasksPage from './pages/manager/ManagerTasksPage';
+import ManagerTeamPage from './pages/manager/ManagerTeamPage';
+import WorkloadPage from './pages/manager/WorkloadPage';
+
+// Employee
+import EmployeeDashboard from './pages/employee/EmployeeDashboard';
+import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
+import EmployeeTimeLogsPage from './pages/employee/EmployeeTimeLogsPage';
+
+// Shared
+import SettingsPage from './pages/common/SettingsPage';
+import ReportsPage from './pages/reports/ReportsPage';
+import TimeLogsPage from './pages/tasks/TimeLogsPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -58,7 +70,7 @@ function App() {
                     }
                 />
 
-                {/* Company Leadership (CEO, CTO, CFO, COO, OWNER) */}
+                {/* Company Leadership */}
                 <Route
                     path="company"
                     element={
@@ -77,6 +89,54 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="manager/projects"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <ProjectsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/projects/:id"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <ProjectView />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/workload"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <WorkloadPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/tasks"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <ManagerTasksPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/team"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <ManagerTeamPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/reports"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <ReportsPage />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Employee */}
                 <Route
@@ -87,8 +147,24 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="employee/tasks"
+                    element={
+                        <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+                            <EmployeeTasksPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="employee/time-logs"
+                    element={
+                        <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+                            <EmployeeTimeLogsPage />
+                        </ProtectedRoute>
+                    }
+                />
 
-                {/* Shared Settings Route */}
+                {/* Shared Settings */}
                 <Route
                     path="settings"
                     element={
@@ -104,7 +180,7 @@ function App() {
     );
 }
 
-// Check role and redirect to appropriate dashboard
+// Redirect to role-appropriate dashboard
 const NavigateToDashboard = () => {
     const { user, loading } = useAuth();
 
@@ -125,8 +201,6 @@ const NavigateToDashboard = () => {
         case 'EMPLOYEE':
             return <Navigate to="/employee" />;
         default:
-            // Valid token but unknown role (e.g. old enum 'Platform Admin')
-            // Logout and redirect to login
             localStorage.removeItem('token');
             window.location.href = '/login';
             return null;

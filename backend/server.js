@@ -18,6 +18,7 @@ app.use(cookieParser());
 connectDB();
 
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
@@ -28,6 +29,8 @@ app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/company', require('./routes/companyUserRoutes'));
 app.use('/api/company', require('./routes/companyDashboardRoutes'));
 app.use('/api/company/teams', require('./routes/companyTeamRoutes'));
+app.use('/api/manager', require('./routes/managerRoutes'));
+app.use('/api/employee', require('./routes/employeeRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');

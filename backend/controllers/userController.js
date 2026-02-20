@@ -14,7 +14,7 @@ const getUsers = async (req, res) => {
         let companyId = req.user.companyId;
 
         if (req.user.role === 'SUPER_ADMIN') {
-            companyId = null;
+            return res.status(403).json({ message: 'Super admin must use dedicated admin endpoints' });
         }
 
         const users = await userService.getAllUsers(companyId);

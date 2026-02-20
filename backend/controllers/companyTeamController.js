@@ -17,7 +17,12 @@ const createTeam = async (req, res) => {
         });
 
         await team.save();
-        res.status(201).json(team);
+
+        const populated = await Team.findById(team._id)
+            .populate('createdBy', 'name email')
+            .populate('members', 'name email role empId');
+
+        res.status(201).json(populated);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

@@ -23,9 +23,16 @@ const projectSchema = new mongoose.Schema({
         enum: ['Planning', 'Active', 'Completed', 'On Hold'],
         default: 'Planning',
     },
+    startDate: {
+        type: Date,
+    },
     deadline: {
         type: Date,
     },
+    teamAssigned: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team',
+    }],
 }, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);

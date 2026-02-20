@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { createProject, getProjects } = require('../controllers/projectController');
+const { createProject, getProjects, updateProject, deleteProject } = require('../controllers/projectController');
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-router.post('/', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), createProject);
+const managerOrOwner = roleCheck(['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'PROJECT_MANAGER']);
+
+router.post('/', protect, managerOrOwner, createProject);
 router.get('/', protect, getProjects);
-router.delete('/:id', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), require('../controllers/projectController').deleteProject);
+router.put('/:id', protect, managerOrOwner, updateProject);
+router.delete('/:id', protect, managerOrOwner, deleteProject);
 
 module.exports = router;

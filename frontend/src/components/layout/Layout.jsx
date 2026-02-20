@@ -1,19 +1,14 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Navbar from './Navbar';
 import './layout.css';
 
 const Layout = () => {
-    const location = useLocation();
-    const isCompanyPanel = location.pathname.startsWith('/company');
-
     return (
         <div className="layout-container">
-            {!isCompanyPanel && <Sidebar />}
+            <Sidebar />
             <div className="main-content">
-                {!isCompanyPanel && <Navbar />}
-                <div className="page-content" style={isCompanyPanel ? { padding: 0 } : {}}>
+                <div className="page-content">
                     <Outlet />
                 </div>
             </div>
