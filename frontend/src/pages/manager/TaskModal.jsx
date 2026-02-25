@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, AlertCircle } from 'lucide-react';
 
 const STATUS_OPTIONS = [
     { value: 'TODO', label: 'To Do' },
@@ -17,11 +17,14 @@ const PRIORITY_OPTIONS = [
     { value: 'URGENT', label: 'Urgent' },
 ];
 
-const Field = ({ label, required, children }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>
-            {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
-        </label>
+const Field = ({ label, required, children, action }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', position: 'relative' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '1.2rem' }}>
+            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>
+                {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+            </label>
+            {action}
+        </div>
         {children}
     </div>
 );
@@ -60,6 +63,16 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
     const [employees, setEmployees] = useState([]);
     const [empLoading, setEmpLoading] = useState(false);
     const [newSubtask, setNewSubtask] = useState('');
+    const [aiLoading, setAiLoading] = useState({
+        description: false,
+        definition: false,
+        subtasks: false
+    });
+    const [aiGenerated, setAiGenerated] = useState({
+        description: false,
+        definition: false,
+        subtasks: false
+    });
 
     useEffect(() => {
         if (!open) return;
@@ -82,12 +95,50 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                 subtasks: initialData.subtasks || [],
                 projectId: initialData.projectId?._id || initialData.projectId || '',
             });
+            setAiGenerated({
+                description: !!initialData.description,
+                definition: !!initialData.definitionOfDone,
+                subtasks: (initialData.subtasks && initialData.subtasks.length > 0)
+            });
         } else {
             setForm({ title: '', description: '', projectId: projectId || (projects.length > 0 ? projects[0]._id : ''), status: 'TODO', priority: 'MEDIUM', teamId: '', assignedTo: '', deadline: '', estimatedHours: '', definitionOfDone: '', subtasks: [] });
+            setAiGenerated({ description: false, definition: false, subtasks: false });
         }
         setError('');
         setNewSubtask('');
     }, [open, initialData]);
+
+    const [conflict, setConflict] = useState(null);
+
+    useEffect(() => {
+        if (!form.assignedTo || !form.deadline) {
+            setConflict(null);
+            return;
+        }
+
+        const checkLeave = async () => {
+            try {
+                const res = await api.get('/leaves/conflicts', {
+                    params: {
+                        userId: form.assignedTo,
+                        startDate: form.deadline,
+                        endDate: form.deadline
+                    }
+                });
+                if (res.data.hasConflict) {
+                    setConflict(res.data.conflicts[0]);
+                } else {
+                    setConflict(null);
+                }
+            } catch (err) {
+                console.error('Error checking leave conflict:', err);
+                setConflict(null);
+            }
+        };
+
+        const timer = setTimeout(checkLeave, 500);
+        return () => clearTimeout(timer);
+    }, [form.assignedTo, form.deadline]);
 
     useEffect(() => {
         if (!form.teamId) { setEmployees([]); return; }
@@ -108,6 +159,65 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
 
     const removeSubtask = (idx) => {
         set('subtasks', form.subtasks.filter((_, i) => i !== idx));
+    };
+
+    const handleAiGenerate = async (type) => {
+        if (!form.title.trim()) {
+            alert('Please enter a task title first');
+            return;
+        }
+
+        const project = projects.find(p => p._id === form.projectId);
+        const projectName = project ? project.name : 'Unknown Project';
+
+        setAiLoading(prev => ({ ...prev, [type]: true }));
+        try {
+            const res = await api.post('/ai/generate-task-content', {
+                title: form.title,
+                projectName,
+                type
+            });
+
+            if (type === 'description') {
+                set('description', res.data.description.replace(/\*/g, ''));
+            } else if (type === 'definition') {
+                set('definitionOfDone', res.data.definitionOfDone.replace(/\*/g, ''));
+            } else if (type === 'subtasks') {
+                const newSubtasks = res.data.subtasks.map(title => ({ title: title.replace(/\*/g, ''), isCompleted: false }));
+                set('subtasks', newSubtasks);
+            }
+            setAiGenerated(prev => ({ ...prev, [type]: true }));
+        } catch (err) {
+            console.error('AI Generation Error:', err);
+            alert('Failed to generate content. Please try again or check your API key.');
+        } finally {
+            setAiLoading(prev => ({ ...prev, [type]: false }));
+        }
+    };
+
+    const aiButtonStyle = (type) => {
+        const isEnabled = form.title.trim() && !aiLoading[type];
+        return {
+            fontSize: '0.68rem',
+            background: isEnabled
+                ? (type === 'subtasks' ? 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)' : 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)')
+                : '#f8fafc',
+            color: isEnabled
+                ? (type === 'subtasks' ? '#7c3aed' : '#0369a1')
+                : '#94a3b8',
+            border: `1px solid ${isEnabled ? (type === 'subtasks' ? '#ddd6fe' : '#bae6fd') : '#e2e8f0'}`,
+            borderRadius: '2rem',
+            padding: '0.2rem 0.65rem',
+            cursor: isEnabled ? 'pointer' : 'not-allowed',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            boxShadow: isEnabled ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+            transition: 'all 0.2s ease',
+            outline: 'none',
+            letterSpacing: '0.01em'
+        };
     };
 
     const handleSubmit = async (e) => {
@@ -157,9 +267,14 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                 onFocus={e => e.target.style.borderColor = '#2563eb'}
                                 onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                             />
+                            {!form.title.trim() && (
+                                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.25rem 0 0' }}>
+                                    Enter task title to generate AI content.
+                                </p>
+                            )}
                         </Field>
 
-                        {/* Project selection (if projects provided) */}
+                        {/* Project selection */}
                         {projects.length > 0 && (
                             <Field label="Project" required>
                                 <select value={form.projectId} onChange={e => set('projectId', e.target.value)} style={inputStyle}>
@@ -170,7 +285,20 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                         )}
 
                         {/* Description */}
-                        <Field label="Description">
+                        <Field
+                            label="Description"
+                            action={
+                                <button
+                                    type="button"
+                                    onClick={() => handleAiGenerate('description')}
+                                    disabled={aiLoading.description || !form.title.trim()}
+                                    style={aiButtonStyle('description')}
+                                >
+                                    {aiLoading.description ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiGenerated.description ? 'Regenerate' : 'Generate with AI'}
+                                </button>
+                            }
+                        >
                             <textarea
                                 value={form.description}
                                 onChange={e => set('description', e.target.value)}
@@ -191,12 +319,12 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                             </Field>
                             <Field label="Status">
                                 <select value={form.status} onChange={e => set('status', e.target.value)} style={inputStyle}>
-                                    {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    {STATUS_OPTIONS.map(o => <option key={o.value} value={o.label}>{o.label}</option>)}
                                 </select>
                             </Field>
                         </div>
 
-                        {/* Team → Employee (cascading) */}
+                        {/* Team → Employee */}
                         <Field label="Assign Team">
                             <select value={form.teamId} onChange={e => { set('teamId', e.target.value); set('assignedTo', ''); }} style={inputStyle}>
                                 <option value="">Select team...</option>
@@ -227,8 +355,14 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                     type="date"
                                     value={form.deadline}
                                     onChange={e => set('deadline', e.target.value)}
-                                    style={inputStyle}
+                                    style={{ ...inputStyle, borderColor: conflict ? '#f59e0b' : '#e2e8f0' }}
                                 />
+                                {conflict && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#d97706', fontSize: '0.75rem', marginTop: '0.25rem', fontWeight: 600 }}>
+                                        <AlertCircle size={14} />
+                                        Employee is on leave
+                                    </div>
+                                )}
                             </Field>
                             <Field label="Est. Hours">
                                 <input
@@ -244,7 +378,20 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                         </div>
 
                         {/* Definition of Done */}
-                        <Field label="Definition of Done">
+                        <Field
+                            label="Definition of Done"
+                            action={
+                                <button
+                                    type="button"
+                                    onClick={() => handleAiGenerate('definition')}
+                                    disabled={aiLoading.definition || !form.title.trim()}
+                                    style={aiButtonStyle('definition')}
+                                >
+                                    {aiLoading.definition ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiGenerated.definition ? 'Regenerate' : 'Generate with AI'}
+                                </button>
+                            }
+                        >
                             <textarea
                                 value={form.definitionOfDone}
                                 onChange={e => set('definitionOfDone', e.target.value)}
@@ -255,7 +402,20 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                         </Field>
 
                         {/* Subtasks */}
-                        <Field label="Subtasks">
+                        <Field
+                            label="Subtasks"
+                            action={
+                                <button
+                                    type="button"
+                                    onClick={() => handleAiGenerate('subtasks')}
+                                    disabled={aiLoading.subtasks || !form.title.trim()}
+                                    style={aiButtonStyle('subtasks')}
+                                >
+                                    {aiLoading.subtasks ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiGenerated.subtasks ? 'Regenerate' : 'Auto-generate List'}
+                                </button>
+                            }
+                        >
                             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                 <input
                                     value={newSubtask}
@@ -298,8 +458,8 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                     </div>
                 </form>
                 <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

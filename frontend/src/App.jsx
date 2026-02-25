@@ -1,39 +1,27 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-
-// Auth pages
 import Login from './pages/auth/Login';
 import Unauthorized from './pages/auth/Unauthorized';
-
-// Layout
 import Layout from './components/layout/Layout';
-
-// Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
-
-// Company (Owner panel)
 import CompanyDashboard from './pages/owner/CompanyDashboard';
-
-// Manager
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ProjectsPage from './pages/manager/ProjectsPage';
 import ProjectView from './pages/manager/ProjectView';
 import ManagerTasksPage from './pages/manager/ManagerTasksPage';
 import ManagerTeamPage from './pages/manager/ManagerTeamPage';
 import WorkloadPage from './pages/manager/WorkloadPage';
-
-// Employee
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
 import EmployeeTimeLogsPage from './pages/employee/EmployeeTimeLogsPage';
-
-// Shared
+import LeaveRequest from './pages/employee/LeaveRequest';
+import LeaveCalendarPage from './pages/manager/LeaveCalendarPage';
+import HRDashboard from './pages/hr/HRDashboard';
 import SettingsPage from './pages/common/SettingsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import TimeLogsPage from './pages/tasks/TimeLogsPage';
 
-// Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
 
@@ -56,11 +44,27 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected Routes */}
+            <Route
+                path="company"
+                element={
+                    <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <CompanyDashboard />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="hr"
+                element={
+                    <ProtectedRoute allowedRoles={['HR']}>
+                        <HRDashboard />
+                    </ProtectedRoute>
+                }
+            />
+
             <Route path="/" element={<Layout />}>
                 <Route index element={<NavigateToDashboard />} />
 
-                {/* Super Admin */}
                 <Route
                     path="admin/*"
                     element={
@@ -70,17 +74,6 @@ function App() {
                     }
                 />
 
-                {/* Company Leadership */}
-                <Route
-                    path="company"
-                    element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
-                            <CompanyDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* Project Manager */}
                 <Route
                     path="manager"
                     element={
@@ -130,6 +123,14 @@ function App() {
                     }
                 />
                 <Route
+                    path="manager/leave-calendar"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <LeaveCalendarPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="manager/reports"
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
@@ -138,7 +139,6 @@ function App() {
                     }
                 />
 
-                {/* Employee */}
                 <Route
                     path="employee"
                     element={
@@ -163,12 +163,19 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="employee/leave"
+                    element={
+                        <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+                            <LeaveRequest />
+                        </ProtectedRoute>
+                    }
+                />
 
-                {/* Shared Settings */}
                 <Route
                     path="settings"
                     element={
-                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE']}>
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
                             <SettingsPage />
                         </ProtectedRoute>
                     }
@@ -180,7 +187,6 @@ function App() {
     );
 }
 
-// Redirect to role-appropriate dashboard
 const NavigateToDashboard = () => {
     const { user, loading } = useAuth();
 
@@ -196,6 +202,8 @@ const NavigateToDashboard = () => {
         case 'CFO':
         case 'COO':
             return <Navigate to="/company" />;
+        case 'HR':
+            return <Navigate to="/hr" />;
         case 'PROJECT_MANAGER':
             return <Navigate to="/manager" />;
         case 'EMPLOYEE':

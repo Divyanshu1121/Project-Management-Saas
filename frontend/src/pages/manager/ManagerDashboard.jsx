@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, CheckSquare, Clock } from 'lucide-react';
+import { Briefcase, CheckSquare, Clock, Calendar } from 'lucide-react';
 
 const ManagerDashboard = () => {
     const [projects, setProjects] = useState([]);
+    const [awayEmployees, setAwayEmployees] = useState([]);
+    const [upcomingLeaves, setUpcomingLeaves] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -16,34 +18,79 @@ const ManagerDashboard = () => {
                 console.error(err);
             }
         };
+
+        const fetchAway = async () => {
+            try {
+                const res = await api.get('/leaves/unavailable');
+                setAwayEmployees(res.data || []);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        const fetchUpcoming = async () => {
+            try {
+                const res = await api.get('/leaves/upcoming');
+                setUpcomingLeaves(res.data || []);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
         fetchProjects();
+        fetchAway();
+        fetchUpcoming();
     }, []);
 
-    const activeCount = projects.filter(p => p.status === 'Active').length;
-    const planningCount = projects.filter(p => p.status === 'Planning').length;
+    const activeCount = projects.filter(p => p.status === 'ACTIVE').length;
+    const planningCount = projects.filter(p => p.status === 'PLANNING').length;
+    const completedCount = projects.filter(p => p.status === 'COMPLETED').length;
 
     const statusColors = {
-        Active: { bg: '#dcfce7', color: '#166534' },
-        Planning: { bg: '#fef9c3', color: '#854d0e' },
-        Completed: { bg: '#dbeafe', color: '#1e40af' },
-        'On Hold': { bg: '#fee2e2', color: '#991b1b' },
+        ACTIVE: { bg: '#dcfce7', color: '#166534' },
+        PLANNING: { bg: '#fef9c3', color: '#854d0e' },
+        COMPLETED: { bg: '#dbeafe', color: '#1e40af' },
+        ON_HOLD: { bg: '#fee2e2', color: '#991b1b' },
     };
 
     return (
         <div>
             <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>
-                    Manager Dashboard
-                </h1>
-                <p style={{ color: '#64748b', margin: 0 }}>Welcome back! Here's a quick overview of your projects.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>
+                            Manager Dashboard
+                        </h1>
+                        <p style={{ color: '#64748b', margin: 0 }}>Welcome back! Here's a quick overview of your projects.</p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/manager/leave-calendar')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                            padding: '0.65rem 1.25rem',
+                            borderRadius: '0.625rem',
+                            backgroundColor: '#eff6ff',
+                            color: '#2563eb',
+                            border: '1px solid #dbeafe',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        <Calendar size={18} />
+                        View Leave Calendar
+                    </button>
+                </div>
             </div>
 
-            {/* Stats grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 {[
                     { label: 'Total Projects', value: projects.length, Icon: Briefcase, color: '#2563eb', bg: '#eff6ff' },
                     { label: 'Active', value: activeCount, Icon: CheckSquare, color: '#16a34a', bg: '#dcfce7' },
                     { label: 'Planning', value: planningCount, Icon: Clock, color: '#d97706', bg: '#fef9c3' },
+                    { label: 'Completed', value: completedCount, Icon: CheckSquare, color: '#2563eb', bg: '#dbeafe' },
                 ].map(({ label, value, Icon, color, bg }) => (
                     <div key={label} style={{
                         background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.875rem',
@@ -59,6 +106,83 @@ const ManagerDashboard = () => {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                {/* Away Today */}
+                <div>
+                    <h3 style={{ margin: '0 0 1rem', fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>Who is away today?</h3>
+                    {awayEmployees.length === 0 ? (
+                        <div style={{ padding: '2rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.875rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+                            Everyone is available today.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {awayEmployees.map(l => (
+                                <div key={l._id} style={{
+                                    background: '#fffbeb',
+                                    border: '1px solid #fef3c7',
+                                    borderRadius: '0.75rem',
+                                    padding: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem'
+                                }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#854d0e', fontSize: '0.9rem', fontWeight: 700 }}>
+                                        {l.userId?.name?.[0]}
+                                    </div>
+                                    <div>
+                                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#854d0e' }}>{l.userId?.name}</p>
+                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#b45309' }}>Away until {new Date(l.endDate).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Away Soon */}
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>Going on leave soon</h3>
+                        <button
+                            onClick={() => navigate('/manager/leave-calendar')}
+                            style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}
+                        >
+                            View Full →
+                        </button>
+                    </div>
+                    {upcomingLeaves.length === 0 ? (
+                        <div style={{ padding: '2rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.875rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+                            No upcoming leaves next 7 days.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {upcomingLeaves.map(l => (
+                                <div key={l._id} style={{
+                                    background: 'white',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '0.75rem',
+                                    padding: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                                }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '0.9rem', fontWeight: 700 }}>
+                                        {l.userId?.name?.[0]}
+                                    </div>
+                                    <div>
+                                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#1e293b' }}>{l.userId?.name}</p>
+                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                                            Starting {new Date(l.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Recent projects */}

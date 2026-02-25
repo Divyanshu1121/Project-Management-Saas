@@ -13,7 +13,6 @@ import CompanySidebar from './CompanySidebar';
 import ProfileView from '../../components/common/ProfileView';
 import CompanyTeams from './CompanyTeams';
 
-// ── Helpers ──────────────────────────────────────────────
 const fmt = (d) => {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -32,10 +31,10 @@ const STATUS_META = {
 };
 
 const PROJECT_STATUS_META = {
-    Planning: { bg: '#fef9c3', color: '#854d0e' },
-    Active: { bg: '#dcfce7', color: '#166534' },
-    Completed: { bg: '#dbeafe', color: '#1e40af' },
-    'On Hold': { bg: '#fee2e2', color: '#991b1b' },
+    PLANNING: { bg: '#fef9c3', color: '#854d0e' },
+    ACTIVE: { bg: '#dcfce7', color: '#166534' },
+    COMPLETED: { bg: '#dbeafe', color: '#1e40af' },
+    ON_HOLD: { bg: '#fee2e2', color: '#991b1b' },
 };
 
 const PRIORITY_META = {
@@ -80,10 +79,10 @@ const ProjectsSection = () => {
 
     const counts = {
         all: projects.length,
-        Active: projects.filter(p => p.status === 'Active').length,
-        Planning: projects.filter(p => p.status === 'Planning').length,
-        Completed: projects.filter(p => p.status === 'Completed').length,
-        'On Hold': projects.filter(p => p.status === 'On Hold').length,
+        ACTIVE: projects.filter(p => p.status === 'ACTIVE').length,
+        PLANNING: projects.filter(p => p.status === 'PLANNING').length,
+        COMPLETED: projects.filter(p => p.status === 'COMPLETED').length,
+        ON_HOLD: projects.filter(p => p.status === 'ON_HOLD').length,
     };
 
     if (loading) return <SectionLoader />;
@@ -99,10 +98,10 @@ const ProjectsSection = () => {
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                 {[
                     { label: `All (${counts.all})`, value: '', color: '#475569', bg: '#f1f5f9' },
-                    { label: `Active (${counts.Active})`, value: 'Active', color: '#166534', bg: '#dcfce7' },
-                    { label: `Planning (${counts.Planning})`, value: 'Planning', color: '#854d0e', bg: '#fef9c3' },
-                    { label: `Completed (${counts.Completed})`, value: 'Completed', color: '#1e40af', bg: '#dbeafe' },
-                    { label: `On Hold (${counts['On Hold']})`, value: 'On Hold', color: '#991b1b', bg: '#fee2e2' },
+                    { label: `Active (${counts.ACTIVE})`, value: 'ACTIVE', color: '#166534', bg: '#dcfce7' },
+                    { label: `Planning (${counts.PLANNING})`, value: 'PLANNING', color: '#854d0e', bg: '#fef9c3' },
+                    { label: `Completed (${counts.COMPLETED})`, value: 'COMPLETED', color: '#1e40af', bg: '#dbeafe' },
+                    { label: `On Hold (${counts.ON_HOLD})`, value: 'ON_HOLD', color: '#991b1b', bg: '#fee2e2' },
                 ].map(({ label, value, color, bg }) => (
                     <button key={value} onClick={() => setFilter(value === filter ? '' : value)}
                         style={{ padding: '0.35rem 0.875rem', borderRadius: '2rem', fontSize: '0.82rem', fontWeight: 600, border: 'none', cursor: 'pointer', background: filter === value ? color : bg, color: filter === value ? 'white' : color, transition: 'all 0.15s' }}>
@@ -285,10 +284,10 @@ const ReportsSection = () => {
     };
 
     const projectStatusCounts = {
-        Active: projects.filter(p => p.status === 'Active').length,
-        Planning: projects.filter(p => p.status === 'Planning').length,
-        Completed: projects.filter(p => p.status === 'Completed').length,
-        'On Hold': projects.filter(p => p.status === 'On Hold').length,
+        PLANNING: projects.filter(p => p.status === 'PLANNING').length,
+        ACTIVE: projects.filter(p => p.status === 'ACTIVE').length,
+        COMPLETED: projects.filter(p => p.status === 'COMPLETED').length,
+        ON_HOLD: projects.filter(p => p.status === 'ON_HOLD').length,
     };
 
     return (
@@ -304,7 +303,7 @@ const ReportsSection = () => {
                     { label: 'Total Projects', value: data.totalProjects, Icon: Briefcase, bg: '#eff6ff', color: '#2563eb' },
                     { label: 'Total Tasks', value: data.totalTasks, Icon: ListTodo, bg: '#faf5ff', color: '#7e22ce' },
                     { label: 'Total Members', value: data.totalUsers, Icon: Users, bg: '#dcfce7', color: '#16a34a' },
-                    { label: 'Completed Projects', value: projectStatusCounts.Completed, Icon: CheckCircle, bg: '#dbeafe', color: '#1d4ed8' },
+                    { label: 'Completed Projects', value: projectStatusCounts.COMPLETED, Icon: CheckCircle, bg: '#dbeafe', color: '#1d4ed8' },
                 ].map(({ label, value, Icon, bg, color }) => (
                     <div key={label} style={{ background: bg, borderRadius: '0.875rem', padding: '1.25rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>

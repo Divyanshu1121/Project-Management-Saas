@@ -25,13 +25,15 @@ const CompanyTeamTable = ({ users, onDelete, currentUserRole }) => {
                             <th style={{ padding: '0.75rem', color: '#64748b' }}>Email</th>
                             <th style={{ padding: '0.75rem', color: '#64748b' }}>Role</th>
                             <th style={{ padding: '0.75rem', color: '#64748b' }}>Created Date</th>
-                            <th style={{ padding: '0.75rem', color: '#64748b' }}>Actions</th>
+                            {(currentUserRole === 'CEO' || currentUserRole === 'COMPANY_OWNER') && (
+                                <th style={{ padding: '0.75rem', color: '#64748b' }}>Actions</th>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
                         {users.length === 0 ? (
                             <tr>
-                                <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                                <td colSpan={(currentUserRole === 'CEO' || currentUserRole === 'COMPANY_OWNER') ? "5" : "4"} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
                                     No team members found.
                                 </td>
                             </tr>
@@ -62,27 +64,29 @@ const CompanyTeamTable = ({ users, onDelete, currentUserRole }) => {
                                         <td style={{ padding: '0.75rem', color: '#64748b' }}>
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            {(currentUserRole === 'CEO' || currentUserRole === 'COMPANY_OWNER') && user.role !== 'COMPANY_OWNER' && user.role !== 'CEO' && (
-                                                <button
-                                                    onClick={() => onDelete(user._id)}
-                                                    style={{
-                                                        border: 'none',
-                                                        background: 'transparent',
-                                                        color: '#ef4444',
-                                                        cursor: 'pointer',
-                                                        padding: '0.25rem',
-                                                        borderRadius: '0.25rem',
-                                                        transition: 'background-color 0.2s'
-                                                    }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                                    title="Remove User"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
-                                        </td>
+                                        {(currentUserRole === 'CEO' || currentUserRole === 'COMPANY_OWNER') && (
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {user.role !== 'COMPANY_OWNER' && user.role !== 'CEO' && (
+                                                    <button
+                                                        onClick={() => onDelete(user._id)}
+                                                        style={{
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: '#ef4444',
+                                                            cursor: 'pointer',
+                                                            padding: '0.25rem',
+                                                            borderRadius: '0.25rem',
+                                                            transition: 'background-color 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                        title="Remove User"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })

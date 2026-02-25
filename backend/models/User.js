@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         role: {
             type: String,
-            enum: ['SUPER_ADMIN', 'COMPANY_OWNER', 'CEO', 'PROJECT_MANAGER', 'EMPLOYEE', 'CTO', 'CFO', 'COO'],
+            enum: ['SUPER_ADMIN', 'COMPANY_OWNER', 'CEO', 'PROJECT_MANAGER', 'EMPLOYEE', 'CTO', 'CFO', 'COO', 'HR'],
             default: 'EMPLOYEE',
         },
         default: 'EMPLOYEE',
@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
     teamId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team',
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
     },
 }, { timestamps: true });
 

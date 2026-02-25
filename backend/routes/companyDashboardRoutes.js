@@ -5,7 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'];
+const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'HR'];
 
 router.get('/dashboard', protect, roleCheck(LEADERSHIP_ROLES), getCompanyDashboard);
 

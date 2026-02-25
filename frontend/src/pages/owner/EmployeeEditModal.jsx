@@ -28,10 +28,10 @@ const EmployeeEditModal = ({ employee, teams, currentTeamId, onClose, onSave }) 
     const [name, setName] = useState(employee.name || '');
     const [email, setEmail] = useState(employee.email || '');
     const [teamId, setTeamId] = useState(currentTeamId || '');
+    const [role, setRole] = useState(employee.role || 'EMPLOYEE');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // Close on Escape key
     useEffect(() => {
         const handler = (e) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', handler);
@@ -47,7 +47,12 @@ const EmployeeEditModal = ({ employee, teams, currentTeamId, onClose, onSave }) 
         }
         setSaving(true);
         try {
-            await onSave(employee._id, { name: name.trim(), email: email.trim(), teamId });
+            await onSave(employee._id, {
+                name: name.trim(),
+                email: email.trim(),
+                teamId,
+                role
+            });
             onClose();
         } catch (err) {
             setError(err.message || 'Failed to save changes.');
@@ -144,6 +149,24 @@ const EmployeeEditModal = ({ employee, teams, currentTeamId, onClose, onSave }) 
                         />
                     </div>
 
+                    {/* Role selector */}
+                    <div style={fieldWrap}>
+                        <label style={labelStyle}>Role</label>
+                        <select
+                            value={role}
+                            onChange={e => setRole(e.target.value)}
+                            style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
+                            onFocus={e => e.target.style.borderColor = '#2563eb'}
+                            onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                        >
+                            <option value="EMPLOYEE">Employee</option>
+                            <option value="PROJECT_MANAGER">Project Manager</option>
+                        </select>
+                        <p style={{ fontSize: '0.73rem', color: '#94a3b8', margin: '0.3rem 0 0' }}>
+                            Changing the role will grant appropriate permissions.
+                        </p>
+                    </div>
+
                     {/* Team selector */}
                     <div style={fieldWrap}>
                         <label style={labelStyle}>Team</label>
@@ -170,7 +193,7 @@ const EmployeeEditModal = ({ employee, teams, currentTeamId, onClose, onSave }) 
                         backgroundColor: '#f8fafc', border: '1px solid #e2e8f0',
                         fontSize: '0.78rem', color: '#64748b', marginBottom: '1.25rem',
                     }}>
-                        🔒 <strong>Role</strong> (EMPLOYEE) and <strong>Company</strong> cannot be changed.
+                        🔒 <strong>Company</strong> cannot be changed from this panel.
                     </div>
 
                     {error && (

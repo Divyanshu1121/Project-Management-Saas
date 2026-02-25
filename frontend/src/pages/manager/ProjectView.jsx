@@ -34,6 +34,13 @@ const PRIORITY_META = {
     URGENT: { label: 'Urgent', bg: '#fef2f2', color: '#991b1b', dot: '#ef4444' },
 };
 
+const PROJECT_STATUS_META = {
+    PLANNING: { bg: '#fef9c3', color: '#854d0e', label: 'Planning' },
+    ACTIVE: { bg: '#dcfce7', color: '#166534', label: 'Active' },
+    COMPLETED: { bg: '#dbeafe', color: '#1e40af', label: 'Completed' },
+    ON_HOLD: { bg: '#fee2e2', color: '#991b1b', label: 'On Hold' }
+};
+
 const Badge = ({ meta, label }) => (
     <span style={{ padding: '0.2rem 0.65rem', borderRadius: '2rem', fontSize: '0.72rem', fontWeight: 700, background: meta?.bg || '#f1f5f9', color: meta?.color || '#475569', whiteSpace: 'nowrap' }}>
         {label || meta?.label}
@@ -346,6 +353,7 @@ const ProjectView = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [completing, setCompleting] = useState(false);
 
     // Filters
     const [filterStatus, setFilterStatus] = useState('');
@@ -392,6 +400,7 @@ const ProjectView = () => {
                 const res = await api.post('/manager/tasks', { ...formData, projectId: id });
                 setTasks(prev => [res.data, ...prev]);
             }
+            fetchProject();
             setTaskModalOpen(false);
             setEditingTask(null);
         } catch (err) {
@@ -407,6 +416,7 @@ const ProjectView = () => {
             await api.delete(`/manager/tasks/${deletingTask._id}`);
             setTasks(prev => prev.filter(t => t._id !== deletingTask._id));
             setDeletingTask(null);
+            fetchProject();
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to delete task');
         } finally {
@@ -420,6 +430,7 @@ const ProjectView = () => {
             const res = await api.post(`/manager/tasks/${taskId}/approve`);
             setTasks(prev => prev.map(t => t._id === res.data._id ? res.data : t));
             setViewingTask(res.data);
+            fetchProject();
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to approve task');
         } finally {
@@ -433,6 +444,7 @@ const ProjectView = () => {
             const res = await api.post(`/manager/tasks/${taskId}/reject`, { note });
             setTasks(prev => prev.map(t => t._id === res.data._id ? res.data : t));
             setViewingTask(res.data);
+            fetchProject();
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to reject task');
         } finally {
@@ -440,16 +452,17 @@ const ProjectView = () => {
         }
     };
 
-    const handleStatusChange = async (task, newStatus) => {
-        setActionLoading(true);
+    const handleCompleteProject = async () => {
+        if (!window.confirm('Are you sure you want to mark this project as COMPLETED? No further tasks can be added.')) return;
+        setCompleting(true);
         try {
-            const res = await api.put(`/manager/tasks/${task._id}`, { status: newStatus });
-            setTasks(prev => prev.map(t => t._id === res.data._id ? res.data : t));
-            setViewingTask(res.data);
+            const res = await api.put(`/manager/projects/${id}/complete`);
+            setProject(res.data);
+            alert('Project marked as completed successfully!');
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to update status');
+            alert(err.response?.data?.message || 'Failed to complete project');
         } finally {
-            setActionLoading(false);
+            setCompleting(false);
         }
     };
 
@@ -458,6 +471,9 @@ const ProjectView = () => {
     const approved = tasks.filter(t => t.status === 'APPROVED').length;
     const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
     const overdueTasks = tasks.filter(t => isOverdue(t)).length;
+
+    const isCompleted = project?.status === 'COMPLETED';
+    const canComplete = approved === total && total > 0 && !isCompleted;
 
     if (loading) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem', color: '#64748b' }}>
@@ -474,8 +490,6 @@ const ProjectView = () => {
         </div>
     );
 
-    const sm = { Planning: { bg: '#fef9c3', color: '#854d0e' }, Active: { bg: '#dcfce7', color: '#166534' }, Completed: { bg: '#dbeafe', color: '#1e40af' }, 'On Hold': { bg: '#fee2e2', color: '#991b1b' } };
-
     return (
         <div>
             {/* Back button + breadcrumb */}
@@ -485,31 +499,77 @@ const ProjectView = () => {
 
             {/* Project Header */}
             <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem 1.75rem', marginBottom: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 300 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>{project.name}</h1>
-                            <span style={{ padding: '0.2rem 0.75rem', borderRadius: '2rem', fontSize: '0.78rem', fontWeight: 700, background: sm[project.status]?.bg || '#f1f5f9', color: sm[project.status]?.color || '#475569' }}>{project.status}</span>
+                            <span style={{ padding: '0.2rem 0.75rem', borderRadius: '2rem', fontSize: '0.78rem', fontWeight: 700, background: PROJECT_STATUS_META[project.status]?.bg || '#f1f5f9', color: PROJECT_STATUS_META[project.status]?.color || '#475569' }}>
+                                {PROJECT_STATUS_META[project.status]?.label || project.status}
+                            </span>
                         </div>
-                        {project.description && <p style={{ margin: '0 0 0.75rem', color: '#64748b', fontSize: '0.9rem' }}>{project.description}</p>}
-                        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                            {project.startDate && <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={13} /> Start: {fmt(project.startDate)}</span>}
-                            {project.deadline && <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={13} /> End: {fmt(project.deadline)}</span>}
+                        {project.description && <p style={{ margin: '0 0 1rem', color: '#64748b', fontSize: '0.9rem', lineHeight: 1.5 }}>{project.description}</p>}
+
+                        {/* Progress Section */}
+                        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #f1f5f9', marginBottom: '1.25rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={14} /> Project Progress</span>
+                                <span style={{ fontSize: '0.9rem', fontWeight: 800, color: project.progress === 100 ? '#166534' : '#2563eb' }}>{project.progress || 0}%</span>
+                            </div>
+                            <div style={{ height: 10, background: '#e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
+                                <div style={{ width: `${project.progress || 0}%`, height: '100%', background: project.progress === 100 ? '#22c55e' : 'linear-gradient(90deg, #2563eb, #3b82f6)', transition: 'width 0.5s ease', borderRadius: 5 }} />
+                            </div>
+                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                                {approved} of {total} tasks approved
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                            {project.startDate && <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={13} /> {fmt(project.startDate)}</span>}
+                            {project.deadline && <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={13} /> {fmt(project.deadline)}</span>}
                             {project.createdBy?.name && <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}><User size={13} /> {project.createdBy.name}</span>}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                        {[
-                            { label: 'Total', value: total, bg: '#f1f5f9', color: '#475569' },
-                            { label: 'In Progress', value: inProgress, bg: '#eff6ff', color: '#1d4ed8' },
-                            { label: 'Approved', value: approved, bg: '#dcfce7', color: '#166534' },
-                            { label: 'Overdue', value: overdueTasks, bg: '#fef2f2', color: '#ef4444' },
-                        ].map(({ label, value, bg, color }) => (
-                            <div key={label} style={{ background: bg, borderRadius: '0.625rem', padding: '0.75rem 1rem', textAlign: 'center', minWidth: 70 }}>
-                                <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
-                                <p style={{ margin: '0.2rem 0 0', fontSize: '0.72rem', color, fontWeight: 600, opacity: 0.8 }}>{label}</p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            {[
+                                { label: 'Total', value: total, bg: '#f1f5f9', color: '#475569' },
+                                { label: 'Approved', value: approved, bg: '#dcfce7', color: '#166534' },
+                                { label: 'Overdue', value: overdueTasks, bg: '#fef2f2', color: '#ef4444' },
+                            ].map(({ label, value, bg, color }) => (
+                                <div key={label} style={{ background: bg, borderRadius: '0.625rem', padding: '0.75rem 1rem', textAlign: 'center', minWidth: 75 }}>
+                                    <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+                                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.68rem', color, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase' }}>{label}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {!isCompleted && (
+                            <button
+                                onClick={handleCompleteProject}
+                                disabled={!canComplete || completing}
+                                title={!canComplete ? "All tasks must be APPROVED to complete project" : ""}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                    padding: '0.75rem 1.5rem',
+                                    background: canComplete ? '#1e293b' : '#f1f5f9',
+                                    color: canComplete ? 'white' : '#94a3b8',
+                                    border: 'none', borderRadius: '0.6rem',
+                                    fontSize: '0.875rem', fontWeight: 700,
+                                    cursor: canComplete ? 'pointer' : 'not-allowed',
+                                    transition: 'all 0.2s',
+                                    width: '100%', justifyContent: 'center'
+                                }}
+                            >
+                                {completing ? <Loader2 size={16} style={{ animation: 'spin 1.2s linear infinite' }} /> : <CheckCircle2 size={16} />}
+                                Mark as Completed
+                            </button>
+                        )}
+                        {isCompleted && (
+                            <div style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe', padding: '0.75rem 1.25rem', borderRadius: '0.6rem', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <CheckCircle2 size={16} /> Finalized on {fmt(project.completedAt)}
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </div>
@@ -532,9 +592,11 @@ const ProjectView = () => {
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', color: '#ef4444', fontWeight: 500, cursor: 'pointer' }}>
                             <input type="checkbox" checked={filterOverdue} onChange={e => setFilterOverdue(e.target.checked)} /> Overdue
                         </label>
-                        <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                            <Plus size={16} /> New Task
-                        </button>
+                        {!isCompleted && (
+                            <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                <Plus size={16} /> New Task
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -543,7 +605,7 @@ const ProjectView = () => {
                     <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94a3b8' }}>
                         <CheckCircle2 size={32} style={{ marginBottom: '1rem', color: '#cbd5e1' }} />
                         <p style={{ margin: '0 0 1rem', fontSize: '0.95rem' }}>{filterStatus || filterPriority || filterOverdue ? 'No tasks match your filters' : 'No tasks yet for this project'}</p>
-                        {!filterStatus && !filterPriority && !filterOverdue && (
+                        {!filterStatus && !filterPriority && !filterOverdue && !isCompleted && (
                             <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
                                 <Plus size={16} /> Create First Task
                             </button>
@@ -565,7 +627,7 @@ const ProjectView = () => {
                                         key={task._id}
                                         task={task}
                                         onView={t => setViewingTask(t)}
-                                        onEdit={t => { setEditingTask(t); setTaskModalOpen(true); }}
+                                        onEdit={t => { setViewingTask(null); setEditingTask(t); setTaskModalOpen(true); }}
                                         onDelete={t => setDeletingTask(t)}
                                     />
                                 ))}

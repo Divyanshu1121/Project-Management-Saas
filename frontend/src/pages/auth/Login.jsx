@@ -7,22 +7,36 @@ import { Mail, Lock, ArrowRight, LayoutDashboard } from 'lucide-react';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+
+    React.useEffect(() => {
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
         try {
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
             const res = await api.post('/auth/login', { email, password });
             login(res.data, res.data.token);
 
             switch (res.data.role) {
                 case 'SUPER_ADMIN': navigate('/admin'); break;
-                // Redirect all leadership roles to the same company dashboard
                 case 'COMPANY_OWNER':
                 case 'CEO':
                 case 'CTO':
@@ -101,9 +115,13 @@ const Login = () => {
                     <div className="form-group">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                             <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
-                            <a href="#" style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 500 }}>
+                            <button
+                                type="button"
+                                onClick={() => alert('Please contact your System Administrator to reset your password.')}
+                                style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 500, cursor: 'pointer' }}
+                            >
                                 Forgot password?
-                            </a>
+                            </button>
                         </div>
                         <div style={{ position: 'relative' }}>
                             <div style={{
@@ -125,7 +143,13 @@ const Login = () => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <input type="checkbox" id="remember" style={{ marginRight: '0.5rem', cursor: 'pointer' }} />
+                        <input
+                            type="checkbox"
+                            id="remember"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            style={{ marginRight: '0.5rem', cursor: 'pointer' }}
+                        />
                         <label htmlFor="remember" style={{ fontSize: '0.9rem', color: '#64748b', cursor: 'pointer' }}>Remember me</label>
                     </div>
 
@@ -146,7 +170,7 @@ const Login = () => {
 
                 <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
                     Don't have an account?{' '}
-                    <a href="#" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Contact Admin</a>
+                    <a href="mailto:admin@saasproject.com?subject=Account Access Request" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Contact Admin</a>
                 </div>
             </div>
 

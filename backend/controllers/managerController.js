@@ -120,9 +120,18 @@ const getEmployees = async (req, res) => {
     }
 };
 
+const completeProject = async (req, res) => {
+    try {
+        const project = await svc.completeProject(req.params.id, req.user.companyId, req.user._id);
+        res.json(project);
+    } catch (e) {
+        res.status(400).json({ message: e.message });
+    }
+};
+
 module.exports = {
     getProjects, createProject, updateProject, deleteProject,
     getTasks, createTask, updateTask, deleteTask,
     getTaskTimeLogs, getWorkload, getEmployees,
-    approveTask, rejectTask,
+    approveTask, rejectTask, completeProject,
 };

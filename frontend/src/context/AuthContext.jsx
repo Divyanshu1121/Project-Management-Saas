@@ -9,37 +9,46 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
+        const fetchUser = async (token) => {
             try {
-                const decoded = jwtDecode(token);
-                // Check if token is expired
-                if (decoded.exp * 1000 < Date.now()) {
-                    logout();
+                // You can either decode for immediate basic info or fetch from backend
+                // Fetching from backend is safer as it ensures the user still exists/is active
+                const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const profile = await res.json();
+                    setUser(profile);
                 } else {
-                    // We might want to fetch full user details here from /me endpoint
-                    // For now, trust the token somewhat or just set basic info
-                    setUser(decoded);
-                    // Ideally: fetchUser(token).then(u => setUser(u)).catch(() => logout())
+                    logout();
                 }
             } catch (error) {
+                console.error('Profile fetch failed:', error);
                 logout();
+            } finally {
+                setLoading(false);
             }
+        };
+
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetchUser(token);
+        } else {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
-    const login = (userData, token) => { // userData from login response
+    const login = (userData, token) => {
         localStorage.setItem('token', token);
-        // Decode to get minimal info immediately if needed, or use userData
-        // const decoded = jwtDecode(token);
         setUser(userData);
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         setUser(null);
-        // window.location.href = '/login'; // Or use navigate in component
     };
 
     return (

@@ -54,6 +54,45 @@ const deleteProject = async (projectId, companyId) => {
     return project;
 };
 
+const updateProjectProgress = async (projectId) => {
+    const totalTasks = await Task.countDocuments({ projectId });
+    if (totalTasks === 0) {
+        await Project.findByIdAndUpdate(projectId, { progress: 0 });
+        return 0;
+    }
+
+    const approvedTasks = await Task.countDocuments({ projectId, status: 'APPROVED' });
+    const progress = Math.round((approvedTasks / totalTasks) * 100);
+
+    await Project.findByIdAndUpdate(projectId, { progress });
+    return progress;
+};
+
+const completeProject = async (projectId, companyId, managerId) => {
+    const project = await Project.findOne({ _id: projectId, companyId });
+    if (!project) throw new Error('Project not found');
+
+    if (project.status === 'COMPLETED') throw new Error('Project is already completed');
+
+    // Check for pending tasks
+    const pendingCount = await Task.countDocuments({
+        projectId,
+        status: { $ne: 'APPROVED' }
+    });
+
+    if (pendingCount > 0) {
+        throw new Error(`Cannot complete project. There are ${pendingCount} pending tasks that must be approved.`);
+    }
+
+    project.status = 'COMPLETED';
+    project.completedAt = new Date();
+    project.completedBy = managerId;
+    project.progress = 100;
+
+    await project.save();
+    return project;
+};
+
 // ── TASKS ─────────────────────────────────────────────────────────
 
 const getTasks = async (companyId, filters = {}) => {
@@ -116,6 +155,9 @@ const createTask = async (data, managerId, companyId) => {
 
     await task.save();
 
+    // Update project progress
+    await updateProjectProgress(clean.projectId);
+
     return await Task.findById(task._id)
         .populate('assignedTo', 'name email empId')
         .populate('projectId', 'name')
@@ -146,6 +188,9 @@ const updateTask = async (taskId, companyId, data, userId) => {
 
     await task.save();
 
+    // Update project progress
+    await updateProjectProgress(clean.projectId);
+
     return await Task.findById(task._id)
         .populate('assignedTo', 'name email empId')
         .populate('projectId', 'name')
@@ -160,6 +205,10 @@ const approveTask = async (taskId, companyId, managerId) => {
     task.status = 'APPROVED';
     workflow.addStatusHistory(task, managerId, 'Task approved by manager');
     await task.save();
+
+    // Update project progress
+    await updateProjectProgress(task.projectId);
+
     return task;
 };
 
@@ -176,8 +225,15 @@ const rejectTask = async (taskId, companyId, managerId, note) => {
 };
 
 const deleteTask = async (taskId, companyId) => {
-    const task = await Task.findOneAndDelete({ _id: taskId, companyId });
+    const task = await Task.findOne({ _id: taskId, companyId });
     if (!task) throw new Error('Task not found');
+    const projectId = task.projectId;
+
+    await Task.findByIdAndDelete(taskId);
+
+    // Update project progress
+    await updateProjectProgress(projectId);
+
     return task;
 };
 
@@ -265,4 +321,5 @@ module.exports = {
     getEmployeesByTeam,
     approveTask,
     rejectTask,
+    completeProject,
 };

@@ -104,6 +104,7 @@ const CreateTeamMemberModal = ({ isOpen, onClose, onSubmit }) => {
                             }}
                         >
                             <option value="PROJECT_MANAGER">Project Manager</option>
+                            <option value="HR">HR (Human Resources)</option>
                             <option value="CTO">CTO (Chief Technology Officer)</option>
                             <option value="CFO">CFO (Chief Financial Officer)</option>
                             <option value="COO">COO (Chief Operating Officer)</option>

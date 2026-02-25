@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
-    Clock, BarChart, Settings, LogOut, User, Activity
+    Clock, BarChart, Settings, LogOut, User, Activity, Calendar
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -28,6 +28,7 @@ const Sidebar = () => {
                     { name: 'Projects', path: '/manager/projects', icon: <Briefcase size={20} /> },
                     { name: 'Tasks', path: '/manager/tasks', icon: <ListTodo size={20} /> },
                     { name: 'Team', path: '/manager/team', icon: <Users size={20} /> },
+                    { name: 'Leave Calendar', path: '/manager/leave-calendar', icon: <Calendar size={20} /> },
                     { name: 'Workload', path: '/manager/workload', icon: <Activity size={20} /> },
                     { name: 'Reports', path: '/manager/reports', icon: <BarChart size={20} /> },
                     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
@@ -37,6 +38,7 @@ const Sidebar = () => {
                     { name: 'Dashboard', path: '/employee', icon: <LayoutDashboard size={20} /> },
                     { name: 'My Tasks', path: '/employee/tasks', icon: <ListTodo size={20} /> },
                     { name: 'Time Logs', path: '/employee/time-logs', icon: <Clock size={20} /> },
+                    { name: 'My Leave', path: '/employee/leave', icon: <Calendar size={20} /> },
                     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
                 ];
             default:

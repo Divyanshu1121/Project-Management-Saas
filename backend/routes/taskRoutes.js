@@ -4,9 +4,11 @@ const { createTask, getTasks, updateTask, deleteTask } = require('../controllers
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-router.post('/', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), createTask);
-router.get('/', protect, getTasks);
-router.put('/:id', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), updateTask);
-router.delete('/:id', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), deleteTask);
+const LEADER_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'PROJECT_MANAGER'];
+
+router.post('/', protect, roleCheck(LEADER_ROLES), createTask);
+router.get('/', protect, roleCheck(LEADER_ROLES), getTasks);
+router.put('/:id', protect, roleCheck(LEADER_ROLES), updateTask);
+router.delete('/:id', protect, roleCheck(LEADER_ROLES), deleteTask);
 
 module.exports = router;

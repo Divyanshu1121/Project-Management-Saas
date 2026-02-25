@@ -9,6 +9,7 @@ const pm = [protect, roleCheck(['PROJECT_MANAGER'])];
 // ── Projects ──────────────────────────────────────────────
 router.get('/projects', ...pm, ctrl.getProjects);
 router.post('/projects', ...pm, ctrl.createProject);
+router.put('/projects/:id/complete', ...pm, ctrl.completeProject);
 router.put('/projects/:id', ...pm, ctrl.updateProject);
 router.delete('/projects/:id', ...pm, ctrl.deleteProject);
 

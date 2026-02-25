@@ -5,7 +5,7 @@ const roleCheck = (roles) => {
                 message: `User role ${req.user ? req.user.role : 'unknown'} is not authorized to access this route`
             });
         }
-        next();
+        return next();
     };
 };
 

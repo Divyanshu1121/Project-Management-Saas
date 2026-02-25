@@ -11,7 +11,7 @@ const roleColors = {
 const getRoleStyle = (role) => roleColors[role] || { bg: '#f1f5f9', color: '#475569', label: role };
 
 // ── Team Card ────────────────────────────────────────────────────
-const TeamCard = ({ team }) => {
+const TeamCard = ({ team, unavailableIds = [], upcomingIds = [] }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -84,30 +84,46 @@ const TeamCard = ({ team }) => {
                     ) : (
                         team.members.map((member, i) => {
                             const rs = getRoleStyle(member.role);
+                            const isOnLeave = unavailableIds.includes(member._id);
+                            const isLeavingSoon = upcomingIds.includes(member._id);
                             return (
                                 <div key={member._id || i} style={{
                                     display: 'flex', alignItems: 'center', gap: '0.875rem',
                                     padding: '0.75rem 1.5rem',
                                     borderBottom: i < team.members.length - 1 ? '1px solid #f8fafc' : 'none',
-                                    transition: 'background 0.1s'
+                                    transition: 'background 0.1s',
+                                    opacity: isOnLeave ? 0.7 : 1
                                 }}
                                     onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
                                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                 >
                                     <div style={{
                                         width: 36, height: 36, borderRadius: '50%',
-                                        background: `hsl(${(i * 47) % 360}, 60%, 90%)`,
+                                        background: isOnLeave ? '#fef3c7' : (isLeavingSoon ? '#eff6ff' : `hsl(${(i * 47) % 360}, 60%, 90%)`),
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: '0.85rem', fontWeight: 700,
-                                        color: `hsl(${(i * 47) % 360}, 40%, 30%)`,
-                                        flexShrink: 0
+                                        color: isOnLeave ? '#92400e' : (isLeavingSoon ? '#1e40af' : `hsl(${(i * 47) % 360}, 40%, 30%)`),
+                                        flexShrink: 0,
+                                        border: isOnLeave ? '1px solid #fde68a' : (isLeavingSoon ? '1px solid #bfdbfe' : 'none')
                                     }}>
                                         {member.name ? member.name.charAt(0).toUpperCase() : <UserCircle2 size={18} />}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {member.name}
-                                        </p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {member.name}
+                                            </p>
+                                            {isOnLeave && (
+                                                <span style={{ padding: '0.1rem 0.4rem', background: '#fffbeb', color: '#92400e', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, border: '1px solid #fef3c7' }}>
+                                                    ON LEAVE
+                                                </span>
+                                            )}
+                                            {isLeavingSoon && !isOnLeave && (
+                                                <span style={{ padding: '0.1rem 0.4rem', background: '#ebf5ff', color: '#1e40af', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, border: '1px solid #dbeafe' }}>
+                                                    LEAVING SOON
+                                                </span>
+                                            )}
+                                        </div>
                                         {member.email && (
                                             <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
                                                 <Mail size={11} /> {member.email}
@@ -130,16 +146,26 @@ const TeamCard = ({ team }) => {
 // ── Main Team Page ───────────────────────────────────────────────
 const ManagerTeamPage = () => {
     const [teams, setTeams] = useState([]);
+    const [unavailableIds, setUnavailableIds] = useState([]);
+    const [upcomingIds, setUpcomingIds] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchTeams = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await api.get('/company/teams');
-            setTeams(res.data || []);
+            const [teamsRes, awayRes, upcomingRes] = await Promise.all([
+                api.get('/company/teams'),
+                api.get('/leaves/unavailable'),
+                api.get('/leaves/upcoming')
+            ]);
+            setTeams(teamsRes.data || []);
+            setUnavailableIds((awayRes.data || []).map(l => l.userId?._id));
+            setUpcomingIds((upcomingRes.data || []).map(l => l.userId?._id));
         } catch (err) {
             console.error(err);
             setTeams([]);
+            setUnavailableIds([]);
+            setUpcomingIds([]);
         } finally {
             setLoading(false);
         }
@@ -197,7 +223,7 @@ const ManagerTeamPage = () => {
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
                     {teams.map(team => (
-                        <TeamCard key={team._id} team={team} />
+                        <TeamCard key={team._id} team={team} unavailableIds={unavailableIds} upcomingIds={upcomingIds} />
                     ))}
                 </div>
             )}

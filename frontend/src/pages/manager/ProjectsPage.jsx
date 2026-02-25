@@ -7,13 +7,13 @@ import {
 } from 'lucide-react';
 import './ProjectsPage.css';
 
-const STATUS_OPTIONS = ['Planning', 'Active', 'Completed', 'On Hold'];
+const STATUS_OPTIONS = ['PLANNING', 'ACTIVE', 'COMPLETED', 'ON_HOLD'];
 
 const statusClass = (status) => ({
-    'Planning': 'status-planning',
-    'Active': 'status-active',
-    'Completed': 'status-completed',
-    'On Hold': 'status-on-hold',
+    'PLANNING': 'status-planning',
+    'ACTIVE': 'status-active',
+    'COMPLETED': 'status-completed',
+    'ON_HOLD': 'status-on-hold',
 }[status] || 'status-planning');
 
 const formatDate = (date) => {
@@ -168,7 +168,7 @@ const ProjectModal = ({ open, onClose, onSubmit, initialData, teams, loading }) 
     const emptyForm = {
         name: '',
         description: '',
-        status: 'Planning',
+        status: 'PLANNING',
         startDate: '',
         deadline: '',
         teamAssigned: [],
@@ -176,6 +176,8 @@ const ProjectModal = ({ open, onClose, onSubmit, initialData, teams, loading }) 
 
     const [form, setForm] = useState(emptyForm);
     const [error, setError] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiGenerated, setAiGenerated] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -183,13 +185,15 @@ const ProjectModal = ({ open, onClose, onSubmit, initialData, teams, loading }) 
                 setForm({
                     name: initialData.name || '',
                     description: initialData.description || '',
-                    status: initialData.status || 'Planning',
+                    status: initialData.status || 'PLANNING',
                     startDate: initialData.startDate ? initialData.startDate.slice(0, 10) : '',
                     deadline: initialData.deadline ? initialData.deadline.slice(0, 10) : '',
                     teamAssigned: (initialData.teamAssigned || []).map(t => t._id || t),
                 });
+                setAiGenerated(!!initialData.description);
             } else {
                 setForm(emptyForm);
+                setAiGenerated(false);
             }
             setError('');
         }
@@ -214,6 +218,52 @@ const ProjectModal = ({ open, onClose, onSubmit, initialData, teams, loading }) 
         if (!form.name.trim()) { setError('Project name is required.'); return; }
         setError('');
         await onSubmit(form);
+    };
+
+    const handleAiGenerate = async () => {
+        if (!form.name.trim()) {
+            alert('Please enter a project name first');
+            return;
+        }
+
+        setAiLoading(true);
+        try {
+            const res = await api.post('/ai/generate-task-content', {
+                title: form.name,
+                projectName: form.name,
+                type: 'project_description'
+            });
+
+            setForm(prev => ({ ...prev, description: res.data.project_description.replace(/\*/g, '') }));
+            setAiGenerated(true);
+        } catch (err) {
+            console.error('AI Generation Error:', err);
+            alert('Failed to generate content. Please try again or check your API key.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const aiButtonStyle = {
+        fontSize: '0.68rem',
+        background: form.name.trim() && !aiLoading
+            ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)'
+            : '#f8fafc',
+        color: form.name.trim() && !aiLoading
+            ? '#0369a1'
+            : '#94a3b8',
+        border: `1px solid ${form.name.trim() && !aiLoading ? '#bae6fd' : '#e2e8f0'}`,
+        borderRadius: '2rem',
+        padding: '0.2rem 0.65rem',
+        cursor: form.name.trim() && !aiLoading ? 'pointer' : 'not-allowed',
+        fontWeight: 700,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.3rem',
+        boxShadow: form.name.trim() && !aiLoading ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        letterSpacing: '0.01em'
     };
 
     if (!open) return null;
@@ -244,7 +294,18 @@ const ProjectModal = ({ open, onClose, onSubmit, initialData, teams, loading }) 
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Description</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <label className="form-label">Description</label>
+                                    <button
+                                        type="button"
+                                        onClick={handleAiGenerate}
+                                        disabled={aiLoading || !form.name.trim()}
+                                        style={aiButtonStyle}
+                                    >
+                                        {aiLoading ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                        {aiGenerated ? 'Regenerate' : 'Generate with AI'}
+                                    </button>
+                                </div>
                                 <textarea
                                     className="form-textarea"
                                     name="description"
@@ -488,9 +549,9 @@ const ProjectsPage = () => {
 
     const counts = {
         all: projects.length,
-        active: projects.filter(p => p.status === 'Active').length,
-        planning: projects.filter(p => p.status === 'Planning').length,
-        completed: projects.filter(p => p.status === 'Completed').length,
+        active: projects.filter(p => p.status === 'ACTIVE').length,
+        planning: projects.filter(p => p.status === 'PLANNING').length,
+        completed: projects.filter(p => p.status === 'COMPLETED').length,
     };
 
     if (pageLoading) {

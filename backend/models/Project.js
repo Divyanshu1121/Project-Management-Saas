@@ -20,8 +20,19 @@ const projectSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Planning', 'Active', 'Completed', 'On Hold'],
-        default: 'Planning',
+        enum: ['PLANNING', 'ACTIVE', 'COMPLETED', 'ON_HOLD'],
+        default: 'PLANNING',
+    },
+    progress: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    completedAt: Date,
+    completedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
     },
     startDate: {
         type: Date,
