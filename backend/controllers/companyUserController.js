@@ -290,6 +290,17 @@ const updateEmployee = async (req, res) => {
     }
 };
 
+const getChatMembers = async (req, res) => {
+    try {
+        const users = await User.find({ companyId: req.user.companyId })
+            .select('name role email')
+            .sort({ name: 1 });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
     createCompanyUser,
     getCompanyUsers,
@@ -297,5 +308,6 @@ module.exports = {
     createEmployee,
     deleteEmployee,
     getCompanyEmployees,
-    updateEmployee
+    updateEmployee,
+    getChatMembers
 };

@@ -9,6 +9,7 @@ import {
     ArrowRight, Info, History, ExternalLink, CheckSquare, Square, MessageSquare
 } from 'lucide-react';
 import TaskModal from './TaskModal';
+import ChatWindow from '../../components/common/ChatWindow';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const fmt = (d) => {
@@ -352,6 +353,7 @@ const ProjectView = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'chat'
     const [actionLoading, setActionLoading] = useState(false);
     const [completing, setCompleting] = useState(false);
 
@@ -574,65 +576,121 @@ const ProjectView = () => {
                 </div>
             </div>
 
-            {/* Tasks Section */}
+            {/* Tabs & Content */}
             <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                {/* Toolbar */}
-                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Tasks</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {/* Filters */}
-                        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '0.45rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.82rem', background: 'white', color: '#475569', outline: 'none' }}>
-                            <option value="">All Status</option>
-                            {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                        </select>
-                        <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: '0.45rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.82rem', background: 'white', color: '#475569', outline: 'none' }}>
-                            <option value="">All Priority</option>
-                            {Object.entries(PRIORITY_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                        </select>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', color: '#ef4444', fontWeight: 500, cursor: 'pointer' }}>
-                            <input type="checkbox" checked={filterOverdue} onChange={e => setFilterOverdue(e.target.checked)} /> Overdue
-                        </label>
-                        {!isCompleted && (
-                            <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                                <Plus size={16} /> New Task
-                            </button>
-                        )}
-                    </div>
+                {/* Tab Switcher */}
+                <div style={{ padding: '0 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '2rem' }}>
+                    <button
+                        onClick={() => setActiveTab('tasks')}
+                        style={{
+                            padding: '1.25rem 0.5rem',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: activeTab === 'tasks' ? '#2563eb' : '#64748b',
+                            border: 'none',
+                            background: 'none',
+                            borderBottom: activeTab === 'tasks' ? '3px solid #2563eb' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <ListTodo size={18} />
+                        Tasks
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('chat')}
+                        style={{
+                            padding: '1.25rem 0.5rem',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: activeTab === 'chat' ? '#2563eb' : '#64748b',
+                            border: 'none',
+                            background: 'none',
+                            borderBottom: activeTab === 'chat' ? '3px solid #2563eb' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <MessageSquare size={18} />
+                        Project Chat
+                    </button>
                 </div>
 
-                {/* Table */}
-                {tasks.length === 0 ? (
-                    <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94a3b8' }}>
-                        <CheckCircle2 size={32} style={{ marginBottom: '1rem', color: '#cbd5e1' }} />
-                        <p style={{ margin: '0 0 1rem', fontSize: '0.95rem' }}>{filterStatus || filterPriority || filterOverdue ? 'No tasks match your filters' : 'No tasks yet for this project'}</p>
-                        {!filterStatus && !filterPriority && !filterOverdue && !isCompleted && (
-                            <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
-                                <Plus size={16} /> Create First Task
-                            </button>
+                {activeTab === 'tasks' ? (
+                    <>
+                        {/* Toolbar */}
+                        <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                {/* Filters */}
+                                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '0.45rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.82rem', background: 'white', color: '#475569', outline: 'none' }}>
+                                    <option value="">All Status</option>
+                                    {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                                </select>
+                                <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: '0.45rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.4rem', fontSize: '0.82rem', background: 'white', color: '#475569', outline: 'none' }}>
+                                    <option value="">All Priority</option>
+                                    {Object.entries(PRIORITY_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                                </select>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', color: '#ef4444', fontWeight: 500, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={filterOverdue} onChange={e => setFilterOverdue(e.target.checked)} /> Overdue
+                                </label>
+                            </div>
+                            {!isCompleted && (
+                                <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                    <Plus size={16} /> New Task
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Table */}
+                        {tasks.length === 0 ? (
+                            <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94a3b8' }}>
+                                <CheckCircle2 size={32} style={{ marginBottom: '1rem', color: '#cbd5e1' }} />
+                                <p style={{ margin: '0 0 1rem', fontSize: '0.95rem' }}>{filterStatus || filterPriority || filterOverdue ? 'No tasks match your filters' : 'No tasks yet for this project'}</p>
+                                {!filterStatus && !filterPriority && !filterOverdue && !isCompleted && (
+                                    <button onClick={() => { setEditingTask(null); setTaskModalOpen(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
+                                        <Plus size={16} /> Create First Task
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f8fafc' }}>
+                                            {['Task', 'Status', 'Priority', 'Deadline', 'Progress', ''].map(h => (
+                                                <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tasks.map(task => (
+                                            <TaskRow
+                                                key={task._id}
+                                                task={task}
+                                                onView={t => setViewingTask(t)}
+                                                onEdit={t => { setViewingTask(null); setEditingTask(t); setTaskModalOpen(true); }}
+                                                onDelete={t => setDeletingTask(t)}
+                                            />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </div>
+                    </>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#f8fafc' }}>
-                                    {['Task', 'Status', 'Priority', 'Deadline', 'Progress', ''].map(h => (
-                                        <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tasks.map(task => (
-                                    <TaskRow
-                                        key={task._id}
-                                        task={task}
-                                        onView={t => setViewingTask(t)}
-                                        onEdit={t => { setViewingTask(null); setEditingTask(t); setTaskModalOpen(true); }}
-                                        onDelete={t => setDeletingTask(t)}
-                                    />
-                                ))}
-                            </tbody>
-                        </table>
+                    <div style={{ padding: '1.5rem', height: '600px' }}>
+                        <ChatWindow
+                            roomId={`project_${id}`}
+                            projectId={id}
+                            isGlobal={false}
+                            title={`${project?.name} Chat`}
+                        />
                     </div>
                 )}
             </div>

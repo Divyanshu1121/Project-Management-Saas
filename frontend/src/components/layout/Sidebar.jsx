@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
-    Clock, BarChart, Settings, LogOut, User, Activity, Calendar
+    Clock, BarChart, Settings, LogOut, User, Activity, Calendar, MessageSquare
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -28,9 +28,10 @@ const Sidebar = () => {
                     { name: 'Projects', path: '/manager/projects', icon: <Briefcase size={20} /> },
                     { name: 'Tasks', path: '/manager/tasks', icon: <ListTodo size={20} /> },
                     { name: 'Team', path: '/manager/team', icon: <Users size={20} /> },
-                    { name: 'Leave Calendar', path: '/manager/leave-calendar', icon: <Calendar size={20} /> },
+                    { name: 'Calendar', path: '/manager/timeline-calendar', icon: <Calendar size={20} /> },
                     { name: 'Workload', path: '/manager/workload', icon: <Activity size={20} /> },
                     { name: 'Reports', path: '/manager/reports', icon: <BarChart size={20} /> },
+                    { name: 'Global Chat', path: '/chat', icon: <MessageSquare size={20} /> },
                     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
                 ];
             case 'EMPLOYEE':
@@ -39,6 +40,7 @@ const Sidebar = () => {
                     { name: 'My Tasks', path: '/employee/tasks', icon: <ListTodo size={20} /> },
                     { name: 'Time Logs', path: '/employee/time-logs', icon: <Clock size={20} /> },
                     { name: 'My Leave', path: '/employee/leave', icon: <Calendar size={20} /> },
+                    { name: 'Global Chat', path: '/chat', icon: <MessageSquare size={20} /> },
                     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
                 ];
             default:

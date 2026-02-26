@@ -32,7 +32,12 @@ app.use('/api/company', require('./routes/companyDashboardRoutes'));
 app.use('/api/company/teams', require('./routes/companyTeamRoutes'));
 app.use('/api/manager', require('./routes/managerRoutes'));
 app.use('/api/employee', require('./routes/employeeRoutes'));
-app.use('/api/ai', require('./routes/aiRoutes'));
+const Message = require('./models/Message');
+const CommandService = require('./services/commandService');
+const http = require('http');
+const { Server } = require('socket.io');
+
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');
@@ -40,6 +45,89 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:5173', 'http://localhost:5174'],
+        credentials: true
+    }
+});
+
+// Map to track user socket IDs for private messaging
+const userSockets = new Map(); // userId -> socketId
+
+// Socket.io connection logic
+io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+
+    socket.on('register_user', (userId) => {
+        userSockets.set(userId, socket.id);
+        console.log(`User registered: ${userId} with socket ${socket.id}`);
+    });
+
+    socket.on('join_room', (roomId) => {
+        socket.join(roomId);
+        console.log(`User joined room: ${roomId}`);
+    });
+
+    socket.on('send_message', async (data) => {
+        const { roomId, sender, content, companyId, projectId, isGlobal } = data;
+
+        try {
+            // Parse for commands/private messages
+            const parseResult = await CommandService.parse(content, companyId);
+
+            if (parseResult.error) {
+                // Send error feedback ONLY to sender
+                socket.emit('error_message', { content: parseResult.error });
+                return;
+            }
+
+            // Save message to MongoDB
+            const newMessage = await Message.create({
+                sender,
+                companyId,
+                projectId,
+                recipient: parseResult.recipientId || null,
+                content: parseResult.content,
+                isGlobal: isGlobal || parseResult.type === 'PRIVATE',
+                messageType: parseResult.type
+            });
+
+            const populatedMessage = await Message.findById(newMessage._id)
+                .populate('sender', 'name email')
+                .populate('recipient', 'name email');
+
+            if (parseResult.type === 'PRIVATE' && parseResult.recipientId) {
+                // Targeted emission to sender and recipient
+                const recipientSocketId = userSockets.get(parseResult.recipientId.toString());
+
+                socket.emit('receive_message', populatedMessage); // To sender
+                if (recipientSocketId) {
+                    io.to(recipientSocketId).emit('receive_message', populatedMessage); // To recipient
+                }
+            } else {
+                // Broadcast to everyone in the room (standard behavior)
+                io.to(roomId).emit('receive_message', populatedMessage);
+            }
+        } catch (error) {
+            console.error('Error saving message:', error);
+            socket.emit('error_message', { content: 'Failed to send message.' });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        // Remove socket from map
+        for (const [userId, socketId] of userSockets.entries()) {
+            if (socketId === socket.id) {
+                userSockets.delete(userId);
+                break;
+            }
+        }
+        console.log('User disconnected');
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

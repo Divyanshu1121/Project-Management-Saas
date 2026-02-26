@@ -16,11 +16,12 @@ import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
 import EmployeeTimeLogsPage from './pages/employee/EmployeeTimeLogsPage';
 import LeaveRequest from './pages/employee/LeaveRequest';
-import LeaveCalendarPage from './pages/manager/LeaveCalendarPage';
+import TimelineCalendarPage from './pages/manager/TimelineCalendarPage';
 import HRDashboard from './pages/hr/HRDashboard';
 import SettingsPage from './pages/common/SettingsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import TimeLogsPage from './pages/tasks/TimeLogsPage';
+import GlobalChatPage from './pages/common/GlobalChatPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
@@ -123,10 +124,10 @@ function App() {
                     }
                 />
                 <Route
-                    path="manager/leave-calendar"
+                    path="manager/timeline-calendar"
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
-                            <LeaveCalendarPage />
+                            <TimelineCalendarPage />
                         </ProtectedRoute>
                     }
                 />
@@ -177,6 +178,14 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
                             <SettingsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="chat"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
+                            <GlobalChatPage />
                         </ProtectedRoute>
                     }
                 />

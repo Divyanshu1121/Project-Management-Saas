@@ -64,7 +64,7 @@ const ManagerDashboard = () => {
                         <p style={{ color: '#64748b', margin: 0 }}>Welcome back! Here's a quick overview of your projects.</p>
                     </div>
                     <button
-                        onClick={() => navigate('/manager/leave-calendar')}
+                        onClick={() => navigate('/manager/timeline-calendar')}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -80,7 +80,7 @@ const ManagerDashboard = () => {
                         }}
                     >
                         <Calendar size={18} />
-                        View Leave Calendar
+                        View Timeline
                     </button>
                 </div>
             </div>

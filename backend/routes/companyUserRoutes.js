@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createCompanyUser, getCompanyUsers, deleteCompanyUser, createEmployee, deleteEmployee, getCompanyEmployees, updateEmployee } = require('../controllers/companyUserController');
+const { createCompanyUser, getCompanyUsers, deleteCompanyUser, createEmployee, deleteEmployee, getCompanyEmployees, updateEmployee, getChatMembers } = require('../controllers/companyUserController');
 const { protect } = require('../middleware/authMiddleware');
 
 const { roleCheck } = require('../middleware/roleMiddleware');
@@ -17,5 +17,8 @@ router.post('/employees', protect, roleCheck(HR_ROLES), createEmployee);
 router.get('/employees', protect, roleCheck(HR_ROLES), getCompanyEmployees);
 router.put('/employees/:id', protect, roleCheck(HR_ROLES), updateEmployee);
 router.delete('/employees/:id', protect, roleCheck(HR_ROLES), deleteEmployee);
+
+// Open to ALL authenticated company users - used for chat member autocomplete
+router.get('/chat-members', protect, getChatMembers);
 
 module.exports = router;
