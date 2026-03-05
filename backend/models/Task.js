@@ -24,6 +24,10 @@ const taskSchema = new mongoose.Schema({
         ref: 'Project',
         required: true,
     },
+    sprintId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Sprint',
+    },
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
@@ -36,6 +40,9 @@ const taskSchema = new mongoose.Schema({
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+    },
+    startDate: {
+        type: Date,
     },
     deadline: {
         type: Date,
@@ -52,6 +59,12 @@ const taskSchema = new mongoose.Schema({
         {
             title: { type: String, required: true },
             isCompleted: { type: Boolean, default: false },
+        }
+    ],
+    dependencies: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Task'
         }
     ],
     progress: {
@@ -87,6 +100,10 @@ taskSchema.virtual('isOverdue').get(function () {
 taskSchema.virtual('actualHours').get(function () {
     // This will be populated by the controller/service since we need a separate query to TimeLog
     return this._actualHours || 0;
+});
+
+taskSchema.virtual('dependentTasks').get(function () {
+    return this._dependentTasks || [];
 });
 
 taskSchema.set('toJSON', { virtuals: true });

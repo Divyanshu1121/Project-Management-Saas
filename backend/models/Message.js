@@ -34,7 +34,16 @@ const messageSchema = new mongoose.Schema({
         type: String,
         enum: ['DEFAULT', 'PRIVATE', 'COMMAND'],
         default: 'DEFAULT'
-    }
+    },
+    mentions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    attachments: [{
+        url: String,
+        fileType: String,
+        name: String
+    }]
 }, { timestamps: true });
 
 // Indexing for faster retrieval

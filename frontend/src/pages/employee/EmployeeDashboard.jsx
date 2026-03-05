@@ -100,6 +100,7 @@ const EmployeeDashboard = () => {
                         const sc = STATUS_COLOR[task.status] || STATUS_COLOR.TODO;
                         const pc = PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.MEDIUM;
                         const od = task.deadline && new Date() > new Date(task.deadline) && task.status !== 'APPROVED';
+                        const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
                         return (
                             <div key={task._id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.875rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -107,6 +108,7 @@ const EmployeeDashboard = () => {
                                     {task.projectId?.name && <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>{task.projectId.name}</p>}
                                 </div>
                                 <span style={{ padding: '0.2rem 0.65rem', background: pc.bg, color: pc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{task.priority || 'MEDIUM'}</span>
+                                {isBlocked && <span style={{ padding: '0.2rem 0.65rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Blocked</span>}
                                 <span style={{ padding: '0.2rem 0.65rem', background: sc.bg, color: sc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{STATUS_LABEL[task.status] || task.status}</span>
                                 {od && <span style={{ padding: '0.2rem 0.65rem', background: '#fef2f2', color: '#ef4444', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Overdue</span>}
                             </div>

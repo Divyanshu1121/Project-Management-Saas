@@ -3,6 +3,7 @@ const Task = require('../models/Task');
 const TimeLog = require('../models/TimeLog');
 const User = require('../models/User');
 const workflow = require('./taskWorkflowService');
+const dependencyService = require('./dependencyService');
 
 // Strip empty-string values for ObjectId fields to prevent BSON cast errors
 const sanitizeObjectIdFields = (data, fields) => {
@@ -113,22 +114,27 @@ const getTasks = async (companyId, filters = {}) => {
         .populate('assignedTo', 'name email empId')
         .populate('projectId', 'name')
         .populate('teamId', 'name')
+        .populate('dependencies', 'status')
         .sort({ createdAt: -1 });
 
-    // Calculate actualHours for each task
-    const tasksWithActuals = await Promise.all(tasks.map(async (task) => {
-        const logs = await TimeLog.find({ taskId: task._id });
+    // Calculate actualHours and fetch dependentTasks for each task
+    const tasksWithExtras = await Promise.all(tasks.map(async (task) => {
+        const [logs, dependentTasks] = await Promise.all([
+            TimeLog.find({ taskId: task._id }),
+            Task.find({ dependencies: task._id }).select('title status')
+        ]);
         const totalMinutes = logs.reduce((s, l) => s + (l.duration || 0), 0);
         task._actualHours = +(totalMinutes / 60).toFixed(2);
+        task._dependentTasks = dependentTasks;
         return task;
     }));
 
-    return tasksWithActuals;
+    return tasksWithExtras;
 };
 
 const createTask = async (data, managerId, companyId) => {
     // Strip empty-string ObjectId fields to avoid BSON cast errors
-    const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId']);
+    const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId', 'sprintId']);
 
     // Validate project belongs to same company
     const project = await Project.findOne({ _id: clean.projectId, companyId });
@@ -166,7 +172,7 @@ const createTask = async (data, managerId, companyId) => {
 
 const updateTask = async (taskId, companyId, data, userId) => {
     // Strip empty-string ObjectId fields to avoid BSON cast errors
-    const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId']);
+    const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId', 'sprintId']);
 
     const task = await Task.findOne({ _id: taskId, companyId });
     if (!task) throw new Error('Task not found');
@@ -183,13 +189,17 @@ const updateTask = async (taskId, companyId, data, userId) => {
 
     // If status changed, update history
     if (clean.status && clean.status !== oldStatus) {
+        if (['IN_PROGRESS', 'SUBMITTED', 'APPROVED'].includes(clean.status)) {
+            const isReady = await dependencyService.checkDependenciesCompleted(taskId);
+            if (!isReady) throw new Error(`Cannot update status to ${clean.status}: dependent tasks must be APPROVED first.`);
+        }
         workflow.addStatusHistory(task, userId, clean.statusNote || 'Status updated by manager');
     }
 
     await task.save();
 
     // Update project progress
-    await updateProjectProgress(clean.projectId);
+    await updateProjectProgress(task.projectId);
 
     return await Task.findById(task._id)
         .populate('assignedTo', 'name email empId')
@@ -201,6 +211,9 @@ const approveTask = async (taskId, companyId, managerId) => {
     const task = await Task.findOne({ _id: taskId, companyId });
     if (!task) throw new Error('Task not found');
     if (task.status !== 'SUBMITTED') throw new Error('Task must be in SUBMITTED status to approve');
+
+    const isReady = await dependencyService.checkDependenciesCompleted(taskId);
+    if (!isReady) throw new Error('Cannot approve task: dependent tasks must be APPROVED first.');
 
     task.status = 'APPROVED';
     workflow.addStatusHistory(task, managerId, 'Task approved by manager');

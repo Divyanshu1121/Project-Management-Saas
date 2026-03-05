@@ -21,6 +21,11 @@ router.post('/tasks/:id/approve', ...pm, ctrl.approveTask);
 router.post('/tasks/:id/reject', ...pm, ctrl.rejectTask);
 router.delete('/tasks/:id', ...pm, ctrl.deleteTask);
 
+// ── Task Dependencies ─────────────────────────────────────
+router.get('/tasks/:id/dependencies', ...pm, ctrl.getDependencies);
+router.post('/tasks/:id/dependencies', ...pm, ctrl.addDependency);
+router.delete('/tasks/:id/dependencies/:dependencyId', ...pm, ctrl.removeDependency);
+
 // ── Task Time Logs ────────────────────────────────────────
 router.get('/task/:id/time-logs', ...pm, ctrl.getTaskTimeLogs);
 

@@ -14,6 +14,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
 
 connectDB();
 
@@ -34,9 +35,11 @@ app.use('/api/manager', require('./routes/managerRoutes'));
 app.use('/api/employee', require('./routes/employeeRoutes'));
 const Message = require('./models/Message');
 const CommandService = require('./services/commandService');
+const MentionService = require('./services/mentionService');
 const http = require('http');
 const { Server } = require('socket.io');
 
+app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 
 app.get('/', (req, res) => {
@@ -71,7 +74,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_message', async (data) => {
-        const { roomId, sender, content, companyId, projectId, isGlobal } = data;
+        const { roomId, sender, content, companyId, projectId, isGlobal, attachments } = data;
 
         try {
             // Parse for commands/private messages
@@ -83,6 +86,10 @@ io.on('connection', (socket) => {
                 return;
             }
 
+            // Handle Mentions
+            const mentionedUsernames = MentionService.extractUsernames(parseResult.content);
+            const mentionedUserIds = await MentionService.resolveUserIds(mentionedUsernames, companyId);
+
             // Save message to MongoDB
             const newMessage = await Message.create({
                 sender,
@@ -91,12 +98,15 @@ io.on('connection', (socket) => {
                 recipient: parseResult.recipientId || null,
                 content: parseResult.content,
                 isGlobal: isGlobal || parseResult.type === 'PRIVATE',
-                messageType: parseResult.type
+                messageType: parseResult.type,
+                mentions: mentionedUserIds,
+                attachments: attachments || []
             });
 
             const populatedMessage = await Message.findById(newMessage._id)
                 .populate('sender', 'name email')
-                .populate('recipient', 'name email');
+                .populate('recipient', 'name email')
+                .populate('mentions', 'name email');
 
             if (parseResult.type === 'PRIVATE' && parseResult.recipientId) {
                 // Targeted emission to sender and recipient
@@ -109,6 +119,17 @@ io.on('connection', (socket) => {
             } else {
                 // Broadcast to everyone in the room (standard behavior)
                 io.to(roomId).emit('receive_message', populatedMessage);
+
+                // Notify mentioned users who are NOT the sender
+                mentionedUserIds.forEach(mId => {
+                    const sid = userSockets.get(mId.toString());
+                    if (sid && mId.toString() !== sender) {
+                        io.to(sid).emit('mention_received', {
+                            message: populatedMessage,
+                            senderName: populatedMessage.sender.name
+                        });
+                    }
+                });
             }
         } catch (error) {
             console.error('Error saving message:', error);

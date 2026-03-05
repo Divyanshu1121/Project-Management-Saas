@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema({
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
-        // Optional for SUPER_ADMIN, required for others (enforced in validation/controller usually)
     },
     empId: {
         type: String,
@@ -42,7 +41,6 @@ const userSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-// Encrypt password using bcrypt
 userSchema.pre('save', async function () {
     if (!this.isModified('password')) {
         return;
@@ -51,7 +49,6 @@ userSchema.pre('save', async function () {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };

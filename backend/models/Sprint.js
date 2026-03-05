@@ -5,6 +5,10 @@ const sprintSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    goal: {
+        type: String,
+        trim: true,
+    },
     projectId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
@@ -20,8 +24,8 @@ const sprintSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Planned', 'Active', 'Completed'],
-        default: 'Planned',
+        enum: ['planned', 'active', 'completed'],
+        default: 'planned',
     },
 }, { timestamps: true });
 

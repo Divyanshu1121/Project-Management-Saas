@@ -1,0 +1,6 @@
+[dotenv@17.2.4] injecting env (5) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Connected to MongoDB for seeding...
+Seeding Error: MongooseError: Operation `companies.findOne()` buffering timed out after 10000ms
+    at Timeout._onTimeout (c:\Users\Hp\Desktop\Internship\Project Management\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:131:25)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)

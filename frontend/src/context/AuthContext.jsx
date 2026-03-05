@@ -11,8 +11,17 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const fetchUser = async (token) => {
             try {
-                // You can either decode for immediate basic info or fetch from backend
-                // Fetching from backend is safer as it ensures the user still exists/is active
+                // Check if token is expired before hitting the backend
+                const decoded = jwtDecode(token);
+                const currentTime = Date.now() / 1000; // in seconds
+                if (decoded.exp && decoded.exp < currentTime) {
+                    // Token has expired — clear it without calling backend
+                    localStorage.removeItem('token');
+                    setLoading(false);
+                    return;
+                }
+
+                // Fetch from backend to ensure the user still exists/is active
                 const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`

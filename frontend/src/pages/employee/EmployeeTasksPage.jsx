@@ -105,6 +105,7 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
     const sc = STATUS_COLOR[task.status] || STATUS_COLOR.TODO;
     const pc = PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.MEDIUM;
     const od = task.deadline && new Date() > new Date(task.deadline) && task.status !== 'APPROVED';
+    const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
     const nextStatus = ALLOWED_NEXT[task.status];
 
     const progress = task.progress || 0;
@@ -127,6 +128,7 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                     </div>
                 </div>
                 <Badge bg={pc.bg} color={pc.color}>{task.priority || 'MEDIUM'}</Badge>
+                {isBlocked && <Badge bg="#fee2e2" color="#b91c1c">BLOCKED</Badge>}
                 <Badge bg={sc.bg} color={sc.color}>{STATUS_LABEL[task.status] || task.status}</Badge>
                 {od && <Badge bg="#fef2f2" color="#ef4444">Overdue</Badge>}
                 {task.deadline && (
@@ -147,6 +149,20 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                         <div style={{ marginBottom: '1.25rem', background: '#eff6ff', padding: '0.875rem', borderRadius: '0.625rem', border: '1px solid #dbeafe' }}>
                             <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Definition of Done</p>
                             <p style={{ margin: 0, color: '#1e3a8a', fontSize: '0.85rem', lineHeight: 1.5 }}>{task.definitionOfDone}</p>
+                        </div>
+                    )}
+
+                    {/* Dependencies */}
+                    {task.dependencies && task.dependencies.length > 0 && (
+                        <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.75rem' }}>
+                            <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>Dependencies</p>
+                            <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.875rem', color: '#b45309', fontWeight: 500 }}>
+                                {task.dependencies.map((dep, idx) => (
+                                    <li key={idx} style={{ marginBottom: '0.3rem' }}>
+                                        {dep.title || `Task ${dep._id}`} - <span style={{ fontWeight: 700, color: dep.status === 'APPROVED' ? '#16a34a' : '#ef4444' }}>[{STATUS_LABEL[dep.status] || dep.status}]</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
 
@@ -181,13 +197,17 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                     {nextStatus && (
                         <button
                             onClick={() => {
+                                if (isBlocked) {
+                                    alert('Cannot update status until all dependencies are APPROVED.');
+                                    return;
+                                }
                                 if (nextStatus === 'SUBMITTED') setShowSubmitModal(true);
                                 else onStatusChange(task._id, nextStatus);
                             }}
-                            disabled={updating === task._id || (nextStatus === 'SUBMITTED' && progress < 100)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.4rem', background: (nextStatus === 'SUBMITTED' && progress < 100) ? '#cbd5e1' : '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600, cursor: (nextStatus === 'SUBMITTED' && progress < 100) ? 'not-allowed' : 'pointer', transition: 'all 0.15s' }}>
+                            disabled={updating === task._id || (nextStatus === 'SUBMITTED' && progress < 100) || isBlocked}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.4rem', background: ((nextStatus === 'SUBMITTED' && progress < 100) || isBlocked) ? '#cbd5e1' : '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600, cursor: ((nextStatus === 'SUBMITTED' && progress < 100) || isBlocked) ? 'not-allowed' : 'pointer', transition: 'all 0.15s' }}>
                             {updating === task._id ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
-                            {nextStatus === 'SUBMITTED' && progress < 100 ? 'Finish subtasks to submit' : NEXT_LABEL[nextStatus]}
+                            {isBlocked ? 'Blocked by Dependencies' : (nextStatus === 'SUBMITTED' && progress < 100 ? 'Finish subtasks to submit' : NEXT_LABEL[nextStatus])}
                         </button>
                     )}
 

@@ -6,16 +6,16 @@ const Task = require('../models/Task');
 const TimeLog = require('../models/TimeLog');
 
 const workflow = require('../services/taskWorkflowService');
+const dependencyService = require('../services/dependencyService');
 
 const employeeOnly = roleCheck(['EMPLOYEE']);
 
-// ── Tasks ─────────────────────────────────────────────────────────
-// GET /api/employee/tasks  — only tasks assigned to me
 router.get('/tasks', protect, employeeOnly, async (req, res) => {
     try {
         const tasks = await Task.find({ assignedTo: req.user._id })
             .populate('projectId', 'name')
             .populate('teamId', 'name')
+            .populate('dependencies', 'status')
             .sort({ createdAt: -1 });
         res.json(tasks);
     } catch (e) {
@@ -23,8 +23,6 @@ router.get('/tasks', protect, employeeOnly, async (req, res) => {
     }
 });
 
-// PUT /api/employee/tasks/:id  — update only status/subtasks on MY task
-// Allowed transitions: TODO→IN_PROGRESS, IN_PROGRESS→SUBMITTED
 const ALLOWED_TRANSITIONS = {
     TODO: 'IN_PROGRESS',
     IN_PROGRESS: 'SUBMITTED',
@@ -38,13 +36,11 @@ router.put('/tasks/:id', protect, employeeOnly, async (req, res) => {
         const { status, subtasks, submission } = req.body;
         const oldStatus = task.status;
 
-        // 1. Handle subtask updates
         if (subtasks) {
             task.subtasks = subtasks;
             task.progress = workflow.calculateProgress(subtasks);
         }
 
-        // 2. Handle status transitions
         if (status !== undefined && status !== oldStatus) {
             if (['APPROVED', 'REJECTED'].includes(status)) {
                 return res.status(403).json({ message: 'Employees cannot approve or reject tasks' });
@@ -57,7 +53,13 @@ router.put('/tasks/:id', protect, employeeOnly, async (req, res) => {
                 });
             }
 
-            // Specific validation for SUBMITTED
+            if (['IN_PROGRESS', 'SUBMITTED'].includes(status)) {
+                const isReady = await dependencyService.checkDependenciesCompleted(task._id);
+                if (!isReady) {
+                    return res.status(400).json({ message: 'Cannot start or submit task: all dependent tasks must be APPROVED first.' });
+                }
+            }
+
             if (status === 'SUBMITTED') {
                 if (task.progress < 100) {
                     return res.status(400).json({ message: 'Task must be 100% complete to submit.' });
@@ -88,8 +90,6 @@ router.put('/tasks/:id', protect, employeeOnly, async (req, res) => {
     }
 });
 
-// ── Time Logs ─────────────────────────────────────────────────────
-// GET /api/employee/time-logs  — only MY time logs
 router.get('/time-logs', protect, employeeOnly, async (req, res) => {
     try {
         const logs = await TimeLog.find({ userId: req.user._id })
@@ -101,19 +101,17 @@ router.get('/time-logs', protect, employeeOnly, async (req, res) => {
     }
 });
 
-// POST /api/employee/time-logs  — log time; userId always forced to me
 router.post('/time-logs', protect, employeeOnly, async (req, res) => {
     try {
         const { taskId, date, startTime, endTime, duration, description } = req.body;
 
         if (!taskId) return res.status(400).json({ message: 'taskId is required' });
 
-        // Verify the task is assigned to this employee
         const task = await Task.findOne({ _id: taskId, assignedTo: req.user._id });
         if (!task) return res.status(403).json({ message: 'Task not assigned to you' });
 
         const log = await TimeLog.create({
-            userId: req.user._id,   // always forced — never from body
+            userId: req.user._id,
             taskId,
             date,
             startTime,
@@ -129,7 +127,6 @@ router.post('/time-logs', protect, employeeOnly, async (req, res) => {
     }
 });
 
-// DELETE /api/employee/time-logs/:id  — delete own log only
 router.delete('/time-logs/:id', protect, employeeOnly, async (req, res) => {
     try {
         const log = await TimeLog.findOne({ _id: req.params.id, userId: req.user._id });

@@ -1,5 +1,5 @@
 const svc = require('../services/managerService');
-
+const depSvc = require('../services/dependencyService');
 
 const getProjects = async (req, res) => {
     try {
@@ -129,9 +129,37 @@ const completeProject = async (req, res) => {
     }
 };
 
+const addDependency = async (req, res) => {
+    try {
+        const task = await depSvc.addDependency(req.params.id, req.body.dependencyId, req.user.companyId);
+        res.json(task);
+    } catch (e) {
+        res.status(400).json({ message: e.message });
+    }
+};
+
+const removeDependency = async (req, res) => {
+    try {
+        const task = await depSvc.removeDependency(req.params.id, req.params.dependencyId, req.user.companyId);
+        res.json(task);
+    } catch (e) {
+        res.status(400).json({ message: e.message });
+    }
+};
+
+const getDependencies = async (req, res) => {
+    try {
+        const deps = await depSvc.getTaskDependencies(req.params.id, req.user.companyId);
+        res.json(deps);
+    } catch (e) {
+        res.status(400).json({ message: e.message });
+    }
+};
+
 module.exports = {
     getProjects, createProject, updateProject, deleteProject,
     getTasks, createTask, updateTask, deleteTask,
     getTaskTimeLogs, getWorkload, getEmployees,
     approveTask, rejectTask, completeProject,
+    addDependency, removeDependency, getDependencies,
 };

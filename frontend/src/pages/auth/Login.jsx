@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Mail, Lock, ArrowRight, LayoutDashboard } from 'lucide-react';
+
+const getRoleRedirect = (role) => {
+    switch (role) {
+        case 'SUPER_ADMIN': return '/admin';
+        case 'COMPANY_OWNER':
+        case 'CEO':
+        case 'CTO':
+        case 'CFO':
+        case 'COO': return '/company';
+        case 'HR': return '/hr';
+        case 'PROJECT_MANAGER': return '/manager';
+        case 'EMPLOYEE': return '/employee';
+        default: return '/';
+    }
+};
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -11,7 +26,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, user, loading } = useAuth();
 
     React.useEffect(() => {
         const savedEmail = localStorage.getItem('rememberedEmail');
@@ -20,6 +35,11 @@ const Login = () => {
             setRememberMe(true);
         }
     }, []);
+
+    // If already authenticated, redirect to the appropriate dashboard
+    if (!loading && user) {
+        return <Navigate to={getRoleRedirect(user.role)} replace />;
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,19 +55,7 @@ const Login = () => {
             const res = await api.post('/auth/login', { email, password });
             login(res.data, res.data.token);
 
-            switch (res.data.role) {
-                case 'SUPER_ADMIN': navigate('/admin'); break;
-                case 'COMPANY_OWNER':
-                case 'CEO':
-                case 'CTO':
-                case 'CFO':
-                case 'COO':
-                    navigate('/company');
-                    break;
-                case 'PROJECT_MANAGER': navigate('/manager'); break;
-                case 'EMPLOYEE': navigate('/employee'); break;
-                default: navigate('/');
-            }
+            navigate(getRoleRedirect(res.data.role));
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
         } finally {

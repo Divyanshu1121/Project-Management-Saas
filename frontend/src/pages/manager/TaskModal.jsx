@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import api, { sprintApi } from '../../services/api';
 import { X, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 const STATUS_OPTIONS = [
     { value: 'TODO', label: 'To Do' },
@@ -42,7 +43,7 @@ const inputStyle = {
     boxSizing: 'border-box',
 };
 
-const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects = [], loading }) => {
+const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects = [], tasks = [], loading }) => {
     const isEdit = !!initialData;
 
     const [form, setForm] = useState({
@@ -54,14 +55,19 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
         teamId: '',
         assignedTo: '',
         deadline: '',
+        startDate: '',
         estimatedHours: '',
         definitionOfDone: '',
         subtasks: [],
+        sprintId: '',
+        dependencies: [],
     });
     const [error, setError] = useState('');
     const [teams, setTeams] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [empLoading, setEmpLoading] = useState(false);
+    const [sprints, setSprints] = useState([]);
+    const [sprintsLoading, setSprintsLoading] = useState(false);
     const [newSubtask, setNewSubtask] = useState('');
     const [aiLoading, setAiLoading] = useState({
         description: false,
@@ -80,6 +86,18 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
     }, [open]);
 
     useEffect(() => {
+        if (!open || !form.projectId) {
+            setSprints([]);
+            return;
+        }
+        setSprintsLoading(true);
+        sprintApi.getAll(form.projectId)
+            .then(r => setSprints(r.data || []))
+            .catch(() => setSprints([]))
+            .finally(() => setSprintsLoading(false));
+    }, [open, form.projectId]);
+
+    useEffect(() => {
         if (!open) return;
         if (isEdit && initialData) {
             setForm({
@@ -90,10 +108,13 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                 teamId: initialData.teamId?._id || initialData.teamId || '',
                 assignedTo: initialData.assignedTo?._id || initialData.assignedTo || '',
                 deadline: initialData.deadline ? initialData.deadline.slice(0, 10) : '',
+                startDate: initialData.startDate ? initialData.startDate.slice(0, 10) : '',
                 estimatedHours: initialData.estimatedHours || '',
                 definitionOfDone: initialData.definitionOfDone || '',
                 subtasks: initialData.subtasks || [],
                 projectId: initialData.projectId?._id || initialData.projectId || '',
+                sprintId: initialData.sprintId?._id || initialData.sprintId || '',
+                dependencies: initialData.dependencies?.map(d => typeof d === 'object' ? d._id : d) || [],
             });
             setAiGenerated({
                 description: !!initialData.description,
@@ -101,7 +122,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                 subtasks: (initialData.subtasks && initialData.subtasks.length > 0)
             });
         } else {
-            setForm({ title: '', description: '', projectId: projectId || (projects.length > 0 ? projects[0]._id : ''), status: 'TODO', priority: 'MEDIUM', teamId: '', assignedTo: '', deadline: '', estimatedHours: '', definitionOfDone: '', subtasks: [] });
+            setForm({ title: '', description: '', projectId: projectId || (projects.length > 0 ? projects[0]._id : ''), sprintId: '', status: 'TODO', priority: 'MEDIUM', teamId: '', assignedTo: '', startDate: '', deadline: '', estimatedHours: '', definitionOfDone: '', subtasks: [], dependencies: [] });
             setAiGenerated({ description: false, definition: false, subtasks: false });
         }
         setError('');
@@ -284,6 +305,24 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                             </Field>
                         )}
 
+                        {/* Sprint Selection */}
+                        <Field label="Sprint">
+                            <select
+                                value={form.sprintId}
+                                onChange={e => set('sprintId', e.target.value)}
+                                style={{ ...inputStyle, opacity: sprintsLoading ? 0.6 : 1 }}
+                                disabled={sprintsLoading || !form.projectId}
+                            >
+                                <option value="">{sprintsLoading ? 'Loading sprints...' : 'None (Backlog)'}</option>
+                                {sprints.map(s => (
+                                    <option key={s._id} value={s._id}>
+                                        {s.status === 'active' ? '🔄 ' : ''}
+                                        {s.name} ({s.status})
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
                         {/* Description */}
                         <Field
                             label="Description"
@@ -348,8 +387,16 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                             </select>
                         </Field>
 
-                        {/* Deadline + Est. Hours */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        {/* Dates + Est. Hours */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                            <Field label="Start Date">
+                                <input
+                                    type="date"
+                                    value={form.startDate}
+                                    onChange={e => set('startDate', e.target.value)}
+                                    style={inputStyle}
+                                />
+                            </Field>
                             <Field label="Deadline">
                                 <input
                                     type="date"
@@ -447,6 +494,27 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                 ))}
                             </div>
                         </Field>
+
+                        {/* Dependencies */}
+                        <Field label="Dependencies (Tasks that must be completed first)">
+                            <select
+                                multiple
+                                value={form.dependencies}
+                                onChange={e => {
+                                    const options = Array.from(e.target.selectedOptions, option => option.value);
+                                    set('dependencies', options);
+                                }}
+                                style={{ ...inputStyle, height: '100px', resize: 'vertical' }}
+                            >
+                                {tasks.filter(t => t._id !== initialData?._id).map(t => (
+                                    <option key={t._id} value={t._id}>
+                                        {t.title} ({t.status})
+                                    </option>
+                                ))}
+                            </select>
+                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>Hold Ctrl/Cmd to select multiple. Current task cannot be started until these are APPROVED.</p>
+                        </Field>
+
                     </div>
 
                     {/* Footer */}

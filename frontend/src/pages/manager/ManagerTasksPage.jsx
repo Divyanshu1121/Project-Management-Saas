@@ -62,6 +62,7 @@ const TaskRow = ({ task, onEdit, onDelete, onToggleDone }) => {
     const statusLabel = STATUS_LABEL[task.status] || task.status;
     const priorityLabel = PRIORITY_LABEL[task.priority] || task.priority;
     const isOverdue = task.deadline && new Date() > new Date(task.deadline) && !isDone;
+    const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
 
     return (
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.875rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', transition: 'box-shadow 0.15s', opacity: isDone ? 0.72 : 1 }}
@@ -104,6 +105,9 @@ const TaskRow = ({ task, onEdit, onDelete, onToggleDone }) => {
             <span style={{ padding: '0.2rem 0.65rem', background: s.bg, color: s.color, borderRadius: '2rem', fontSize: '0.74rem', fontWeight: 700, flexShrink: 0 }}>
                 {statusLabel}
             </span>
+
+            {/* Blocked badge */}
+            {isBlocked && <span style={{ padding: '0.2rem 0.65rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '2rem', fontSize: '0.74rem', fontWeight: 700, flexShrink: 0 }}>Blocked</span>}
 
             {/* Overdue badge */}
             {isOverdue && <span style={{ padding: '0.2rem 0.65rem', background: '#fef2f2', color: '#ef4444', borderRadius: '2rem', fontSize: '0.74rem', fontWeight: 700, flexShrink: 0 }}>Overdue</span>}
@@ -285,6 +289,7 @@ const ManagerTasksPage = () => {
                 initialData={editingTask}
                 projects={projects}
                 teams={teams}
+                tasks={tasks}
                 loading={submitting}
             />
 

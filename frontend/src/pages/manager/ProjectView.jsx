@@ -6,10 +6,12 @@ import {
     Clock, AlertTriangle, Pencil, Trash2, X, Flag, BarChart2,
     User, ThumbsUp, ThumbsDown, RefreshCw, ChevronRight, TrendingUp,
     Search, Filter, Calendar as CalendarIcon, Hash, ChevronDown, ListTodo,
-    ArrowRight, Info, History, ExternalLink, CheckSquare, Square, MessageSquare
+    ArrowRight, Info, History, ExternalLink, CheckSquare, Square, MessageSquare, Layout as LayoutIcon, Layers
 } from 'lucide-react';
 import TaskModal from './TaskModal';
 import ChatWindow from '../../components/common/ChatWindow';
+import SprintBoard from './SprintBoard';
+import TimelineView from './TimelineView';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const fmt = (d) => {
@@ -42,8 +44,9 @@ const PROJECT_STATUS_META = {
     ON_HOLD: { bg: '#fee2e2', color: '#991b1b', label: 'On Hold' }
 };
 
-const Badge = ({ meta, label }) => (
-    <span style={{ padding: '0.2rem 0.65rem', borderRadius: '2rem', fontSize: '0.72rem', fontWeight: 700, background: meta?.bg || '#f1f5f9', color: meta?.color || '#475569', whiteSpace: 'nowrap' }}>
+const Badge = ({ meta, label, icon }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.65rem', borderRadius: '2rem', fontSize: '0.72rem', fontWeight: 700, background: meta?.bg || '#f1f5f9', color: meta?.color || '#475569', whiteSpace: 'nowrap' }}>
+        {icon}
         {label || meta?.label}
     </span>
 );
@@ -162,6 +165,39 @@ const TaskDetailModal = ({ task, onClose, onApprove, onReject, onEdit, actionLoa
                                     <p style={{ margin: '0.5rem 0 0', fontSize: '0.7rem', color: '#a855f7' }}>Submitted on {fmt(task.submission.submittedAt)}</p>
                                 </div>
                             )}
+
+                            {/* Dependencies & Blockers */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                                {/* Dependencies (What this task needs) */}
+                                {task.dependencies && task.dependencies.length > 0 && (
+                                    <div style={{ padding: '0.875rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.6rem' }}>
+                                        <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', fontWeight: 800, color: '#92400e', textTransform: 'uppercase' }}>Waiting On</p>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                            {task.dependencies.map((dep, idx) => (
+                                                <div key={idx} style={{ fontSize: '0.78rem', color: '#b45309', display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>{dep.title}</span>
+                                                    <span style={{ fontWeight: 700, opacity: 0.8 }}>{dep.status}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Dependent Tasks (What this task blocks) */}
+                                {task.dependentTasks && task.dependentTasks.length > 0 && (
+                                    <div style={{ padding: '0.875rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.6rem' }}>
+                                        <p style={{ margin: '0 0 0.5rem', fontSize: '0.7rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>Blocking</p>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                            {task.dependentTasks.map((dep, idx) => (
+                                                <div key={idx} style={{ fontSize: '0.78rem', color: '#15803d', display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>{dep.title}</span>
+                                                    <span style={{ fontWeight: 700, opacity: 0.8 }}>{dep.status}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Subtasks */}
                             <div>
@@ -287,6 +323,7 @@ const TaskRow = ({ task, onView, onEdit, onDelete }) => {
     const overdue = isOverdue(task);
     const sm = STATUS_META[task.status] || STATUS_META.TODO;
     const pm = PRIORITY_META[task.priority] || PRIORITY_META.MEDIUM;
+    const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
 
     return (
         <tr
@@ -304,6 +341,7 @@ const TaskRow = ({ task, onView, onEdit, onDelete }) => {
             <td style={{ padding: '0.875rem 1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <Badge meta={sm} />
+                    {isBlocked && <span style={{ padding: '0.15rem 0.5rem', borderRadius: '2rem', fontSize: '0.68rem', fontWeight: 700, background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5' }}>BLOCKED</span>}
                     {overdue && <span style={{ padding: '0.15rem 0.5rem', borderRadius: '2rem', fontSize: '0.68rem', fontWeight: 700, background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' }}>OVERDUE</span>}
                 </div>
             </td>
@@ -620,6 +658,46 @@ const ProjectView = () => {
                         <MessageSquare size={18} />
                         Project Chat
                     </button>
+                    <button
+                        onClick={() => setActiveTab('sprints')}
+                        style={{
+                            padding: '1.25rem 0.5rem',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: activeTab === 'sprints' ? '#2563eb' : '#64748b',
+                            border: 'none',
+                            background: 'none',
+                            borderBottom: activeTab === 'sprints' ? '3px solid #2563eb' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <LayoutIcon size={18} />
+                        Sprint Board
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('timeline')}
+                        style={{
+                            padding: '1.25rem 0.5rem',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: activeTab === 'timeline' ? '#2563eb' : '#64748b',
+                            border: 'none',
+                            background: 'none',
+                            borderBottom: activeTab === 'timeline' ? '3px solid #2563eb' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Layers size={18} />
+                        Timeline
+                    </button>
                 </div>
 
                 {activeTab === 'tasks' ? (
@@ -683,7 +761,7 @@ const ProjectView = () => {
                             </div>
                         )}
                     </>
-                ) : (
+                ) : activeTab === 'chat' ? (
                     <div style={{ padding: '1.5rem', height: '600px' }}>
                         <ChatWindow
                             roomId={`project_${id}`}
@@ -692,6 +770,10 @@ const ProjectView = () => {
                             title={`${project?.name} Chat`}
                         />
                     </div>
+                ) : activeTab === 'timeline' ? (
+                    <TimelineView projectId={id} />
+                ) : (
+                    <SprintBoard projectId={id} />
                 )}
             </div>
 
@@ -704,6 +786,7 @@ const ProjectView = () => {
                     initialData={editingTask}
                     projectId={id}
                     loading={submitting}
+                    tasks={tasks} // Pass tasks for dependency selection
                 />
             )}
 

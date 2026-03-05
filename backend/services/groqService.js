@@ -70,8 +70,9 @@ Formatting Rules:
 
         return response.data.choices[0].message.content.trim();
     } catch (error) {
-        console.error('Groq API Error:', error.response?.data || error.message);
-        throw new Error('Failed to generate content with AI');
+        const detail = error.response?.data?.error?.message || error.response?.data || error.message;
+        console.error('Groq API Error:', detail);
+        throw new Error(`Failed to generate content: ${detail}`);
     }
 };
 
