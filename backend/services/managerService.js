@@ -4,8 +4,8 @@ const TimeLog = require('../models/TimeLog');
 const User = require('../models/User');
 const workflow = require('./taskWorkflowService');
 const dependencyService = require('./dependencyService');
+const { createNotification } = require('./notificationService');
 
-// Strip empty-string values for ObjectId fields to prevent BSON cast errors
 const sanitizeObjectIdFields = (data, fields) => {
     const cleaned = { ...data };
     for (const field of fields) {
@@ -16,8 +16,6 @@ const sanitizeObjectIdFields = (data, fields) => {
     return cleaned;
 };
 
-
-// ── PROJECTS ─────────────────────────────────────────────────────
 
 const getProjects = async (companyId) => {
     return await Project.find({ companyId })
@@ -50,7 +48,6 @@ const updateProject = async (projectId, companyId, data) => {
 const deleteProject = async (projectId, companyId) => {
     const project = await Project.findOneAndDelete({ _id: projectId, companyId });
     if (!project) throw new Error('Project not found');
-    // Also delete all tasks belonging to this project
     await Task.deleteMany({ projectId, companyId });
     return project;
 };
@@ -75,7 +72,6 @@ const completeProject = async (projectId, companyId, managerId) => {
 
     if (project.status === 'COMPLETED') throw new Error('Project is already completed');
 
-    // Check for pending tasks
     const pendingCount = await Task.countDocuments({
         projectId,
         status: { $ne: 'APPROVED' }
@@ -94,8 +90,6 @@ const completeProject = async (projectId, companyId, managerId) => {
     return project;
 };
 
-// ── TASKS ─────────────────────────────────────────────────────────
-
 const getTasks = async (companyId, filters = {}) => {
     const query = { companyId };
 
@@ -104,7 +98,6 @@ const getTasks = async (companyId, filters = {}) => {
     if (filters.status) query.status = filters.status;
     if (filters.priority) query.priority = filters.priority;
 
-    // Overdue: deadline < now AND status != APPROVED
     if (filters.overdue === 'true') {
         query.deadline = { $lt: new Date() };
         query.status = { $ne: 'APPROVED' };
@@ -117,7 +110,6 @@ const getTasks = async (companyId, filters = {}) => {
         .populate('dependencies', 'status')
         .sort({ createdAt: -1 });
 
-    // Calculate actualHours and fetch dependentTasks for each task
     const tasksWithExtras = await Promise.all(tasks.map(async (task) => {
         const [logs, dependentTasks] = await Promise.all([
             TimeLog.find({ taskId: task._id }),
@@ -133,20 +125,16 @@ const getTasks = async (companyId, filters = {}) => {
 };
 
 const createTask = async (data, managerId, companyId) => {
-    // Strip empty-string ObjectId fields to avoid BSON cast errors
     const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId', 'sprintId']);
 
-    // Validate project belongs to same company
     const project = await Project.findOne({ _id: clean.projectId, companyId });
     if (!project) throw new Error('Project not found or does not belong to your company');
 
-    // Validate assignee belongs to same company (if provided)
     if (clean.assignedTo) {
         const employee = await User.findOne({ _id: clean.assignedTo, companyId });
         if (!employee) throw new Error('Assigned employee does not belong to your company');
     }
 
-    // Auto-calculate progress if subtasks provided
     if (clean.subtasks) {
         clean.progress = workflow.calculateProgress(clean.subtasks);
     }
@@ -156,22 +144,34 @@ const createTask = async (data, managerId, companyId) => {
         companyId,
     });
 
-    // Initial status history
     workflow.addStatusHistory(task, managerId, 'Task created');
 
     await task.save();
 
-    // Update project progress
     await updateProjectProgress(clean.projectId);
 
-    return await Task.findById(task._id)
+    const populatedTask = await Task.findById(task._id)
         .populate('assignedTo', 'name email empId')
         .populate('projectId', 'name')
         .populate('teamId', 'name');
+
+    if (clean.assignedTo) {
+        const manager = await User.findById(managerId).select('name');
+        await createNotification({
+            recipientId: clean.assignedTo,
+            companyId,
+            type: 'TASK_ASSIGNED',
+            title: 'New task assigned to you',
+            message: `${manager?.name || 'Manager'} assigned you "${task.title}"`,
+            link: '/employee/tasks',
+            metadata: { taskId: task._id },
+        });
+    }
+
+    return populatedTask;
 };
 
 const updateTask = async (taskId, companyId, data, userId) => {
-    // Strip empty-string ObjectId fields to avoid BSON cast errors
     const clean = sanitizeObjectIdFields(data, ['assignedTo', 'teamId', 'sprintId']);
 
     const task = await Task.findOne({ _id: taskId, companyId });
@@ -179,15 +179,12 @@ const updateTask = async (taskId, companyId, data, userId) => {
 
     const oldStatus = task.status;
 
-    // If subtasks are updated, recalculate progress
     if (clean.subtasks) {
         clean.progress = workflow.calculateProgress(clean.subtasks);
     }
 
-    // Apply updates
     Object.assign(task, clean);
 
-    // If status changed, update history
     if (clean.status && clean.status !== oldStatus) {
         if (['IN_PROGRESS', 'SUBMITTED', 'APPROVED'].includes(clean.status)) {
             const isReady = await dependencyService.checkDependenciesCompleted(taskId);
@@ -198,7 +195,6 @@ const updateTask = async (taskId, companyId, data, userId) => {
 
     await task.save();
 
-    // Update project progress
     await updateProjectProgress(task.projectId);
 
     return await Task.findById(task._id)
@@ -219,8 +215,20 @@ const approveTask = async (taskId, companyId, managerId) => {
     workflow.addStatusHistory(task, managerId, 'Task approved by manager');
     await task.save();
 
-    // Update project progress
     await updateProjectProgress(task.projectId);
+
+    if (task.assignedTo) {
+        const manager = await User.findById(managerId).select('name');
+        await createNotification({
+            recipientId: task.assignedTo,
+            companyId,
+            type: 'TASK_APPROVED',
+            title: 'Task approved ✅',
+            message: `${manager?.name || 'Manager'} approved your task "${task.title}"`,
+            link: '/employee/tasks',
+            metadata: { taskId: task._id },
+        });
+    }
 
     return task;
 };
@@ -234,6 +242,20 @@ const rejectTask = async (taskId, companyId, managerId, note) => {
     task.status = 'REJECTED';
     workflow.addStatusHistory(task, managerId, `Task rejected: ${note}`);
     await task.save();
+
+    if (task.assignedTo) {
+        const manager = await User.findById(managerId).select('name');
+        await createNotification({
+            recipientId: task.assignedTo,
+            companyId,
+            type: 'TASK_REJECTED',
+            title: 'Task rejected ❌',
+            message: `${manager?.name || 'Manager'} rejected your task "${task.title}": ${note}`,
+            link: '/employee/tasks',
+            metadata: { taskId: task._id },
+        });
+    }
+
     return task;
 };
 
@@ -244,16 +266,13 @@ const deleteTask = async (taskId, companyId) => {
 
     await Task.findByIdAndDelete(taskId);
 
-    // Update project progress
     await updateProjectProgress(projectId);
 
     return task;
 };
 
-// ── TASK TIME LOGS ────────────────────────────────────────────────
 
 const getTaskTimeLogs = async (taskId, companyId) => {
-    // Verify task belongs to company
     const task = await Task.findOne({ _id: taskId, companyId })
         .populate('assignedTo', 'name')
         .populate('projectId', 'name');
@@ -280,13 +299,10 @@ const getTaskTimeLogs = async (taskId, companyId) => {
     };
 };
 
-// ── WORKLOAD ──────────────────────────────────────────────────────
 
 const getWorkload = async (companyId) => {
-    // Get all employees in the company
     const employees = await User.find({ companyId, role: 'EMPLOYEE' }).select('name email empId');
 
-    // For each employee get active task count + total logged hours
     const workload = await Promise.all(
         employees.map(async (emp) => {
             const [activeTasks, timeLogs] = await Promise.all([
@@ -311,8 +327,6 @@ const getWorkload = async (companyId) => {
 
     return workload;
 };
-
-// ── EMPLOYEES BY TEAM ─────────────────────────────────────────────
 
 const getEmployeesByTeam = async (teamId, companyId) => {
     const query = { companyId, role: 'EMPLOYEE' };

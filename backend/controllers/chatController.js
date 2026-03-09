@@ -1,8 +1,6 @@
 const Message = require('../models/Message');
 const MentionService = require('../services/mentionService');
 
-// @desc    Get global chat messages for a company
-// @route   GET /api/chat/global
 const getGlobalMessages = async (req, res) => {
     try {
         const messages = await Message.find({
@@ -18,16 +16,13 @@ const getGlobalMessages = async (req, res) => {
             .populate('recipient', 'name email')
             .populate('mentions', 'name email')
             .sort({ createdAt: 1 })
-            .limit(100); // Limit to last 100 messages for now
-
+            .limit(100);
         res.json(messages);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-// @desc    Get project-specific chat messages
-// @route   GET /api/chat/project/:projectId
 const getProjectMessages = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -64,8 +59,6 @@ const uploadFile = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // In a real production app, you'd upload to Cloudinary/S3 here.
-        // For now, we'll serve from the local uploads folder.
         const fileUrl = `/uploads/chat/${req.file.filename}`;
 
         res.json({

@@ -4,6 +4,8 @@ const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 const Task = require('../models/Task');
 const TimeLog = require('../models/TimeLog');
+const User = require('../models/User');
+const { createNotification } = require('../services/notificationService');
 
 const workflow = require('../services/taskWorkflowService');
 const dependencyService = require('../services/dependencyService');
@@ -79,6 +81,26 @@ router.put('/tasks/:id', protect, employeeOnly, async (req, res) => {
         }
 
         await task.save();
+
+        // Notify manager when employee submits task
+        if (status === 'SUBMITTED') {
+            try {
+                const managers = await User.find({ companyId: req.user.companyId, role: 'PROJECT_MANAGER' }).select('_id');
+                await Promise.all(managers.map(mgr =>
+                    createNotification({
+                        recipientId: mgr._id,
+                        companyId: req.user.companyId,
+                        type: 'TASK_SUBMITTED',
+                        title: 'Task submitted for review',
+                        message: `${req.user.name} submitted task "${task.title}" for your review.`,
+                        link: '/manager/tasks',
+                        metadata: { taskId: task._id },
+                    })
+                ));
+            } catch (notifErr) {
+                console.error('[Employee] Submit notification error:', notifErr.message);
+            }
+        }
 
         const updated = await Task.findById(task._id)
             .populate('projectId', 'name')

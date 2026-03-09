@@ -10,6 +10,7 @@ import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ProjectsPage from './pages/manager/ProjectsPage';
 import ProjectView from './pages/manager/ProjectView';
 import ManagerTasksPage from './pages/manager/ManagerTasksPage';
+import KanbanBoard from './pages/manager/KanbanBoard';
 import ManagerTeamPage from './pages/manager/ManagerTeamPage';
 import WorkloadPage from './pages/manager/WorkloadPage';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
@@ -120,6 +121,14 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
                             <ManagerTeamPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="manager/kanban"
+                    element={
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER']}>
+                            <KanbanBoard />
                         </ProtectedRoute>
                     }
                 />

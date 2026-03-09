@@ -101,6 +101,17 @@ const SprintBoard = ({ projectId }) => {
         </div>
     );
 
+    const inputStyle = {
+        padding: '0.45rem 0.75rem',
+        border: '1.5px solid #e2e8f0',
+        borderRadius: '0.5rem',
+        fontSize: '0.875rem',
+        color: '#1e293b',
+        outline: 'none',
+        fontFamily: 'inherit',
+        background: 'white',
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
 

@@ -19,9 +19,11 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
     const [attachments, setAttachments] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const [typingUsers, setTypingUsers] = useState({}); // userId -> { userName, lastTypedAt }
     const { user } = useAuth();
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const lastTypeEmit = useRef(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,21 +78,56 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
             console.log(`Mention from ${data.senderName}: ${data.message.content}`);
         });
 
+        socket.on('user_typing', (data) => {
+            const { userId, userName } = data;
+            setTypingUsers(prev => ({
+                ...prev,
+                [userId]: { userName, lastTypedAt: Date.now() }
+            }));
+        });
+
         return () => {
             socket.off('receive_message');
             socket.off('error_message');
             socket.off('mention_received');
+            socket.off('user_typing');
             socket.disconnect();
         };
     }, [roomId, projectId, isGlobal, user._id]);
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            setTypingUsers(prev => {
+                const refreshed = {};
+                Object.entries(prev).forEach(([id, info]) => {
+                    if (now - info.lastTypedAt < 3000) {
+                        refreshed[id] = info;
+                    }
+                });
+                return Object.keys(refreshed).length === Object.keys(prev).length ? prev : refreshed;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, typingUsers]);
 
     const handleInputChange = async (e) => {
         const val = e.target.value;
         setNewMessage(val);
+
+        const now = Date.now();
+        if (now - lastTypeEmit.current > 1000) {
+            socket.emit('typing', {
+                roomId,
+                userId: user._id,
+                userName: user.name
+            });
+            lastTypeEmit.current = now;
+        }
 
         const lastAt = val.lastIndexOf('@');
         const lastSlash = val.lastIndexOf('/');
@@ -181,7 +218,7 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
             setUploadError(err.response?.data?.message || 'Failed to upload file');
         } finally {
             setUploading(false);
-            e.target.value = ''; // Reset input
+            e.target.value = '';
         }
     };
 
@@ -246,7 +283,7 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
                     fontSize: '0.7rem', color: '#94a3b8', background: '#f8fafc',
                     padding: '0.25rem 0.5rem', borderRadius: '0.25rem'
                 }}>
-                    Tip: <b>/name</b> for whisper · <b>@name</b> for mention
+                    Tip: <b>/name</b> whisper · <b>@name</b> mention · <b>/assign</b> task
                 </span>
             </div>
 
@@ -260,123 +297,150 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
                         <p style={{ margin: 0, fontSize: '0.875rem' }}>No messages yet. Start the conversation!</p>
                     </div>
                 ) : (
-                    messages.map((msg, index) => {
-                        const isMe = msg.sender?._id === user._id || msg.sender === user._id;
-                        const isSystem = msg.sender?.name === 'System';
-                        const isPrivate = msg.messageType === 'PRIVATE';
+                    <>
+                        {messages.map((msg, index) => {
+                            const isMe = msg.sender?._id === user._id || msg.sender === user._id;
+                            const isSystem = msg.sender?.name === 'System';
+                            const isPrivate = msg.messageType === 'PRIVATE';
+                            const isCommand = msg.messageType === 'COMMAND';
 
-                        return (
-                            <div key={msg._id || index} style={{
-                                alignSelf: isSystem ? 'center' : (isMe ? 'flex-end' : 'flex-start'),
-                                maxWidth: isSystem ? '100%' : '80%',
-                                display: 'flex', flexDirection: 'column',
-                                alignItems: isMe ? 'flex-end' : (isSystem ? 'center' : 'flex-start')
+                            return (
+                                <div key={msg._id || index} style={{
+                                    alignSelf: (isSystem || isCommand) ? 'center' : (isMe ? 'flex-end' : 'flex-start'),
+                                    maxWidth: (isSystem || isCommand) ? '100%' : '80%',
+                                    display: 'flex', flexDirection: 'column',
+                                    alignItems: isMe ? 'flex-end' : ((isSystem || isCommand) ? 'center' : 'flex-start')
+                                }}>
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                        marginBottom: '0.25rem', color: '#64748b', fontSize: '0.7rem'
+                                    }}>
+                                        {!isMe && !isSystem && !isCommand && <span style={{ fontWeight: 600 }}>{msg.sender?.name}</span>}
+                                        {isPrivate && <span style={{ color: '#7c3aed', fontWeight: 700 }}>🔒 whisper</span>}
+                                        {isCommand && <span style={{ color: '#059669', fontWeight: 700 }}>⚡ task bot</span>}
+                                        {msg.createdAt && <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                                    </div>
+                                    <div style={{
+                                        padding: '0.75rem 1rem', borderRadius: '1rem',
+                                        borderTopRightRadius: isMe ? '0.25rem' : '1rem',
+                                        borderTopLeftRadius: isMe ? '1rem' : '0.25rem',
+                                        backgroundColor: isSystem ? 'transparent' : (isCommand ? '#f0fdf4' : (isMe ? '#2563eb' : (isPrivate ? '#f5f3ff' : 'white'))),
+                                        color: isSystem ? (msg.isError ? '#ef4444' : '#64748b') : (isMe ? 'white' : (isCommand ? '#166534' : '#1e293b')),
+                                        boxShadow: (isSystem || isCommand) ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
+                                        fontSize: isSystem ? '0.75rem' : '0.9rem', lineHeight: 1.5,
+                                        border: isSystem ? 'none' : (isCommand ? '1.5px solid #dcfce7' : (isPrivate ? '1.5px solid #ddd6fe' : (isMe ? 'none' : '1px solid #e2e8f0'))),
+                                        fontStyle: isSystem ? 'italic' : 'normal',
+                                        textAlign: (isSystem || isCommand) ? 'center' : 'left'
+                                    }}>
+                                        {!isMe && isPrivate && (
+                                            <div style={{ fontSize: '0.65rem', marginBottom: '0.25rem', fontWeight: 700, color: '#6d28d9' }}>
+                                                Whisper to you:
+                                            </div>
+                                        )}
+                                        {isMe && isPrivate && msg.recipient && (
+                                            <div style={{ fontSize: '0.65rem', marginBottom: '0.25rem', fontWeight: 700, color: '#fff' }}>
+                                                Whispered to {msg.recipient.name}:
+                                            </div>
+                                        )}
+                                        {msg.content && msg.content.split(/(@\w+)/g).map((part, i) => {
+                                            if (part.startsWith('@')) {
+                                                const name = part.substring(1);
+                                                const isMentionedMe = name.toLowerCase() === user.name.toLowerCase();
+                                                return (
+                                                    <span key={i} style={{
+                                                        color: isMe ? '#fff' : '#2563eb',
+                                                        fontWeight: 800,
+                                                        backgroundColor: isMentionedMe && !isMe ? '#dbeafe' : 'transparent',
+                                                        padding: isMentionedMe && !isMe ? '0 0.2rem' : 0,
+                                                        borderRadius: '0.2rem'
+                                                    }}>
+                                                        {part}
+                                                    </span>
+                                                );
+                                            }
+                                            return part;
+                                        })}
+
+                                        {msg.attachments && msg.attachments.length > 0 && (
+                                            <div style={{ marginTop: msg.content ? '0.5rem' : 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                {msg.attachments.map((att, i) => {
+                                                    const isImage = att.fileType?.startsWith('image/');
+                                                    const fullUrl = `http://localhost:5000${att.url}`;
+
+                                                    if (isImage) {
+                                                        return (
+                                                            <img
+                                                                key={i}
+                                                                src={fullUrl}
+                                                                alt={att.name}
+                                                                style={{
+                                                                    maxWidth: '100%',
+                                                                    borderRadius: '0.5rem',
+                                                                    cursor: 'pointer',
+                                                                    maxHeight: '200px',
+                                                                    objectFit: 'cover'
+                                                                }}
+                                                                onClick={() => window.open(fullUrl, '_blank')}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <a
+                                                            key={i}
+                                                            href={fullUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.5rem',
+                                                                padding: '0.5rem',
+                                                                background: isMe ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+                                                                borderRadius: '0.4rem',
+                                                                textDecoration: 'none',
+                                                                color: isMe ? 'white' : '#1e293b',
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        >
+                                                            <File size={16} />
+                                                            <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                {att.name}
+                                                            </span>
+                                                        </a>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {Object.values(typingUsers).length > 0 && (
+                            <div style={{
+                                alignSelf: 'flex-start',
+                                margin: '0.25rem 0 0.5rem',
+                                paddingLeft: '0.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem'
                             }}>
                                 <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                                    marginBottom: '0.25rem', color: '#64748b', fontSize: '0.7rem'
+                                    display: 'flex', gap: '2px', padding: '0.4rem 0.6rem',
+                                    backgroundColor: '#f1f5f9', borderRadius: '0.75rem',
+                                    borderBottomLeftRadius: '0.2rem'
                                 }}>
-                                    {!isMe && !isSystem && <span style={{ fontWeight: 600 }}>{msg.sender?.name}</span>}
-                                    {isPrivate && <span style={{ color: '#7c3aed', fontWeight: 700 }}>🔒 whisper</span>}
-                                    {msg.createdAt && <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                                    <div className="typing-dot" style={{ width: 4, height: 4, background: '#64748b', borderRadius: '50%', animation: 'typing-pulse 1s infinite' }} />
+                                    <div className="typing-dot" style={{ width: 4, height: 4, background: '#64748b', borderRadius: '50%', animation: 'typing-pulse 1s infinite 0.2s' }} />
+                                    <div className="typing-dot" style={{ width: 4, height: 4, background: '#64748b', borderRadius: '50%', animation: 'typing-pulse 1s infinite 0.4s' }} />
                                 </div>
-                                <div style={{
-                                    padding: '0.75rem 1rem', borderRadius: '1rem',
-                                    borderTopRightRadius: isMe ? '0.25rem' : '1rem',
-                                    borderTopLeftRadius: isMe ? '1rem' : '0.25rem',
-                                    backgroundColor: isSystem ? 'transparent' : (isMe ? '#2563eb' : (isPrivate ? '#f5f3ff' : 'white')),
-                                    color: isSystem ? (msg.isError ? '#ef4444' : '#64748b') : (isMe ? 'white' : '#1e293b'),
-                                    boxShadow: isSystem ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
-                                    fontSize: isSystem ? '0.75rem' : '0.9rem', lineHeight: 1.5,
-                                    border: isSystem ? 'none' : (isPrivate ? '1.5px solid #ddd6fe' : (isMe ? 'none' : '1px solid #e2e8f0')),
-                                    fontStyle: isSystem ? 'italic' : 'normal',
-                                    textAlign: isSystem ? 'center' : 'left'
-                                }}>
-                                    {!isMe && isPrivate && (
-                                        <div style={{ fontSize: '0.65rem', marginBottom: '0.25rem', fontWeight: 700, color: '#6d28d9' }}>
-                                            Whisper to you:
-                                        </div>
-                                    )}
-                                    {isMe && isPrivate && msg.recipient && (
-                                        <div style={{ fontSize: '0.65rem', marginBottom: '0.25rem', fontWeight: 700, color: '#fff' }}>
-                                            Whispered to {msg.recipient.name}:
-                                        </div>
-                                    )}
-                                    {msg.content && msg.content.split(/(@\w+)/g).map((part, i) => {
-                                        if (part.startsWith('@')) {
-                                            const name = part.substring(1);
-                                            const isMentionedMe = name.toLowerCase() === user.name.toLowerCase();
-                                            return (
-                                                <span key={i} style={{
-                                                    color: isMe ? '#fff' : '#2563eb',
-                                                    fontWeight: 800,
-                                                    backgroundColor: isMentionedMe && !isMe ? '#dbeafe' : 'transparent',
-                                                    padding: isMentionedMe && !isMe ? '0 0.2rem' : 0,
-                                                    borderRadius: '0.2rem'
-                                                }}>
-                                                    {part}
-                                                </span>
-                                            );
-                                        }
-                                        return part;
-                                    })}
-
-                                    {/* Attachments rendering */}
-                                    {msg.attachments && msg.attachments.length > 0 && (
-                                        <div style={{ marginTop: msg.content ? '0.5rem' : 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                            {msg.attachments.map((att, i) => {
-                                                const isImage = att.fileType?.startsWith('image/');
-                                                const fullUrl = `http://localhost:5000${att.url}`;
-
-                                                if (isImage) {
-                                                    return (
-                                                        <img
-                                                            key={i}
-                                                            src={fullUrl}
-                                                            alt={att.name}
-                                                            style={{
-                                                                maxWidth: '100%',
-                                                                borderRadius: '0.5rem',
-                                                                cursor: 'pointer',
-                                                                maxHeight: '200px',
-                                                                objectFit: 'cover'
-                                                            }}
-                                                            onClick={() => window.open(fullUrl, '_blank')}
-                                                        />
-                                                    );
-                                                }
-
-                                                return (
-                                                    <a
-                                                        key={i}
-                                                        href={fullUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '0.5rem',
-                                                            padding: '0.5rem',
-                                                            background: isMe ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
-                                                            borderRadius: '0.4rem',
-                                                            textDecoration: 'none',
-                                                            color: isMe ? 'white' : '#1e293b',
-                                                            fontSize: '0.75rem'
-                                                        }}
-                                                    >
-                                                        <File size={16} />
-                                                        <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {att.name}
-                                                        </span>
-                                                    </a>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
+                                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                                    {Object.values(typingUsers).map(u => u.userName).join(', ')} {Object.values(typingUsers).length === 1 ? 'is' : 'are'} typing...
+                                </span>
                             </div>
-                        );
-                    })
+                        )}
+                    </>
                 )}
                 <div ref={messagesEndRef} />
             </div>
@@ -439,7 +503,6 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
                     </div>
                 )}
 
-                {/* Selected Attachments Preview */}
                 {attachments.length > 0 && (
                     <div style={{
                         padding: '0.75rem 1.5rem', backgroundColor: '#f8fafc',
@@ -523,6 +586,10 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
                     </button>
                     <style>{`
                         @keyframes spin { to { transform: rotate(360deg); } }
+                        @keyframes typing-pulse {
+                            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+                            50% { opacity: 1; transform: scale(1.1); }
+                        }
                     `}</style>
                 </form>
             </div>

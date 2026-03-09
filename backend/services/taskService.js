@@ -14,7 +14,6 @@ const createTask = async (taskData, managerId) => {
     return task.populate('projectId', 'name');
 };
 
-// Get tasks — if projectId provided, filter by it; otherwise get all for the company
 const getTasks = async (projectId, companyId) => {
     const filter = companyId ? { companyId } : {};
     if (projectId) filter.projectId = projectId;

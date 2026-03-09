@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
-    Clock, BarChart, Settings, LogOut, User, Activity, Calendar, MessageSquare
+    Clock, BarChart, Settings, LogOut, User, Activity, Calendar, MessageSquare, Kanban
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -27,6 +27,7 @@ const Sidebar = () => {
                     { name: 'Dashboard', path: '/manager', icon: <LayoutDashboard size={20} /> },
                     { name: 'Projects', path: '/manager/projects', icon: <Briefcase size={20} /> },
                     { name: 'Tasks', path: '/manager/tasks', icon: <ListTodo size={20} /> },
+                    { name: 'Kanban Board', path: '/manager/kanban', icon: <Kanban size={20} /> },
                     { name: 'Team', path: '/manager/team', icon: <Users size={20} /> },
                     { name: 'Calendar', path: '/manager/timeline-calendar', icon: <Calendar size={20} /> },
                     { name: 'Workload', path: '/manager/workload', icon: <Activity size={20} /> },

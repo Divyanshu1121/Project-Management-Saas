@@ -127,31 +127,26 @@ const updateEmployee = async (req, res) => {
         const { name, email, teamId } = req.body;
         const companyId = req.user.companyId;
 
-        // Find the employee and ensure they belong to the same company
         const employee = await User.findOne({ _id: req.params.id, companyId, role: 'EMPLOYEE' });
         if (!employee) {
             return res.status(404).json({ message: 'Employee not found in your company' });
         }
 
-        // Update allowed fields only
         if (name) employee.name = name;
         if (email) employee.email = email;
         await employee.save();
 
-        // Handle team transfer if a new teamId is provided
         if (teamId && teamId !== '') {
             const newTeam = await Team.findOne({ _id: teamId, companyId });
             if (!newTeam) {
                 return res.status(404).json({ message: 'Target team not found in your company' });
             }
 
-            // Remove from all current teams in this company
             await Team.updateMany(
                 { companyId, members: employee._id },
                 { $pull: { members: employee._id } }
             );
 
-            // Add to new team if not already a member
             if (!newTeam.members.includes(employee._id)) {
                 newTeam.members.push(employee._id);
                 await newTeam.save();

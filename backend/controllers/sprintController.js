@@ -1,6 +1,7 @@
 const Sprint = require('../models/Sprint');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
+const { createNotification } = require('../services/notificationService');
 
 // @desc    Create a sprint
 // @route   POST /api/sprints
@@ -84,6 +85,25 @@ const startSprint = async (req, res) => {
 
         sprint.status = 'active';
         await sprint.save();
+
+        // Notify all employees assigned to tasks in this sprint
+        try {
+            const project = await Project.findById(sprint.projectId);
+            const sprintTasks = await Task.find({ sprintId: sprint._id, assignedTo: { $exists: true, $ne: null } }).select('assignedTo title');
+            const uniqueAssignees = [...new Set(sprintTasks.map(t => t.assignedTo?.toString()).filter(Boolean))];
+            await Promise.all(uniqueAssignees.map(uid =>
+                createNotification({
+                    recipientId: uid,
+                    companyId: project?.companyId,
+                    type: 'SPRINT_STARTED',
+                    title: `Sprint started: ${sprint.name}`,
+                    message: `Sprint "${sprint.name}" has started${sprint.goal ? ` — Goal: ${sprint.goal}` : ''}`,
+                    link: '/manager/projects',
+                    metadata: { sprintId: sprint._id },
+                })
+            ));
+        } catch (e) { console.error('[Sprint] Notification error:', e.message); }
+
         res.json(sprint);
     } catch (error) {
         console.error(error);
@@ -102,6 +122,25 @@ const completeSprint = async (req, res) => {
 
         sprint.status = 'completed';
         await sprint.save();
+
+        // Notify all employees assigned to tasks in this sprint
+        try {
+            const project = await Project.findById(sprint.projectId);
+            const sprintTasks = await Task.find({ sprintId: sprint._id, assignedTo: { $exists: true, $ne: null } }).select('assignedTo');
+            const uniqueAssignees = [...new Set(sprintTasks.map(t => t.assignedTo?.toString()).filter(Boolean))];
+            await Promise.all(uniqueAssignees.map(uid =>
+                createNotification({
+                    recipientId: uid,
+                    companyId: project?.companyId,
+                    type: 'SPRINT_COMPLETED',
+                    title: `Sprint completed: ${sprint.name}`,
+                    message: `Sprint "${sprint.name}" has been marked as completed.`,
+                    link: '/manager/projects',
+                    metadata: { sprintId: sprint._id },
+                })
+            ));
+        } catch (e) { console.error('[Sprint] Notification error:', e.message); }
+
         res.json(sprint);
     } catch (error) {
         console.error(error);

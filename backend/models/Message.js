@@ -32,7 +32,7 @@ const messageSchema = new mongoose.Schema({
     },
     messageType: {
         type: String,
-        enum: ['DEFAULT', 'PRIVATE', 'COMMAND'],
+        enum: ['DEFAULT', 'PRIVATE', 'COMMAND', 'TASK_CREATE'],
         default: 'DEFAULT'
     },
     mentions: [{
