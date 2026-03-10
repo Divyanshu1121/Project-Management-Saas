@@ -79,7 +79,6 @@ const EmployeeDashboard = () => {
                 <p style={{ margin: 0, color: '#64748b' }}>Here's a quick look at your work today.</p>
             </div>
 
-            {/* KPI cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 {card(ListTodo, 'Active Tasks', pending.length, '#eff6ff', '#2563eb')}
                 {card(CheckCircle2, 'Approved', approved.length, '#dcfce7', '#16a34a')}
@@ -87,7 +86,6 @@ const EmployeeDashboard = () => {
                 {card(Clock, 'Hours Logged', totalHrs, '#faf5ff', '#7e22ce')}
             </div>
 
-            {/* Recent assigned tasks */}
             <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>My Tasks ({tasks.length})</h2>
             {tasks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0', color: '#94a3b8' }}>

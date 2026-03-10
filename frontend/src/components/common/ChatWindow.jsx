@@ -317,18 +317,18 @@ const ChatWindow = ({ roomId, projectId = null, isGlobal = false, title = "Chat"
                                     }}>
                                         {!isMe && !isSystem && !isCommand && <span style={{ fontWeight: 600 }}>{msg.sender?.name}</span>}
                                         {isPrivate && <span style={{ color: '#7c3aed', fontWeight: 700 }}>🔒 whisper</span>}
-                                        {isCommand && <span style={{ color: '#059669', fontWeight: 700 }}>⚡ task bot</span>}
+                                        {isCommand && <span style={{ color: '#16a34a', fontWeight: 700 }}>⚡ task bot</span>}
                                         {msg.createdAt && <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                                     </div>
                                     <div style={{
                                         padding: '0.75rem 1rem', borderRadius: '1rem',
                                         borderTopRightRadius: isMe ? '0.25rem' : '1rem',
                                         borderTopLeftRadius: isMe ? '1rem' : '0.25rem',
-                                        backgroundColor: isSystem ? 'transparent' : (isCommand ? '#f0fdf4' : (isMe ? '#2563eb' : (isPrivate ? '#f5f3ff' : 'white'))),
-                                        color: isSystem ? (msg.isError ? '#ef4444' : '#64748b') : (isMe ? 'white' : (isCommand ? '#166534' : '#1e293b')),
-                                        boxShadow: (isSystem || isCommand) ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
+                                        backgroundColor: isSystem ? 'transparent' : (isCommand ? '#16a34a' : (isMe ? '#2563eb' : (isPrivate ? '#f5f3ff' : 'white'))),
+                                        color: isSystem ? (msg.isError ? '#ef4444' : '#64748b') : (isMe ? 'white' : (isCommand ? '#ffffff' : '#1e293b')),
+                                        boxShadow: (isSystem) ? 'none' : (isCommand ? '0 2px 8px rgba(22, 163, 74, 0.3)' : '0 1px 2px rgba(0,0,0,0.05)'),
                                         fontSize: isSystem ? '0.75rem' : '0.9rem', lineHeight: 1.5,
-                                        border: isSystem ? 'none' : (isCommand ? '1.5px solid #dcfce7' : (isPrivate ? '1.5px solid #ddd6fe' : (isMe ? 'none' : '1px solid #e2e8f0'))),
+                                        border: isSystem ? 'none' : (isCommand ? '1.5px solid #15803d' : (isPrivate ? '1.5px solid #ddd6fe' : (isMe ? 'none' : '1px solid #e2e8f0'))),
                                         fontStyle: isSystem ? 'italic' : 'normal',
                                         textAlign: (isSystem || isCommand) ? 'center' : 'left'
                                     }}>

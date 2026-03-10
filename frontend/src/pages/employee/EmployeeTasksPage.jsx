@@ -6,8 +6,6 @@ import {
     ExternalLink, CheckSquare, Square, Send
 } from 'lucide-react';
 
-
-// ── Constants ─────────────────────────────────────────────
 const STATUS_LABEL = {
     TODO: 'To Do', IN_PROGRESS: 'In Progress', SUBMITTED: 'Submitted',
     APPROVED: 'Approved', REJECTED: 'Rejected',
@@ -26,7 +24,6 @@ const PRIORITY_COLOR = {
     URGENT: { bg: '#fef2f2', color: '#991b1b' },
 };
 
-// What transitions an employee is allowed to make per current status
 const ALLOWED_NEXT = {
     TODO: 'IN_PROGRESS',
     IN_PROGRESS: 'SUBMITTED',
@@ -47,7 +44,6 @@ const Badge = ({ bg, color, children }) => (
     </span>
 );
 
-// ── Submission Modal ──────────────────────────────────────
 const TaskSubmissionModal = ({ open, onClose, onSubmit, loading }) => {
     const [comment, setComment] = useState('');
     const [attachmentUrl, setAttachmentUrl] = useState('');
@@ -96,8 +92,6 @@ const TaskSubmissionModal = ({ open, onClose, onSubmit, loading }) => {
     );
 };
 
-
-// ── Task Card ─────────────────────────────────────────────
 const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
     const [expanded, setExpanded] = useState(false);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -139,12 +133,10 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                 {expanded ? <ChevronUp size={16} style={{ color: '#94a3b8', flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />}
             </div>
 
-            {/* Expanded panel */}
             {expanded && (
                 <div style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
                     {task.description && <p style={{ margin: '1rem 0 0.75rem', color: '#475569', fontSize: '0.875rem', fontStyle: 'italic' }}>{task.description}</p>}
 
-                    {/* Definition of Done */}
                     {task.definitionOfDone && (
                         <div style={{ marginBottom: '1.25rem', background: '#eff6ff', padding: '0.875rem', borderRadius: '0.625rem', border: '1px solid #dbeafe' }}>
                             <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Definition of Done</p>
@@ -152,7 +144,6 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                         </div>
                     )}
 
-                    {/* Dependencies */}
                     {task.dependencies && task.dependencies.length > 0 && (
                         <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.75rem' }}>
                             <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>Dependencies</p>
@@ -166,7 +157,6 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                         </div>
                     )}
 
-                    {/* Subtasks checklist */}
                     <div style={{ marginBottom: '1.25rem' }}>
                         <p style={{ margin: '0 0 0.6rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subtasks — {progress}%</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -188,12 +178,10 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
                         </div>
                     </div>
 
-                    {/* Progress bar */}
                     <div style={{ height: 6, background: '#e2e8f0', borderRadius: 3, marginBottom: '1.25rem', overflow: 'hidden' }}>
                         <div style={{ width: `${progress}%`, height: '100%', background: progress === 100 ? '#22c55e' : '#2563eb', borderRadius: 3, transition: 'width 0.4s ease' }} />
                     </div>
 
-                    {/* Status action button */}
                     {nextStatus && (
                         <button
                             onClick={() => {
@@ -253,19 +241,17 @@ const TaskCard = ({ task, onStatusChange, onSubtaskToggle, updating }) => {
     );
 };
 
-// ── Filter pill ───────────────────────────────────────────
 const Pill = ({ label, active, onClick }) => (
     <button onClick={onClick} style={{ padding: '0.35rem 1rem', borderRadius: '2rem', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer', border: 'none', background: active ? '#2563eb' : 'white', color: active ? 'white' : '#475569', boxShadow: '0 1px 3px rgba(0,0,0,0.07)', transition: 'all 0.15s' }}>
         {label}
     </button>
 );
 
-// ── Main Page ─────────────────────────────────────────────
 const EmployeeTasksPage = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('All');
-    const [updating, setUpdating] = useState(null); // taskId being updated
+    const [updating, setUpdating] = useState(null);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -324,7 +310,6 @@ const EmployeeTasksPage = () => {
                 <p style={{ margin: 0, color: '#64748b' }}>{tasks.length} tasks assigned to you</p>
             </div>
 
-            {/* Filter pills */}
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                 {FILTERS.map(f => (
                     <Pill key={f} label={f === 'All' ? 'All' : STATUS_LABEL[f]} active={filter === f} onClick={() => setFilter(f)} />

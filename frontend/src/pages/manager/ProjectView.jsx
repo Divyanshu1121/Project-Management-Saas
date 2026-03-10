@@ -12,6 +12,7 @@ import TaskModal from './TaskModal';
 import ChatWindow from '../../components/common/ChatWindow';
 import SprintBoard from './SprintBoard';
 import TimelineView from './TimelineView';
+import ActivityFeed from '../../components/common/ActivityFeed';
 
 // ── Helpers ──────────────────────────────────────────────────────
 const fmt = (d) => {
@@ -222,7 +223,7 @@ const TaskDetailModal = ({ task, onClose, onApprove, onReject, onEdit, actionLoa
                         <div>
                             {/* Status History Timeline */}
                             <div style={{ marginBottom: '1.5rem' }}>
-                                <p style={{ margin: '0 0 0.8rem', fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}><History size={13} /> Activity History</p>
+                                <p style={{ margin: '0 0 0.8rem', fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}><History size={13} /> Status History</p>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderLeft: '2px solid #f1f5f9', paddingLeft: '1rem', marginLeft: '0.5rem' }}>
                                     {task.statusHistory?.slice().reverse().map((h, i) => (
                                         <div key={i} style={{ position: 'relative' }}>
@@ -234,6 +235,17 @@ const TaskDetailModal = ({ task, onClose, onApprove, onReject, onEdit, actionLoa
                                     ))}
                                     {(!task.statusHistory || task.statusHistory.length === 0) && <p style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Created task</p>}
                                 </div>
+                            </div>
+
+                            {/* Audit Trail */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <ActivityFeed
+                                    mode="task"
+                                    taskId={task._id}
+                                    title="Audit Trail"
+                                    limit={10}
+                                    maxHeight="220px"
+                                />
                             </div>
 
                             {/* Time Log Summary */}
@@ -698,6 +710,26 @@ const ProjectView = () => {
                         <Layers size={18} />
                         Timeline
                     </button>
+                    <button
+                        onClick={() => setActiveTab('activity')}
+                        style={{
+                            padding: '1.25rem 0.5rem',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: activeTab === 'activity' ? '#2563eb' : '#64748b',
+                            border: 'none',
+                            background: 'none',
+                            borderBottom: activeTab === 'activity' ? '3px solid #2563eb' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <History size={18} />
+                        Activity
+                    </button>
                 </div>
 
                 {activeTab === 'tasks' ? (
@@ -772,6 +804,16 @@ const ProjectView = () => {
                     </div>
                 ) : activeTab === 'timeline' ? (
                     <TimelineView projectId={id} />
+                ) : activeTab === 'activity' ? (
+                    <div style={{ padding: '1.5rem' }}>
+                        <ActivityFeed
+                            mode="project"
+                            projectId={id}
+                            title="Project Activity"
+                            limit={25}
+                            maxHeight="560px"
+                        />
+                    </div>
                 ) : (
                     <SprintBoard projectId={id} />
                 )}

@@ -85,7 +85,7 @@ const rejectTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
     try {
-        await svc.deleteTask(req.params.id, req.user.companyId);
+        await svc.deleteTask(req.params.id, req.user.companyId, req.user._id);
         res.json({ message: 'Task deleted' });
     } catch (e) {
         res.status(400).json({ message: e.message });

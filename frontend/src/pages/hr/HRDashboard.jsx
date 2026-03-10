@@ -30,7 +30,6 @@ const renderStats = (stats, setActiveSection) => (
             </div>
         </div>
 
-        {/* Company info card */}
         <div className="company-card">
             <div className="company-card-content">
                 <div className="company-info-main">

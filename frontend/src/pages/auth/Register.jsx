@@ -7,7 +7,7 @@ const Register = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('Employee'); // Default
+    const [role, setRole] = useState('Employee');
     const [companyName, setCompanyName] = useState('');
     const [error, setError] = useState('');
 
@@ -32,7 +32,6 @@ const Register = () => {
             const res = await api.post('/auth/register', payload);
             login(res.data, res.data.token);
 
-            // Redirect based on role
             switch (res.data.role) {
                 case 'Platform Admin':
                     navigate('/admin');
@@ -95,7 +94,6 @@ const Register = () => {
                         <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
                             <option value="Employee">Employee</option>
                             <option value="Company Owner">Company Owner</option>
-                            {/* Project Manager usually created by Owner, but maybe allowed here? */}
                             <option value="Project Manager">Project Manager</option>
                         </select>
                     </div>

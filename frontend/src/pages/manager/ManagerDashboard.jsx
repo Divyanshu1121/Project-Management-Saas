@@ -1,246 +1,154 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, CheckSquare, Clock, Calendar } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
+import { Card, SectionHeader, Button, Badge, EmptyState, Skeleton } from '../../design-system';
+import ActivityFeed from '../../components/common/ActivityFeed';
+import {
+    Briefcase, CheckCircle2, Clock, Calendar, AlertTriangle,
+    Users, ArrowRight, Zap, Plus, FolderOpen, TrendingUp,
+} from 'lucide-react';
 
+const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+
+/* ── Project row ─────────────────────────────────────────── */
+const ProjectRow = ({ project, onClick }) => {
+    const [hov, setHov] = useState(false);
+    return (
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 0.875rem', borderRadius: 'var(--r-md)', cursor: 'pointer', background: hov ? 'var(--surface-1)' : 'white', transition: 'background var(--t-fast)', marginBottom: '0.25rem' }}
+        >
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--clr-slate-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</p>
+                {project.deadline && <p style={{ margin: '0.1rem 0 0', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)' }}>Due {fmt(project.deadline)}</p>}
+            </div>
+            {/* Progress bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                <div style={{ width: 60, height: 4, background: 'var(--surface-2)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: `${project.progress || 0}%`, height: '100%', background: project.progress === 100 ? 'var(--clr-success-500)' : 'var(--clr-primary-500)', borderRadius: 2, transition: 'width 0.6s ease' }} />
+                </div>
+                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--clr-slate-500)', minWidth: 28 }}>{project.progress || 0}%</span>
+            </div>
+            <Badge status={project.status} size="xs" />
+            <ArrowRight size={13} color={hov ? 'var(--clr-primary-500)' : 'var(--clr-slate-300)'} style={{ transition: 'color var(--t-fast)', flexShrink: 0 }} />
+        </div>
+    );
+};
+
+/* ── Person row ──────────────────────────────────────────── */
+const PersonRow = ({ leave, variant }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0', borderBottom: '1px solid var(--surface-subtle)' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', flex: 'none', background: variant === 'away' ? '#fef3c7' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-sm)', fontWeight: 700, color: variant === 'away' ? '#92400e' : 'var(--clr-slate-500)' }}>
+            {leave.userId?.name?.[0]}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--clr-slate-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leave.userId?.name}</p>
+            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)' }}>{variant === 'away' ? `Back ${fmt(leave.endDate)}` : `Leaves ${fmt(leave.startDate)}`}</p>
+        </div>
+        <Badge label={variant === 'away' ? 'Away' : 'Soon'} bg={variant === 'away' ? '#fef3c7' : 'var(--surface-2)'} color={variant === 'away' ? '#92400e' : 'var(--clr-slate-500)'} showDot={false} size="xs" />
+    </div>
+);
+
+/* ── Main dashboard ──────────────────────────────────────── */
 const ManagerDashboard = () => {
-    const [projects, setProjects] = useState([]);
-    const [awayEmployees, setAwayEmployees] = useState([]);
-    const [upcomingLeaves, setUpcomingLeaves] = useState([]);
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [projects, setProjects] = useState([]);
+    const [awayEmployees, setAway] = useState([]);
+    const [upcomingLeaves, setUpcoming] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const res = await api.get('/projects');
-                setProjects(res.data);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        const fetchAway = async () => {
-            try {
-                const res = await api.get('/leaves/unavailable');
-                setAwayEmployees(res.data || []);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        const fetchUpcoming = async () => {
-            try {
-                const res = await api.get('/leaves/upcoming');
-                setUpcomingLeaves(res.data || []);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        fetchProjects();
-        fetchAway();
-        fetchUpcoming();
+        (async () => {
+            const [p, a, u] = await Promise.allSettled([
+                api.get('/projects'),
+                api.get('/leaves/unavailable'),
+                api.get('/leaves/upcoming'),
+            ]);
+            if (p.status === 'fulfilled') setProjects(p.value.data || []);
+            if (a.status === 'fulfilled') setAway(a.value.data || []);
+            if (u.status === 'fulfilled') setUpcoming(u.value.data || []);
+            setLoading(false);
+        })();
     }, []);
 
-    const activeCount = projects.filter(p => p.status === 'ACTIVE').length;
-    const planningCount = projects.filter(p => p.status === 'PLANNING').length;
-    const completedCount = projects.filter(p => p.status === 'COMPLETED').length;
+    const active = projects.filter(p => p.status === 'ACTIVE').length;
+    const planning = projects.filter(p => p.status === 'PLANNING').length;
+    const completed = projects.filter(p => p.status === 'COMPLETED').length;
+    const overdue = projects.filter(p => p.deadline && new Date() > new Date(p.deadline) && p.status !== 'COMPLETED').length;
 
-    const statusColors = {
-        ACTIVE: { bg: '#dcfce7', color: '#166534' },
-        PLANNING: { bg: '#fef9c3', color: '#854d0e' },
-        COMPLETED: { bg: '#dbeafe', color: '#1e40af' },
-        ON_HOLD: { bg: '#fee2e2', color: '#991b1b' },
-    };
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
     return (
-        <div>
-            <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>
-                            Manager Dashboard
-                        </h1>
-                        <p style={{ color: '#64748b', margin: 0 }}>Welcome back! Here's a quick overview of your projects.</p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/manager/timeline-calendar')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.6rem',
-                            padding: '0.65rem 1.25rem',
-                            borderRadius: '0.625rem',
-                            backgroundColor: '#eff6ff',
-                            color: '#2563eb',
-                            border: '1px solid #dbeafe',
-                            cursor: 'pointer',
-                            fontWeight: 600,
-                            fontSize: '0.875rem'
-                        }}
+        <div style={{ maxWidth: 1280 }}>
+            {/* ── Header ── */}
+            <SectionHeader
+                title={`${greeting}, ${user?.name?.split(' ')[0] || ''} 👋`}
+                subtitle="Here's everything happening across your projects today."
+                size="lg"
+                style={{ marginBottom: 'var(--sp-6)' }}
+                actions={<>
+                    <Button variant="secondary" size="sm" icon={FolderOpen} onClick={() => navigate('/manager/projects')}>All Projects</Button>
+                    <Button size="sm" icon={Plus} onClick={() => navigate('/manager/projects')}>New Project</Button>
+                </>}
+            />
+
+            {/* ── Stat cards ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
+                {loading ? Array.from({ length: 5 }).map((_, i) => <Skeleton.Card key={i} />) : <>
+                    <Card.Stat label="Total Projects" value={projects.length} icon={Briefcase} color="#6366f1" bg="#eef2ff" onClick={() => navigate('/manager/projects')} />
+                    <Card.Stat label="Active" value={active} icon={Zap} color="#10b981" bg="#ecfdf5" onClick={() => navigate('/manager/projects')} />
+                    <Card.Stat label="Planning" value={planning} icon={Clock} color="#f59e0b" bg="#fffbeb" onClick={() => navigate('/manager/projects')} />
+                    <Card.Stat label="Completed" value={completed} icon={CheckCircle2} color="#2563eb" bg="#eff6ff" onClick={() => navigate('/manager/projects')} />
+                    <Card.Stat label="Overdue" value={overdue} icon={AlertTriangle} color="#ef4444" bg="#fef2f2" onClick={() => navigate('/manager/projects')} />
+                </>}
+            </div>
+
+            {/* ── Two-column grid ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-5)', marginBottom: 'var(--sp-5)' }}>
+
+                {/* Recent Projects */}
+                <Card.Section
+                    title="Recent Projects"
+                    subtitle={`${projects.length} project${projects.length !== 1 ? 's' : ''}`}
+                    icon={TrendingUp} iconColor="#6366f1" iconBg="#eef2ff"
+                    action={<button onClick={() => navigate('/manager/projects')} style={{ background: 'none', border: 'none', color: 'var(--clr-primary-500)', cursor: 'pointer', fontSize: 'var(--text-xs)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>View all <ArrowRight size={12} /></button>}
+                >
+                    {loading ? <Skeleton.Text lines={4} /> : projects.length === 0
+                        ? <EmptyState icon={FolderOpen} title="No projects yet" description="Create your first project to get started." action={<Button size="sm" icon={Plus} onClick={() => navigate('/manager/projects')}>Create Project</Button>} />
+                        : projects.slice(0, 5).map(p => <ProjectRow key={p._id} project={p} onClick={() => navigate(`/manager/projects/${p._id}`)} />)
+                    }
+                </Card.Section>
+
+                {/* Team panel */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                    <Card.Section title="Away Today" subtitle={`${awayEmployees.length} employee${awayEmployees.length !== 1 ? 's' : ''}`} icon={Users} iconColor="#f59e0b" iconBg="#fffbeb">
+                        {loading ? <Skeleton.Text lines={2} /> : awayEmployees.length === 0
+                            ? <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--clr-slate-400)', textAlign: 'center', padding: '0.5rem' }}>✅ Everyone is available</p>
+                            : awayEmployees.slice(0, 3).map(l => <PersonRow key={l._id} leave={l} variant="away" />)
+                        }
+                    </Card.Section>
+
+                    <Card.Section
+                        title="Upcoming Leaves"
+                        subtitle="Next 7 days"
+                        icon={Calendar} iconColor="#10b981" iconBg="#ecfdf5"
+                        action={<button onClick={() => navigate('/manager/leave-calendar')} style={{ background: 'none', border: 'none', color: 'var(--clr-success-500)', cursor: 'pointer', fontSize: 'var(--text-xs)', fontWeight: 600 }}>Calendar →</button>}
                     >
-                        <Calendar size={18} />
-                        View Timeline
-                    </button>
+                        {loading ? <Skeleton.Text lines={2} /> : upcomingLeaves.length === 0
+                            ? <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--clr-slate-400)', textAlign: 'center', padding: '0.5rem' }}>No upcoming leaves</p>
+                            : upcomingLeaves.slice(0, 3).map(l => <PersonRow key={l._id} leave={l} variant="upcoming" />)
+                        }
+                    </Card.Section>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                {[
-                    { label: 'Total Projects', value: projects.length, Icon: Briefcase, color: '#2563eb', bg: '#eff6ff' },
-                    { label: 'Active', value: activeCount, Icon: CheckSquare, color: '#16a34a', bg: '#dcfce7' },
-                    { label: 'Planning', value: planningCount, Icon: Clock, color: '#d97706', bg: '#fef9c3' },
-                    { label: 'Completed', value: completedCount, Icon: CheckSquare, color: '#2563eb', bg: '#dbeafe' },
-                ].map(({ label, value, Icon, color, bg }) => (
-                    <div key={label} style={{
-                        background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.875rem',
-                        padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                    }}>
-                        <div style={{ width: 44, height: 44, borderRadius: '0.625rem', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon size={22} style={{ color }} />
-                        </div>
-                        <div>
-                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>{label}</p>
-                            <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{value}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                {/* Away Today */}
-                <div>
-                    <h3 style={{ margin: '0 0 1rem', fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>Who is away today?</h3>
-                    {awayEmployees.length === 0 ? (
-                        <div style={{ padding: '2rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.875rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                            Everyone is available today.
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {awayEmployees.map(l => (
-                                <div key={l._id} style={{
-                                    background: '#fffbeb',
-                                    border: '1px solid #fef3c7',
-                                    borderRadius: '0.75rem',
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem'
-                                }}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#854d0e', fontSize: '0.9rem', fontWeight: 700 }}>
-                                        {l.userId?.name?.[0]}
-                                    </div>
-                                    <div>
-                                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#854d0e' }}>{l.userId?.name}</p>
-                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#b45309' }}>Away until {new Date(l.endDate).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Away Soon */}
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>Going on leave soon</h3>
-                        <button
-                            onClick={() => navigate('/manager/leave-calendar')}
-                            style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}
-                        >
-                            View Full →
-                        </button>
-                    </div>
-                    {upcomingLeaves.length === 0 ? (
-                        <div style={{ padding: '2rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.875rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                            No upcoming leaves next 7 days.
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {upcomingLeaves.map(l => (
-                                <div key={l._id} style={{
-                                    background: 'white',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '0.75rem',
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-                                }}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '0.9rem', fontWeight: 700 }}>
-                                        {l.userId?.name?.[0]}
-                                    </div>
-                                    <div>
-                                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#1e293b' }}>{l.userId?.name}</p>
-                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
-                                            Starting {new Date(l.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Recent projects */}
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>Recent Projects</h3>
-                    <button
-                        onClick={() => navigate('/manager/projects')}
-                        style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
-                    >
-                        View all →
-                    </button>
-                </div>
-                {projects.length === 0 ? (
-                    <div style={{ padding: '2.5rem', background: 'white', border: '1px dashed #e2e8f0', borderRadius: '0.875rem', textAlign: 'center', color: '#94a3b8' }}>
-                        <Briefcase size={28} style={{ marginBottom: '0.75rem', color: '#cbd5e1', display: 'block', margin: '0 auto 0.75rem' }} />
-                        <p style={{ margin: 0 }}>
-                            No projects yet.{' '}
-                            <button onClick={() => navigate('/manager/projects')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: 500 }}>
-                                Create one →
-                            </button>
-                        </p>
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                        {projects.slice(0, 5).map(project => (
-                            <div
-                                key={project._id}
-                                onClick={() => navigate('/manager/projects')}
-                                style={{
-                                    background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem',
-                                    padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between',
-                                    alignItems: 'center', cursor: 'pointer', transition: 'box-shadow 0.15s'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'}
-                                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-                            >
-                                <div style={{ minWidth: 0 }}>
-                                    <p style={{ margin: 0, fontWeight: 600, color: '#1e293b', fontSize: '0.925rem' }}>{project.name}</p>
-                                    {project.description && (
-                                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {project.description}
-                                        </p>
-                                    )}
-                                </div>
-                                <span style={{
-                                    padding: '0.2rem 0.65rem', borderRadius: '2rem', fontSize: '0.75rem', fontWeight: 600,
-                                    background: statusColors[project.status]?.bg || '#f1f5f9',
-                                    color: statusColors[project.status]?.color || '#475569',
-                                    flexShrink: 0, marginLeft: '1rem'
-                                }}>
-                                    {project.status}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            {/* ── Activity Feed ── */}
+            <ActivityFeed mode="company" title="Recent Activity" limit={12} maxHeight="380px" />
         </div>
     );
 };

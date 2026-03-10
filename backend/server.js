@@ -45,6 +45,7 @@ const { Server } = require('socket.io');
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/activity', require('./routes/activityLogRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');

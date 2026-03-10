@@ -5,6 +5,7 @@ const User = require('../models/User');
 const workflow = require('./taskWorkflowService');
 const dependencyService = require('./dependencyService');
 const { createNotification } = require('./notificationService');
+const { logActivity } = require('./activityLogService');
 
 const sanitizeObjectIdFields = (data, fields) => {
     const cleaned = { ...data };
@@ -30,6 +31,19 @@ const createProject = async (data, managerId, companyId) => {
         createdBy: managerId,
         companyId,
     });
+
+    const manager = await User.findById(managerId).select('name');
+    logActivity({
+        userId: managerId,
+        actionType: 'PROJECT_CREATED',
+        entityType: 'project',
+        entityId: project._id,
+        projectId: project._id,
+        companyId,
+        message: `${manager?.name || 'Manager'} created project "${project.name}"`,
+        metadata: { projectId: project._id, name: project.name },
+    });
+
     return project.populate(['createdBy', 'teamAssigned']);
 };
 
@@ -87,6 +101,19 @@ const completeProject = async (projectId, companyId, managerId) => {
     project.progress = 100;
 
     await project.save();
+
+    const manager = await User.findById(managerId).select('name');
+    logActivity({
+        userId: managerId,
+        actionType: 'PROJECT_COMPLETED',
+        entityType: 'project',
+        entityId: project._id,
+        projectId: project._id,
+        companyId,
+        message: `${manager?.name || 'Manager'} marked project "${project.name}" as completed`,
+        metadata: { projectId: project._id },
+    });
+
     return project;
 };
 
@@ -155,8 +182,34 @@ const createTask = async (data, managerId, companyId) => {
         .populate('projectId', 'name')
         .populate('teamId', 'name');
 
+    const manager = await User.findById(managerId).select('name');
+
+    // Log task creation
+    logActivity({
+        userId: managerId,
+        actionType: 'TASK_CREATED',
+        entityType: 'task',
+        entityId: task._id,
+        projectId: clean.projectId,
+        companyId,
+        message: `${manager?.name || 'Manager'} created task "${task.title}"`,
+        metadata: { taskId: task._id, title: task.title, priority: task.priority },
+    });
+
     if (clean.assignedTo) {
-        const manager = await User.findById(managerId).select('name');
+        // Log assignment
+        const assignee = populatedTask.assignedTo;
+        logActivity({
+            userId: managerId,
+            actionType: 'TASK_ASSIGNED',
+            entityType: 'task',
+            entityId: task._id,
+            projectId: clean.projectId,
+            companyId,
+            message: `${manager?.name || 'Manager'} assigned "${task.title}" to ${assignee?.name || 'an employee'}`,
+            metadata: { taskId: task._id, assigneeId: clean.assignedTo },
+        });
+
         await createNotification({
             recipientId: clean.assignedTo,
             companyId,
@@ -165,6 +218,19 @@ const createTask = async (data, managerId, companyId) => {
             message: `${manager?.name || 'Manager'} assigned you "${task.title}"`,
             link: '/employee/tasks',
             metadata: { taskId: task._id },
+        });
+    }
+
+    if (clean.deadline) {
+        logActivity({
+            userId: managerId,
+            actionType: 'TASK_DEADLINE_UPDATED',
+            entityType: 'task',
+            entityId: task._id,
+            projectId: clean.projectId,
+            companyId,
+            message: `Deadline set for "${task.title}": ${new Date(clean.deadline).toDateString()}`,
+            metadata: { taskId: task._id, deadline: clean.deadline },
         });
     }
 
@@ -178,6 +244,8 @@ const updateTask = async (taskId, companyId, data, userId) => {
     if (!task) throw new Error('Task not found');
 
     const oldStatus = task.status;
+    const oldAssignedTo = task.assignedTo?.toString();
+    const oldDeadline = task.deadline;
 
     if (clean.subtasks) {
         clean.progress = workflow.calculateProgress(clean.subtasks);
@@ -194,13 +262,103 @@ const updateTask = async (taskId, companyId, data, userId) => {
     }
 
     await task.save();
-
     await updateProjectProgress(task.projectId);
 
-    return await Task.findById(task._id)
+    const updatedTask = await Task.findById(task._id)
         .populate('assignedTo', 'name email empId')
         .populate('projectId', 'name')
         .populate('teamId', 'name');
+
+    const actor = await User.findById(userId).select('name');
+    const actorName = actor?.name || 'Manager';
+
+    // Status change log
+    if (clean.status && clean.status !== oldStatus) {
+        logActivity({
+            userId,
+            actionType: 'TASK_STATUS_CHANGED',
+            entityType: 'task',
+            entityId: task._id,
+            projectId: task.projectId,
+            companyId,
+            message: `${actorName} changed status of "${task.title}" from ${oldStatus} → ${clean.status}`,
+            metadata: { taskId: task._id, oldStatus, newStatus: clean.status },
+        });
+    }
+
+    // Assignment change log
+    if (clean.assignedTo !== undefined && clean.assignedTo?.toString() !== oldAssignedTo) {
+        const newAssigneeName = updatedTask.assignedTo?.name || 'Unassigned';
+        logActivity({
+            userId,
+            actionType: clean.assignedTo ? 'TASK_ASSIGNED' : 'TASK_UNASSIGNED',
+            entityType: 'task',
+            entityId: task._id,
+            projectId: task.projectId,
+            companyId,
+            message: clean.assignedTo
+                ? `${actorName} re-assigned "${task.title}" to ${newAssigneeName}`
+                : `${actorName} removed assignment from "${task.title}"`,
+            metadata: { taskId: task._id, oldAssignedTo, newAssignedTo: clean.assignedTo },
+        });
+    }
+
+    // Deadline change log
+    if (clean.deadline !== undefined) {
+        const oldD = oldDeadline ? new Date(oldDeadline).toDateString() : 'none';
+        const newD = clean.deadline ? new Date(clean.deadline).toDateString() : 'none';
+        if (oldD !== newD) {
+            logActivity({
+                userId,
+                actionType: 'TASK_DEADLINE_UPDATED',
+                entityType: 'task',
+                entityId: task._id,
+                projectId: task.projectId,
+                companyId,
+                message: `${actorName} updated deadline of "${task.title}" from ${oldD} → ${newD}`,
+                metadata: { taskId: task._id, oldDeadline, newDeadline: clean.deadline },
+            });
+        }
+    }
+
+    // General field changes — only log truly display-worthy fields that actually changed
+    const DISPLAY_FIELDS = {
+        title: { label: 'title' },
+        description: { label: 'description' },
+        priority: { label: 'priority' },
+        estimatedHours: { label: 'estimated hours' },
+        definitionOfDone: { label: 'definition of done' },
+        startDate: { label: 'start date', fmt: (v) => v ? new Date(v).toDateString() : 'none' },
+    };
+
+    // Store old values BEFORE Object.assign so we can diff them (captured above)
+    // We use the `task` object which has already been updated, so compare against the
+    // original values stored before the update was applied.
+    const originalTask = await Task.findById(task._id).lean(); // already saved, compare via clean
+    const changedLabels = [];
+    for (const [field, meta] of Object.entries(DISPLAY_FIELDS)) {
+        if (!(field in clean)) continue;
+        const fmt = meta.fmt || ((v) => String(v ?? ''));
+        // Compare string representations to avoid type mismatches
+        const oldVal = fmt(originalTask[field]);
+        const newVal = fmt(clean[field]);
+        if (oldVal !== newVal) changedLabels.push(meta.label);
+    }
+
+    if (changedLabels.length > 0) {
+        logActivity({
+            userId,
+            actionType: 'TASK_UPDATED',
+            entityType: 'task',
+            entityId: task._id,
+            projectId: task.projectId,
+            companyId,
+            message: `${actorName} updated ${changedLabels.join(', ')} of "${task.title}"`,
+            metadata: { taskId: task._id, updatedFields: changedLabels },
+        });
+    }
+
+    return updatedTask;
 };
 
 const approveTask = async (taskId, companyId, managerId) => {
@@ -217,8 +375,20 @@ const approveTask = async (taskId, companyId, managerId) => {
 
     await updateProjectProgress(task.projectId);
 
+    const manager = await User.findById(managerId).select('name');
+
+    logActivity({
+        userId: managerId,
+        actionType: 'TASK_APPROVED',
+        entityType: 'task',
+        entityId: task._id,
+        projectId: task.projectId,
+        companyId,
+        message: `${manager?.name || 'Manager'} approved task "${task.title}"`,
+        metadata: { taskId: task._id },
+    });
+
     if (task.assignedTo) {
-        const manager = await User.findById(managerId).select('name');
         await createNotification({
             recipientId: task.assignedTo,
             companyId,
@@ -243,8 +413,20 @@ const rejectTask = async (taskId, companyId, managerId, note) => {
     workflow.addStatusHistory(task, managerId, `Task rejected: ${note}`);
     await task.save();
 
+    const manager = await User.findById(managerId).select('name');
+
+    logActivity({
+        userId: managerId,
+        actionType: 'TASK_REJECTED',
+        entityType: 'task',
+        entityId: task._id,
+        projectId: task.projectId,
+        companyId,
+        message: `${manager?.name || 'Manager'} rejected task "${task.title}": ${note}`,
+        metadata: { taskId: task._id, note },
+    });
+
     if (task.assignedTo) {
-        const manager = await User.findById(managerId).select('name');
         await createNotification({
             recipientId: task.assignedTo,
             companyId,
@@ -259,14 +441,25 @@ const rejectTask = async (taskId, companyId, managerId, note) => {
     return task;
 };
 
-const deleteTask = async (taskId, companyId) => {
+const deleteTask = async (taskId, companyId, userId) => {
     const task = await Task.findOne({ _id: taskId, companyId });
     if (!task) throw new Error('Task not found');
     const projectId = task.projectId;
 
     await Task.findByIdAndDelete(taskId);
-
     await updateProjectProgress(projectId);
+
+    const actor = await User.findById(userId).select('name');
+    logActivity({
+        userId,
+        actionType: 'TASK_DELETED',
+        entityType: 'task',
+        entityId: task._id,
+        projectId,
+        companyId,
+        message: `${actor?.name || 'Manager'} deleted task "${task.title}"`,
+        metadata: { taskId: task._id, title: task.title },
+    });
 
     return task;
 };

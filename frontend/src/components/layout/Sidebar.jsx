@@ -1,193 +1,193 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
-    Clock, BarChart, Settings, LogOut, User, Activity, Calendar, MessageSquare, Kanban
+    Clock, BarChart2, Settings, LogOut, Activity,
+    Calendar, MessageSquare, Kanban, ChevronRight
 } from 'lucide-react';
+import './layout.css';
 
+// ── Nav group config ────────────────────────────────────────────────────
+const MANAGER_LINKS = [
+    {
+        group: 'Overview',
+        items: [
+            { name: 'Dashboard', path: '/manager', icon: LayoutDashboard },
+        ]
+    },
+    {
+        group: 'Work',
+        items: [
+            { name: 'Projects', path: '/manager/projects', icon: Briefcase },
+            { name: 'Tasks', path: '/manager/tasks', icon: ListTodo },
+            { name: 'Kanban', path: '/manager/kanban', icon: Kanban },
+        ]
+    },
+    {
+        group: 'Insights',
+        items: [
+            { name: 'Team', path: '/manager/team', icon: Users },
+            { name: 'Workload', path: '/manager/workload', icon: Activity },
+            { name: 'Calendar', path: '/manager/timeline-calendar', icon: Calendar },
+            { name: 'Reports', path: '/manager/reports', icon: BarChart2 },
+        ]
+    },
+    {
+        group: 'Other',
+        items: [
+            { name: 'Global Chat', path: '/chat', icon: MessageSquare },
+            { name: 'Settings', path: '/settings', icon: Settings },
+        ]
+    },
+];
+
+const EMPLOYEE_LINKS = [
+    {
+        group: 'Overview',
+        items: [
+            { name: 'Dashboard', path: '/employee', icon: LayoutDashboard },
+        ]
+    },
+    {
+        group: 'Work',
+        items: [
+            { name: 'My Tasks', path: '/employee/tasks', icon: ListTodo },
+            { name: 'Time Logs', path: '/employee/time-logs', icon: Clock },
+        ]
+    },
+    {
+        group: 'Other',
+        items: [
+            { name: 'My Leave', path: '/employee/leave', icon: Calendar },
+            { name: 'Global Chat', path: '/chat', icon: MessageSquare },
+            { name: 'Settings', path: '/settings', icon: Settings },
+        ]
+    },
+];
+
+const ADMIN_LINKS = [
+    {
+        group: 'Admin',
+        items: [
+            { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+            { name: 'Users', path: '/admin/users', icon: Users },
+            { name: 'Settings', path: '/admin/settings', icon: Settings },
+        ]
+    },
+];
+
+const ROLE_LINKS = {
+    PROJECT_MANAGER: MANAGER_LINKS,
+    EMPLOYEE: EMPLOYEE_LINKS,
+    SUPER_ADMIN: ADMIN_LINKS,
+};
+
+const ROLE_LABELS = {
+    SUPER_ADMIN: 'Super Admin',
+    PROJECT_MANAGER: 'Project Manager',
+    EMPLOYEE: 'Employee',
+    COMPANY_OWNER: 'Company Owner',
+};
+
+// ── Sidebar component ───────────────────────────────────────────────────
 const Sidebar = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-
     if (!user) return null;
 
     const role = user.role;
-
-    const getLinks = () => {
-        switch (role) {
-            case 'SUPER_ADMIN':
-                return [
-                    { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
-                    { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
-                    { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
-                ];
-            case 'PROJECT_MANAGER':
-                return [
-                    { name: 'Dashboard', path: '/manager', icon: <LayoutDashboard size={20} /> },
-                    { name: 'Projects', path: '/manager/projects', icon: <Briefcase size={20} /> },
-                    { name: 'Tasks', path: '/manager/tasks', icon: <ListTodo size={20} /> },
-                    { name: 'Kanban Board', path: '/manager/kanban', icon: <Kanban size={20} /> },
-                    { name: 'Team', path: '/manager/team', icon: <Users size={20} /> },
-                    { name: 'Calendar', path: '/manager/timeline-calendar', icon: <Calendar size={20} /> },
-                    { name: 'Workload', path: '/manager/workload', icon: <Activity size={20} /> },
-                    { name: 'Reports', path: '/manager/reports', icon: <BarChart size={20} /> },
-                    { name: 'Global Chat', path: '/chat', icon: <MessageSquare size={20} /> },
-                    { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
-                ];
-            case 'EMPLOYEE':
-                return [
-                    { name: 'Dashboard', path: '/employee', icon: <LayoutDashboard size={20} /> },
-                    { name: 'My Tasks', path: '/employee/tasks', icon: <ListTodo size={20} /> },
-                    { name: 'Time Logs', path: '/employee/time-logs', icon: <Clock size={20} /> },
-                    { name: 'My Leave', path: '/employee/leave', icon: <Calendar size={20} /> },
-                    { name: 'Global Chat', path: '/chat', icon: <MessageSquare size={20} /> },
-                    { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
-                ];
-            default:
-                return [];
-        }
-    };
-
-
-    const links = getLinks();
-
-    const roleLabelMap = {
-        SUPER_ADMIN: 'Super Admin',
-        PROJECT_MANAGER: 'Project Manager',
-        EMPLOYEE: 'Employee',
-        COMPANY_OWNER: 'Company Owner',
-        CEO: 'CEO',
-        CTO: 'CTO',
-        CFO: 'CFO',
-        COO: 'COO',
-    };
+    const groups = ROLE_LINKS[role] || [];
+    const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' : '/settings';
 
     return (
         <div className="sidebar">
             {/* Brand */}
-            <div style={{
-                padding: '1.5rem 1.25rem 1rem',
-                fontSize: '1.1rem',
-                fontWeight: 700,
-                color: 'var(--primary-color, #2563eb)',
-                borderBottom: '1px solid #e5e7eb',
-                marginBottom: '0.5rem',
-                letterSpacing: '-0.01em'
-            }}>
-                SaaS Project Manager
+            <div className="sidebar-brand">
+                <div className="sidebar-brand-logo">P</div>
+                <div>
+                    <div className="sidebar-brand-name">ProManage</div>
+                    <div className="sidebar-brand-sub">Project Suite</div>
+                </div>
             </div>
 
-            {/* Nav links */}
-            <nav style={{ flex: 1, padding: '0.5rem 0.75rem', overflowY: 'auto' }}>
-                <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', listStyle: 'none', margin: 0, padding: 0 }}>
-                    {links.map((link) => (
-                        <li key={link.path}>
-                            <NavLink
-                                to={link.path}
-                                end
-                                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-                                style={({ isActive }) => ({
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    padding: '0.65rem 0.75rem',
-                                    borderRadius: '0.5rem',
-                                    color: isActive ? '#2563eb' : '#374151',
-                                    backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                                    fontWeight: isActive ? 600 : 400,
-                                    fontSize: '0.925rem',
-                                    textDecoration: 'none',
-                                    transition: 'background-color 0.15s ease, color 0.15s ease',
-                                })}
-                            >
-                                {link.icon}
-                                {link.name}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
+            {/* Nav */}
+            <nav className="sidebar-nav">
+                {groups.map(({ group, items }) => (
+                    <div key={group}>
+                        <div className="sidebar-section-label">{group}</div>
+                        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                            {items.map(({ name, path, icon: Icon }) => (
+                                <li key={path}>
+                                    <NavLink
+                                        to={path}
+                                        end={path === '/manager' || path === '/employee' || path === '/admin'}
+                                        className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                                    >
+                                        <Icon size={17} style={{ flexShrink: 0 }} />
+                                        {name}
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </nav>
 
-            {/* Profile section at bottom */}
+            {/* Profile footer */}
             <div style={{
-                margin: '0.75rem',
-                padding: '0.875rem 1rem',
-                backgroundColor: '#f8fafc',
-                borderRadius: '0.75rem',
-                border: '1px solid #e2e8f0',
+                margin: '0.5rem 0.75rem 0.75rem',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                paddingTop: '0.75rem',
             }}>
+                {/* User card */}
                 <div
-                    onClick={() => navigate(role === 'SUPER_ADMIN' ? '/admin/settings' : '/settings')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', cursor: 'pointer', borderRadius: '0.5rem', padding: '0.25rem', transition: 'background-color 0.15s ease' }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={() => navigate(settingsPath)}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: '0.7rem',
+                        padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
+                        cursor: 'pointer', transition: 'background 0.15s',
+                        marginBottom: '0.5rem',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                     {/* Avatar */}
                     <div style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        backgroundColor: '#dbeafe',
-                        color: '#2563eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
+                        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+                        background: 'linear-gradient(135deg, #6366f1, #818cf8)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.85rem', fontWeight: 700, color: 'white',
+                        boxShadow: '0 2px 6px rgba(99,102,241,0.3)',
                     }}>
-                        <User size={18} />
+                        {user.name?.charAt(0).toUpperCase()}
                     </div>
-                    {/* Name & Role */}
-                    <div style={{ overflow: 'hidden' }}>
-                        <p style={{
-                            margin: 0,
-                            fontWeight: 600,
-                            fontSize: '0.875rem',
-                            color: '#1e293b',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ margin: 0, fontWeight: 600, fontSize: '0.845rem', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {user.name}
                         </p>
-                        <p style={{
-                            margin: 0,
-                            fontSize: '0.75rem',
-                            color: '#64748b',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.03em'
-                        }}>
-                            {roleLabelMap[role] || role}
+                        <p style={{ margin: 0, fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {ROLE_LABELS[role] || role}
                         </p>
                     </div>
+                    <ChevronRight size={13} color="#475569" style={{ flexShrink: 0 }} />
                 </div>
 
-                {/* Logout button */}
+                {/* Logout */}
                 <button
                     onClick={logout}
                     style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 0.75rem',
-                        borderRadius: '0.5rem',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #e2e8f0',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                        transition: 'background-color 0.15s ease',
+                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
+                        background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
+                        color: '#f87171', cursor: 'pointer', fontSize: '0.845rem', fontWeight: 500,
+                        transition: 'background 0.15s, border-color 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fef2f2'}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.16)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.15)'; }}
                 >
-                    <LogOut size={15} />
-                    Logout
+                    <LogOut size={14} />
+                    Sign out
                 </button>
             </div>
         </div>

@@ -19,7 +19,6 @@ const AdminDashboard = () => {
                         </div>
                     </>
                 } />
-                {/* <Route path="companies" element={<CompaniesView />} />  Merged into main dashboard */}
                 <Route path="users" element={<UsersView />} />
                 <Route path="settings" element={<SettingsView />} />
                 <Route path="*" element={<Navigate to="/admin" />} />
@@ -256,7 +255,6 @@ const UsersView = () => {
                     const isOpen = expanded[cid];
                     return (
                         <div key={cid} style={{ background: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                            {/* Company Header / Toggle */}
                             <div
                                 onClick={() => toggle(cid)}
                                 style={{
@@ -286,7 +284,6 @@ const UsersView = () => {
                                 </span>
                             </div>
 
-                            {/* Members Table (Accordion Content) */}
                             {isOpen && (
                                 <div style={{ padding: '0 1.25rem 1.25rem', borderTop: '1px solid #f1f5f9' }}>
                                     <div style={{ overflowX: 'auto' }}>
@@ -342,7 +339,6 @@ const UsersView = () => {
 
 import ProfileView from '../../components/common/ProfileView';
 
-// ... (existing imports and code)
 
 const SettingsView = () => (
     <div style={{ padding: '1rem' }}>

@@ -2,6 +2,7 @@ const Sprint = require('../models/Sprint');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const { createNotification } = require('../services/notificationService');
+const { logActivity } = require('../services/activityLogService');
 
 // @desc    Create a sprint
 // @route   POST /api/sprints
@@ -22,6 +23,17 @@ const createSprint = async (req, res) => {
             startDate,
             endDate,
             status: 'planned'
+        });
+
+        logActivity({
+            userId: req.user?._id || null,
+            actionType: 'SPRINT_CREATED',
+            entityType: 'sprint',
+            entityId: sprint._id,
+            projectId,
+            companyId: project.companyId,
+            message: `Sprint "${sprint.name}" was created`,
+            metadata: { sprintId: sprint._id, goal },
         });
 
         res.status(201).json(sprint);
@@ -86,6 +98,21 @@ const startSprint = async (req, res) => {
         sprint.status = 'active';
         await sprint.save();
 
+        // Activity log
+        try {
+            const project = await Project.findById(sprint.projectId);
+            logActivity({
+                userId: req.user?._id || null,
+                actionType: 'SPRINT_STARTED',
+                entityType: 'sprint',
+                entityId: sprint._id,
+                projectId: sprint.projectId,
+                companyId: project?.companyId,
+                message: `Sprint "${sprint.name}" has been started`,
+                metadata: { sprintId: sprint._id },
+            });
+        } catch (e) { console.error('[Sprint] Log error:', e.message); }
+
         // Notify all employees assigned to tasks in this sprint
         try {
             const project = await Project.findById(sprint.projectId);
@@ -122,6 +149,21 @@ const completeSprint = async (req, res) => {
 
         sprint.status = 'completed';
         await sprint.save();
+
+        // Activity log
+        try {
+            const project = await Project.findById(sprint.projectId);
+            logActivity({
+                userId: req.user?._id || null,
+                actionType: 'SPRINT_COMPLETED',
+                entityType: 'sprint',
+                entityId: sprint._id,
+                projectId: sprint.projectId,
+                companyId: project?.companyId,
+                message: `Sprint "${sprint.name}" has been completed`,
+                metadata: { sprintId: sprint._id },
+            });
+        } catch (e) { console.error('[Sprint] Log error:', e.message); }
 
         // Notify all employees assigned to tasks in this sprint
         try {

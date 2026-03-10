@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// ─── Type → icon + color map ──────────────────────────────────────────────────
 const TYPE_META = {
     TASK_ASSIGNED: { icon: <ListTodo size={14} />, color: '#6366f1', bg: '#eef2ff' },
     TASK_UPDATED: { icon: <ListTodo size={14} />, color: '#f59e0b', bg: '#fffbeb' },
@@ -38,7 +37,6 @@ const relativeTime = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
-// ─── Single Notification Row ──────────────────────────────────────────────────
 const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
     const meta = TYPE_META[notif.type] || DEFAULT_META;
     const isUnread = !notif.isRead;
@@ -60,7 +58,6 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
                 if (notif.link) onNavigate(notif.link);
             }}
         >
-            {/* Unread dot */}
             {isUnread && (
                 <div style={{
                     position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
@@ -68,7 +65,6 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
                 }} />
             )}
 
-            {/* Icon */}
             <div style={{
                 width: 32, height: 32, borderRadius: '50%',
                 background: meta.bg, color: meta.color,
@@ -78,7 +74,6 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
                 {meta.icon}
             </div>
 
-            {/* Content */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{
                     margin: '0 0 0.2rem', fontWeight: isUnread ? 600 : 500,
@@ -105,7 +100,6 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
                 </div>
             </div>
 
-            {/* Delete btn */}
             <button
                 onClick={(e) => { e.stopPropagation(); onDelete(notif._id); }}
                 style={{
@@ -124,7 +118,6 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
     );
 };
 
-// ─── Main Notification Center ─────────────────────────────────────────────────
 const NotificationCenter = () => {
     const {
         notifications, unreadCount, loading,
@@ -132,12 +125,11 @@ const NotificationCenter = () => {
     } = useNotifications();
 
     const [open, setOpen] = useState(false);
-    const [filter, setFilter] = useState('all'); // 'all' | 'unread'
+    const [filter, setFilter] = useState('all');
     const panelRef = useRef(null);
     const bellRef = useRef(null);
     const navigate = useNavigate();
 
-    // Close on outside click
     useEffect(() => {
         const handler = (e) => {
             if (
@@ -163,7 +155,6 @@ const NotificationCenter = () => {
 
     return (
         <div style={{ position: 'relative' }}>
-            {/* ── Bell Button ── */}
             <button
                 ref={bellRef}
                 onClick={handleOpen}
@@ -211,7 +202,6 @@ const NotificationCenter = () => {
                 )}
             </button>
 
-            {/* ── Panel ── */}
             {open && (
                 <div
                     ref={panelRef}
@@ -226,7 +216,6 @@ const NotificationCenter = () => {
                         animation: 'panel-in 0.18s ease',
                     }}
                 >
-                    {/* Panel header */}
                     <div style={{
                         padding: '1rem 1rem 0.75rem',
                         borderBottom: '1px solid #f1f5f9',
@@ -268,7 +257,6 @@ const NotificationCenter = () => {
                             </button>
                         </div>
 
-                        {/* Filter + action buttons */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '0.25rem', background: '#f1f5f9', borderRadius: '0.375rem', padding: '0.2rem' }}>
                                 {['all', 'unread'].map(f => (
@@ -329,7 +317,6 @@ const NotificationCenter = () => {
                         </div>
                     </div>
 
-                    {/* Notification list */}
                     <div style={{ overflowY: 'auto', flex: 1 }} className="notif-list">
                         {loading ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', color: '#94a3b8', fontSize: '0.875rem', gap: '0.5rem' }}>
@@ -361,7 +348,6 @@ const NotificationCenter = () => {
                         )}
                     </div>
 
-                    {/* Footer */}
                     {filtered.length > 0 && (
                         <div style={{
                             padding: '0.625rem 1rem', borderTop: '1px solid #f1f5f9',
