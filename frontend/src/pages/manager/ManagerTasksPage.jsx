@@ -5,6 +5,7 @@ import {
     Calendar, CheckCircle2, Circle, Users, User
 } from 'lucide-react';
 
+import { PageHeader, SectionContainer, Button } from '../../design-system';
 import TaskModal from './TaskModal';
 
 // Constants
@@ -217,31 +218,34 @@ const ManagerTasksPage = () => {
     const filtered = filterStatus === 'All' ? tasks : tasks.filter(t => t.status === filterStatus);
     const doneCount = tasks.filter(t => t.status === 'APPROVED' || t.status === 'Done').length;
     const overdueCount = tasks.filter(t => t.deadline && new Date() > new Date(t.deadline) && t.status !== 'APPROVED').length;
-
     if (loading) return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem', color: '#64748b' }}>
-            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem', color: 'var(--clr-slate-400)' }}>
+            <Loader2 size={32} className="ds-spin" style={{ color: 'var(--clr-primary-500)' }} />
             <p style={{ margin: 0 }}>Loading tasks...</p>
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 
     return (
-        <div>
+        <SectionContainer>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem', gap: '1rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>Tasks</h1>
-                    <p style={{ color: '#64748b', margin: 0 }}>
+            <PageHeader
+                title="Tasks"
+                subtitle={
+                    <>
                         {tasks.length} total · {doneCount} approved
-                        {overdueCount > 0 && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>· {overdueCount} overdue</span>}
-                    </p>
-                </div>
-                <button onClick={() => { setEditingTask(null); setModalOpen(true); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.6rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    <Plus size={18} /> New Task
-                </button>
-            </div>
+                        {overdueCount > 0 && <span style={{ color: 'var(--clr-danger-500)', marginLeft: '0.5rem' }}>· {overdueCount} overdue</span>}
+                    </>
+                }
+                icon={ListTodo}
+                actions={
+                    <Button
+                        icon={Plus}
+                        onClick={() => { setEditingTask(null); setModalOpen(true); }}
+                    >
+                        New Task
+                    </Button>
+                }
+            />
 
             {/* Status filter pills */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
@@ -302,8 +306,7 @@ const ManagerTasksPage = () => {
                 />
             )}
 
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-        </div>
+        </SectionContainer>
     );
 };
 

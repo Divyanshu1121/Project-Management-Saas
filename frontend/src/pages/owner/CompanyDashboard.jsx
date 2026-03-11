@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import {
     Building, ShieldCheck, Calendar, Users, Briefcase, Layers,
     CheckSquare, UserPlus, Loader2, FolderOpen, ListTodo,
-    BarChart2, TrendingUp, Clock, AlertTriangle, ChevronRight, CheckCircle
+    BarChart2, TrendingUp, Clock, LayoutDashboard, CheckCircle
 } from 'lucide-react';
-import './CompanyDashboard.css';
 import CompanyTeamTable from './CompanyTeamTable';
 import CreateTeamMemberModal from './CreateTeamMemberModal';
-import CompanySidebar from './CompanySidebar';
 import ProfileView from '../../components/common/ProfileView';
 import CompanyTeams from './CompanyTeams';
+import { PageHeader, PanelCard, SectionContainer, Button } from '../../design-system';
 
 const fmt = (d) => {
     if (!d) return '—';
@@ -24,7 +24,6 @@ const STATUS_META = {
     SUBMITTED: { label: 'Submitted', bg: '#faf5ff', color: '#7e22ce' },
     APPROVED: { label: 'Approved', bg: '#dcfce7', color: '#166534' },
     REJECTED: { label: 'Rejected', bg: '#fef2f2', color: '#991b1b' },
-    // Legacy status values
     'To Do': { label: 'To Do', bg: '#f1f5f9', color: '#475569' },
     'In Progress': { label: 'In Progress', bg: '#eff6ff', color: '#1d4ed8' },
     'Done': { label: 'Done', bg: '#dcfce7', color: '#166534' },
@@ -58,7 +57,6 @@ const SectionLoader = () => (
     </div>
 );
 
-// ── Projects Section ─────────────────────────────────────
 const ProjectsSection = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -67,6 +65,7 @@ const ProjectsSection = () => {
     const fetch = useCallback(async () => {
         setLoading(true);
         try {
+
             const res = await api.get('/projects');
             setProjects(res.data || []);
         } catch { setProjects([]); }
@@ -394,13 +393,13 @@ const ReportsSection = () => {
 };
 
 // ── Main Dashboard ────────────────────────────────────────
-const CompanyDashboard = () => {
+const CompanyDashboard = ({ defaultSection = 'dashboard' }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [dashboardData, setDashboardData] = useState(null);
     const [teamMembers, setTeamMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState('dashboard');
 
     const isCEO = user?.role === 'CEO' || user?.role === 'COMPANY_OWNER';
 
@@ -449,129 +448,99 @@ const CompanyDashboard = () => {
         }
     };
 
-    if (loading) return <div className="loading-container">Loading dashboard...</div>;
-    if (!dashboardData?.company) return <div className="dashboard-container">No company data available.</div>;
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--clr-slate-400)' }}>Loading dashboard...</div>;
+    if (!dashboardData?.company) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--clr-slate-400)' }}>No company data available.</div>;
 
     const { company, stats } = dashboardData;
 
     const renderContent = () => {
-        switch (activeSection) {
-            case 'dashboard':
-                return (
-                    <>
-                        <div className="dashboard-header">
-                            <div>
-                                <h1 className="dashboard-title">Company Overview</h1>
-                                <p className="dashboard-subtitle">Welcome back, {user?.name}</p>
-                            </div>
-                        </div>
-
-                        {/* Company info card */}
-                        <div className="company-card">
-                            <div className="company-card-content">
-                                <div className="company-info-main">
-                                    <div className="company-name-wrapper">
-                                        <Building className="company-icon" />
-                                        <h2 className="company-name">{company.name}</h2>
-                                    </div>
-                                    <span className="company-id">ID: {company._id}</span>
-                                </div>
-                                <div className="company-meta-grid">
-                                    <div className="meta-item">
-                                        <ShieldCheck className="meta-icon" />
-                                        <div className="meta-content">
-                                            <span className="meta-label">Plan</span>
-                                            <span className="meta-value">{company.plan || 'Free'}</span>
-                                        </div>
-                                    </div>
-                                    <div className="meta-item">
-                                        <Calendar className="meta-icon" />
-                                        <div className="meta-content">
-                                            <span className="meta-label">Created</span>
-                                            <span className="meta-value">{new Date(company.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="stats-grid">
-                            <StatCard title="Leadership" value={stats?.totalProjectManagers || 0} icon={Users} colorClass="color-blue" />
-                            <StatCard title="Total Employees" value={stats?.totalEmployees || 0} icon={Briefcase} colorClass="color-green" />
-                            <StatCard title="Total Projects" value={stats?.totalProjects || 0} icon={Layers} colorClass="color-purple" />
-                            <StatCard title="Total Tasks" value={stats?.totalTasks || 0} icon={CheckSquare} colorClass="color-orange" />
-                        </div>
-                    </>
-                );
-
+        switch (defaultSection) {
             case 'c-executives':
                 return (
-                    <>
-                        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '0 2rem', marginTop: '2rem' }}>
-                            <div>
-                                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>Team Members</h3>
-                                <p style={{ color: '#64748b', margin: 0 }}>Manage your company's team members and their roles.</p>
-                            </div>
-                            {isCEO && (
-                                <button className="btn-primary" onClick={() => setIsModalOpen(true)}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', backgroundColor: '#2563eb', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                                    <UserPlus size={20} />
-                                    <span>Add Member</span>
-                                </button>
-                            )}
-                        </div>
-                        <CompanyTeamTable users={teamMembers} onDelete={handleDeleteUser} currentUserRole={user?.role} />
-                    </>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
+                        <PageHeader
+                            title="Management Team"
+                            subtitle="Manage your company's executive team and roles."
+                            icon={ShieldCheck}
+                            actions={
+                                isCEO && (
+                                    <Button icon={UserPlus} onClick={() => setIsModalOpen(true)}>
+                                        Add Executive
+                                    </Button>
+                                )
+                            }
+                        />
+                        <PanelCard>
+                            <CompanyTeamTable users={teamMembers} onDelete={handleDeleteUser} currentUserRole={user?.role} />
+                        </PanelCard>
+                    </div>
                 );
 
             case 'projects':
-                return <div style={{ padding: '0 2rem', paddingTop: '2rem', paddingBottom: '2rem' }}><ProjectsSection /></div>;
+                return <ProjectsSection />;
 
             case 'teams':
                 return <CompanyTeams />;
 
             case 'tasks':
-                return <div style={{ padding: '0 2rem', paddingTop: '2rem', paddingBottom: '2rem' }}><TasksSection /></div>;
+                return <TasksSection />;
 
             case 'reports':
-                return <div style={{ padding: '0 2rem', paddingTop: '2rem', paddingBottom: '2rem' }}><ReportsSection /></div>;
+                return <ReportsSection />;
 
             case 'settings':
                 return <div style={{ padding: '0 1rem' }}><ProfileView /></div>;
 
+            case 'dashboard':
             default:
-                return <div>Select a section</div>;
+                return (
+                    <>
+                        <PageHeader
+                            title="Company Overview"
+                            subtitle={`Welcome back, ${user?.name}`}
+                            icon={LayoutDashboard}
+                        />
+
+                        {/* Top stat metrics */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
+                            <PanelCard variant="stat" label="Leadership" value={stats?.totalProjectManagers || 0} icon={Users} color="var(--clr-primary-500)" bg="var(--clr-primary-50)" onClick={() => navigate('/company/c-executives')} />
+                            <PanelCard variant="stat" label="Total Employees" value={stats?.totalEmployees || 0} icon={Briefcase} color="var(--clr-success-500)" bg="var(--clr-success-50)" onClick={() => navigate('/company/teams')} />
+                            <PanelCard variant="stat" label="Total Projects" value={stats?.totalProjects || 0} icon={Layers} color="var(--clr-indigo-500)" bg="var(--clr-indigo-50)" onClick={() => navigate('/company/projects')} />
+                            <PanelCard variant="stat" label="Total Tasks" value={stats?.totalTasks || 0} icon={CheckSquare} color="var(--clr-orange-500)" bg="var(--clr-orange-50)" onClick={() => navigate('/company/tasks')} />
+                        </div>
+
+                        {/* Company Detail info */}
+                        <PanelCard variant="section" title="Company Details" icon={Building}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', padding: '0.5rem 0' }}>
+                                <div>
+                                    <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Name</p>
+                                    <p style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--clr-slate-800)' }}>{company.name}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Primary Subscription</p>
+                                    <p style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--clr-slate-800)' }}>{company.plan || 'Free'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Company ID</p>
+                                    <p style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--clr-slate-800)' }}>{company._id}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Platform Genesis</p>
+                                    <p style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--clr-slate-800)' }}>{new Date(company.createdAt).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        </PanelCard>
+                    </>
+                );
         }
     };
 
     return (
-        <div className="company-panel-layout">
-            <CompanySidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-            <div className="main-content-wrapper">
-                <header className="company-header">
-                    <h2 className="header-title">
-                        {{ dashboard: 'Dashboard', 'c-executives': 'C-Executives', projects: 'Projects', teams: 'Teams', tasks: 'Tasks', reports: 'Reports', settings: 'Settings' }[activeSection] || activeSection}
-                    </h2>
-                </header>
-                <div className="dashboard-container">
-                    {renderContent()}
-                    <CreateTeamMemberModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateUser} />
-                </div>
-            </div>
-        </div>
+        <SectionContainer>
+            {renderContent()}
+            <CreateTeamMemberModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateUser} />
+        </SectionContainer>
     );
 };
-
-// Stat Card sub-component
-const StatCard = ({ title, value, icon: Icon, colorClass }) => (
-    <div className="stat-card">
-        <div className={`stat-icon-wrapper ${colorClass}`}><Icon size={24} /></div>
-        <div className="stat-content">
-            <span className="stat-label">{title}</span>
-            <span className="stat-value">{value}</span>
-        </div>
-    </div>
-);
 
 export default CompanyDashboard;

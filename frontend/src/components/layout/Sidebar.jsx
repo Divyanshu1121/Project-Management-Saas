@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
     Clock, BarChart2, Settings, LogOut, Activity,
-    Calendar, MessageSquare, Kanban, ChevronRight
+    Calendar, MessageSquare, Kanban, ChevronRight, ShieldCheck, Layers
 } from 'lucide-react';
 import './layout.css';
 
@@ -77,10 +77,74 @@ const ADMIN_LINKS = [
     },
 ];
 
+const HR_LINKS = [
+    {
+        group: 'Overview',
+        items: [
+            { name: 'Dashboard', path: '/hr', icon: LayoutDashboard },
+        ]
+    },
+    {
+        group: 'People',
+        items: [
+            { name: 'Employees', path: '/hr/employees', icon: Users },
+            { name: 'Leadership', path: '/hr/leadership', icon: ShieldCheck },
+        ]
+    },
+    {
+        group: 'Time Off',
+        items: [
+            { name: 'Leave Management', path: '/hr/leaves', icon: Calendar },
+        ]
+    },
+    {
+        group: 'Other',
+        items: [
+            { name: 'Settings', path: '/settings', icon: Settings },
+        ]
+    },
+];
+
+const COMPANY_LINKS = [
+    {
+        group: 'Overview',
+        items: [
+            { name: 'Dashboard', path: '/company', icon: LayoutDashboard },
+        ]
+    },
+    {
+        group: 'Management',
+        items: [
+            { name: 'C-Executives', path: '/company/c-executives', icon: ShieldCheck },
+            { name: 'Teams', path: '/company/teams', icon: Users },
+        ]
+    },
+    {
+        group: 'Work',
+        items: [
+            { name: 'Projects', path: '/company/projects', icon: Briefcase },
+            { name: 'Tasks', path: '/company/tasks', icon: ListTodo },
+            { name: 'Reports', path: '/company/reports', icon: BarChart2 },
+        ]
+    },
+    {
+        group: 'Other',
+        items: [
+            { name: 'Settings', path: '/company/settings', icon: Settings },
+        ]
+    },
+];
+
 const ROLE_LINKS = {
     PROJECT_MANAGER: MANAGER_LINKS,
     EMPLOYEE: EMPLOYEE_LINKS,
     SUPER_ADMIN: ADMIN_LINKS,
+    HR: HR_LINKS,
+    COMPANY_OWNER: COMPANY_LINKS,
+    CEO: COMPANY_LINKS,
+    CTO: COMPANY_LINKS,
+    CFO: COMPANY_LINKS,
+    COO: COMPANY_LINKS,
 };
 
 const ROLE_LABELS = {
@@ -88,6 +152,7 @@ const ROLE_LABELS = {
     PROJECT_MANAGER: 'Project Manager',
     EMPLOYEE: 'Employee',
     COMPANY_OWNER: 'Company Owner',
+    HR: 'HR Manager',
 };
 
 // ── Sidebar component ───────────────────────────────────────────────────
@@ -98,7 +163,11 @@ const Sidebar = () => {
 
     const role = user.role;
     const groups = ROLE_LINKS[role] || [];
-    const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' : '/settings';
+    // HR has its own sub-routes but uses the shared layout
+    const isHR = role === 'HR';
+    const isOwner = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
+    const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' :
+        isOwner ? '/company/settings' : '/settings';
 
     return (
         <div className="sidebar">
@@ -121,7 +190,7 @@ const Sidebar = () => {
                                 <li key={path}>
                                     <NavLink
                                         to={path}
-                                        end={path === '/manager' || path === '/employee' || path === '/admin'}
+                                        end={['/manager', '/employee', '/admin', '/company', '/hr'].includes(path)}
                                         className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                                     >
                                         <Icon size={17} style={{ flexShrink: 0 }} />

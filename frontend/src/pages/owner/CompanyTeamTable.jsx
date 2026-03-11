@@ -1,6 +1,5 @@
 import React from 'react';
 import { Trash2, Shield, Briefcase, Code, TrendingUp } from 'lucide-react';
-import './OwnerDashboard.css';
 
 const CompanyTeamTable = ({ users, onDelete, currentUserRole }) => {
 

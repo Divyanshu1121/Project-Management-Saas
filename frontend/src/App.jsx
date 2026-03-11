@@ -46,24 +46,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            <Route
-                path="company"
-                element={
-                    <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
-                        <CompanyDashboard />
-                    </ProtectedRoute>
-                }
-            />
-
-            <Route
-                path="hr"
-                element={
-                    <ProtectedRoute allowedRoles={['HR']}>
-                        <HRDashboard />
-                    </ProtectedRoute>
-                }
-            />
-
             <Route path="/" element={<Layout />}>
                 <Route index element={<NavigateToDashboard />} />
 
@@ -185,7 +167,7 @@ function App() {
                 <Route
                     path="settings"
                     element={
-                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR', 'COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <SettingsPage />
                         </ProtectedRoute>
                     }
@@ -195,6 +177,98 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
                             <GlobalChatPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ── HR (shared layout, sub-routes) ── */}
+                <Route
+                    path="hr"
+                    element={
+                        <ProtectedRoute allowedRoles={['HR']}>
+                            <HRDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="hr/employees"
+                    element={
+                        <ProtectedRoute allowedRoles={['HR']}>
+                            <HRDashboard defaultSection="employees" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="hr/leadership"
+                    element={
+                        <ProtectedRoute allowedRoles={['HR']}>
+                            <HRDashboard defaultSection="leadership" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="hr/leaves"
+                    element={
+                        <ProtectedRoute allowedRoles={['HR']}>
+                            <HRDashboard defaultSection="leaves" />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ── Company / Owners (shared layout) ── */}
+                <Route
+                    path="company"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="dashboard" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/c-executives"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="c-executives" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/projects"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="projects" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/teams"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="teams" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/tasks"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="tasks" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/reports"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="reports" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="company/settings"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <CompanyDashboard defaultSection="settings" />
                         </ProtectedRoute>
                     }
                 />

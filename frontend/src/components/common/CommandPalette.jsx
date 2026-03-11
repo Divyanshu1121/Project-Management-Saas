@@ -1,29 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Briefcase, ListTodo, Users, Kanban,
     Calendar, Activity, BarChart2, MessageSquare, Settings,
-    Plus, Search, ArrowRight, Command, Flag,
+    Plus, Search, ArrowRight, Command, Flag, ShieldCheck, Clock
 } from 'lucide-react';
-
-/* ── Command definitions ─────────────────────────────────── */
-const COMMANDS = [
-    // Navigate
-    { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/manager', kbd: 'G D' },
-    { id: 'g-projects', group: 'Go to', label: 'Projects', icon: Briefcase, path: '/manager/projects', kbd: 'G P' },
-    { id: 'g-tasks', group: 'Go to', label: 'Tasks', icon: ListTodo, path: '/manager/tasks', kbd: 'G T' },
-    { id: 'g-kanban', group: 'Go to', label: 'Kanban Board', icon: Kanban, path: '/manager/kanban', kbd: 'G K' },
-    { id: 'g-team', group: 'Go to', label: 'Team', icon: Users, path: '/manager/team' },
-    { id: 'g-workload', group: 'Go to', label: 'Workload', icon: Activity, path: '/manager/workload' },
-    { id: 'g-calendar', group: 'Go to', label: 'Calendar / Timeline', icon: Calendar, path: '/manager/timeline-calendar', kbd: 'G C' },
-    { id: 'g-reports', group: 'Go to', label: 'Reports', icon: BarChart2, path: '/manager/reports' },
-    { id: 'g-chat', group: 'Go to', label: 'Global Chat', icon: MessageSquare, path: '/chat' },
-    { id: 'g-settings', group: 'Go to', label: 'Settings', icon: Settings, path: '/settings' },
-    // Create
-    { id: 'c-project', group: 'Create', label: 'New Project', icon: Plus, path: '/manager/projects' },
-    { id: 'c-task', group: 'Create', label: 'New Task', icon: ListTodo, path: '/manager/tasks' },
-    { id: 'c-sprint', group: 'Create', label: 'New Sprint', icon: Flag, path: '/manager/projects' },
-];
 
 /* ── Kbd chip ─────────────────────────────────────────────── */
 const KbdChip = ({ k }) => (
@@ -38,15 +20,77 @@ const KbdChip = ({ k }) => (
 /* ── Main component ───────────────────────────────────────── */
 const CommandPalette = ({ open, onClose }) => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [query, setQuery] = useState('');
     const [activeIdx, setActive] = useState(0);
     const inputRef = useRef(null);
 
+    const commands = useMemo(() => {
+        if (!user) return [];
+        const role = user.role;
+        const isOwner = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
+
+        let list = [];
+
+        if (role === 'PROJECT_MANAGER') {
+            list = [
+                { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/manager', kbd: 'G D' },
+                { id: 'g-projects', group: 'Go to', label: 'Projects', icon: Briefcase, path: '/manager/projects', kbd: 'G P' },
+                { id: 'g-tasks', group: 'Go to', label: 'Tasks', icon: ListTodo, path: '/manager/tasks', kbd: 'G T' },
+                { id: 'g-kanban', group: 'Go to', label: 'Kanban Board', icon: Kanban, path: '/manager/kanban', kbd: 'G K' },
+                { id: 'g-team', group: 'Go to', label: 'Team', icon: Users, path: '/manager/team' },
+                { id: 'g-workload', group: 'Go to', label: 'Workload', icon: Activity, path: '/manager/workload' },
+                { id: 'g-cal', group: 'Go to', label: 'Calendar / Timeline', icon: Calendar, path: '/manager/timeline-calendar', kbd: 'G C' },
+                { id: 'g-reports', group: 'Go to', label: 'Reports', icon: BarChart2, path: '/manager/reports' },
+                { id: 'c-project', group: 'Create', label: 'New Project', icon: Plus, path: '/manager/projects' },
+                { id: 'c-task', group: 'Create', label: 'New Task', icon: Plus, path: '/manager/tasks' },
+                { id: 'c-sprint', group: 'Create', label: 'New Sprint', icon: Flag, path: '/manager/projects' },
+            ];
+        } else if (isOwner) {
+            list = [
+                { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/company', kbd: 'G D' },
+                { id: 'g-execs', group: 'Go to', label: 'C-Executives', icon: ShieldCheck, path: '/company/c-executives' },
+                { id: 'g-teams', group: 'Go to', label: 'Teams', icon: Users, path: '/company/teams', kbd: 'G T' },
+                { id: 'g-projects', group: 'Go to', label: 'Projects', icon: Briefcase, path: '/company/projects', kbd: 'G P' },
+                { id: 'g-tasks', group: 'Go to', label: 'Tasks', icon: ListTodo, path: '/company/tasks' },
+                { id: 'g-reports', group: 'Go to', label: 'Reports', icon: BarChart2, path: '/company/reports' },
+            ];
+        } else if (role === 'HR') {
+            list = [
+                { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/hr', kbd: 'G D' },
+                { id: 'g-emps', group: 'Go to', label: 'Employees', icon: Users, path: '/hr/employees', kbd: 'G E' },
+                { id: 'g-lead', group: 'Go to', label: 'Leadership', icon: ShieldCheck, path: '/hr/leadership' },
+                { id: 'g-leaves', group: 'Go to', label: 'Leaves', icon: Calendar, path: '/hr/leaves', kbd: 'G L' },
+            ];
+        } else if (role === 'EMPLOYEE') {
+            list = [
+                { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/employee', kbd: 'G D' },
+                { id: 'g-time', group: 'Go to', label: 'Time Logs', icon: Clock, path: '/employee/time-logs', kbd: 'G T' },
+                { id: 'g-leave', group: 'Go to', label: 'My Leave', icon: Calendar, path: '/employee/leave', kbd: 'G L' },
+            ];
+        } else if (role === 'SUPER_ADMIN') {
+            list = [
+                { id: 'g-dash', group: 'Go to', label: 'Dashboard', icon: LayoutDashboard, path: '/admin', kbd: 'G D' },
+                { id: 'g-users', group: 'Go to', label: 'Users', icon: Users, path: '/admin/users', kbd: 'G U' },
+            ];
+        }
+
+        // Common
+        if (['PROJECT_MANAGER', 'EMPLOYEE', 'HR'].includes(role)) {
+            list.push({ id: 'g-chat', group: 'Go to', label: 'Global Chat', icon: MessageSquare, path: '/chat' });
+        }
+
+        const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' : isOwner ? '/company/settings' : '/settings';
+        list.push({ id: 'g-settings', group: 'Go to', label: 'Settings', icon: Settings, path: settingsPath });
+
+        return list;
+    }, [user]);
+
     /* Filter + group */
     const q = query.trim().toLowerCase();
     const filtered = q
-        ? COMMANDS.filter(c => c.label.toLowerCase().includes(q) || c.group.toLowerCase().includes(q))
-        : COMMANDS;
+        ? commands.filter(c => c.label.toLowerCase().includes(q) || c.group.toLowerCase().includes(q))
+        : commands;
     const grouped = filtered.reduce((acc, cmd) => {
         (acc[cmd.group] = acc[cmd.group] || []).push(cmd);
         return acc;

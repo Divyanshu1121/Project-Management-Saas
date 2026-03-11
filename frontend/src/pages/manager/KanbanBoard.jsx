@@ -283,7 +283,7 @@ const KanbanColumn = ({ col, tasks, onEdit, onDelete, isOver }) => {
                 {tasks.length === 0 && (
                     <div style={{
                         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#cbd5e1', fontSize: '0.8rem', fontStyle: 'italic',
+                        fontSize: '0.8rem', fontStyle: 'italic',
                         border: `2px dashed ${isOver ? col.color : '#e2e8f0'}`,
                         borderRadius: '0.5rem', padding: '1.5rem',
                         transition: 'border-color 0.2s, color 0.2s',
