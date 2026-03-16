@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api, { sprintApi } from '../../services/api';
 import { X, Loader2, AlertCircle } from 'lucide-react';
 import { Calendar } from 'lucide-react';
+import { ButtonLoader } from '../../components/common/Loaders';
 
 const STATUS_OPTIONS = [
     { value: 'TODO', label: 'To Do' },
@@ -333,7 +334,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                     disabled={aiLoading.description || !form.title.trim()}
                                     style={aiButtonStyle('description')}
                                 >
-                                    {aiLoading.description ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiLoading.description ? <ButtonLoader color="#0369a1" size={10} /> : '✨'}
                                     {aiGenerated.description ? 'Regenerate' : 'Generate with AI'}
                                 </button>
                             }
@@ -434,7 +435,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                     disabled={aiLoading.definition || !form.title.trim()}
                                     style={aiButtonStyle('definition')}
                                 >
-                                    {aiLoading.definition ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiLoading.definition ? <ButtonLoader color="#0369a1" size={10} /> : '✨'}
                                     {aiGenerated.definition ? 'Regenerate' : 'Generate with AI'}
                                 </button>
                             }
@@ -458,7 +459,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                                     disabled={aiLoading.subtasks || !form.title.trim()}
                                     style={aiButtonStyle('subtasks')}
                                 >
-                                    {aiLoading.subtasks ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✨'}
+                                    {aiLoading.subtasks ? <ButtonLoader color="#7c3aed" size={10} /> : '✨'}
                                     {aiGenerated.subtasks ? 'Regenerate' : 'Auto-generate List'}
                                 </button>
                             }
@@ -521,7 +522,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, projectId, projects =
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', padding: '1.1rem 1.75rem', borderTop: '1px solid #f1f5f9', background: '#f8fafc', borderRadius: '0 0 1rem 1rem' }}>
                         <button type="button" onClick={onClose} style={{ padding: '0.6rem 1.25rem', background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151', cursor: 'pointer' }}>Cancel</button>
                         <button type="submit" disabled={loading} style={{ padding: '0.6rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving...</> : (isEdit ? 'Save Changes' : 'Create Task')}
+                            {loading ? <ButtonLoader color="white" /> : (isEdit ? 'Save Changes' : 'Create Task')}
                         </button>
                     </div>
                 </form>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { InlineLoader } from '../common/Loaders';
 import { useNotifications } from '../../context/NotificationContext';
 import {
     Bell, X, CheckCheck, Trash2, Check, ExternalLink,
@@ -319,10 +320,7 @@ const NotificationCenter = () => {
 
                     <div style={{ overflowY: 'auto', flex: 1 }} className="notif-list">
                         {loading ? (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem', color: '#94a3b8', fontSize: '0.875rem', gap: '0.5rem' }}>
-                                <div style={{ width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                                Loading...
-                            </div>
+                            <InlineLoader message="Loading notifications..." />
                         ) : filtered.length === 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem 1.5rem', textAlign: 'center' }}>
                                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', color: '#cbd5e1' }}>

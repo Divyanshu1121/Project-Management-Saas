@@ -63,15 +63,19 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
     return (
         <div
             ref={setNodeRef}
-            style={style}
+            {...attributes}
+            {...listeners}
+            style={{ 
+                ...style, 
+                cursor: isSortableDragging ? 'grabbing' : 'grab',
+                touchAction: 'none'
+            }}
             className="kanban-card"
         >
             {/* Drag Handle + Priority Dot */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <div
-                    {...attributes}
-                    {...listeners}
-                    style={{ cursor: 'grab', color: '#cbd5e1', flexShrink: 0, marginTop: 2, touchAction: 'none' }}
+                    style={{ color: '#cbd5e1', flexShrink: 0, marginTop: 2 }}
                     title="Drag to move"
                 >
                     <GripVertical size={14} />
@@ -159,6 +163,7 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
                 <div style={{ display: 'flex', gap: 2 }}>
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit(task); }}
+                        onPointerDown={e => e.stopPropagation()}
                         style={{
                             width: 24, height: 24, border: 'none', background: 'transparent',
                             cursor: 'pointer', color: '#94a3b8', display: 'flex',
@@ -173,6 +178,7 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete(task); }}
+                        onPointerDown={e => e.stopPropagation()}
                         style={{
                             width: 24, height: 24, border: 'none', background: 'transparent',
                             cursor: 'pointer', color: '#94a3b8', display: 'flex',
@@ -495,7 +501,7 @@ const KanbanBoard = () => {
                     border: 1.5px solid #e2e8f0;
                     border-radius: 0.625rem;
                     padding: 0.75rem;
-                    cursor: default;
+                    cursor: grab;
                     box-shadow: 0 1px 4px rgba(0,0,0,0.05);
                     transition: box-shadow 0.18s, border-color 0.18s, transform 0.15s;
                     user-select: none;

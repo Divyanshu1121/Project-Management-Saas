@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
-import { Users, Loader2, Activity, Clock, ListTodo, TrendingUp, TrendingDown } from 'lucide-react';
+import { Users, Activity, Clock, ListTodo, TrendingUp } from 'lucide-react';
+import { PageSkeleton } from '../../components/common/Loaders';
 
 const WorkloadPage = () => {
     const [workload, setWorkload] = useState([]);
@@ -31,23 +32,15 @@ const WorkloadPage = () => {
         return { label: 'Heavy', bg: '#fef2f2', color: '#991b1b', bar: '#ef4444' };
     };
 
-    if (loading) return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem', color: '#64748b' }}>
-            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-            <p style={{ margin: 0 }}>Loading workload data...</p>
-            <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
-    );
+    if (loading) return <PageSkeleton />;
 
     return (
         <div>
-            {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem' }}>Workload Monitor</h1>
                 <p style={{ color: '#64748b', margin: 0 }}>Employee task load and logged hours across your company</p>
             </div>
 
-            {/* Summary stats */}
             {workload.length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                     {[
@@ -67,7 +60,6 @@ const WorkloadPage = () => {
                 </div>
             )}
 
-            {/* Employee Cards */}
             {workload.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 2rem', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0', textAlign: 'center' }}>
                     <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: '#2563eb' }}><Users size={28} /></div>
@@ -88,7 +80,6 @@ const WorkloadPage = () => {
                                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.07)'}
                                 onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'}
                             >
-                                {/* Employee info */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '1.125rem' }}>
                                     <div style={{
                                         width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
@@ -108,7 +99,6 @@ const WorkloadPage = () => {
                                     </span>
                                 </div>
 
-                                {/* Stats */}
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
                                     <div style={{ background: '#f8fafc', borderRadius: '0.625rem', padding: '0.75rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: '0.25rem' }}>
@@ -126,7 +116,6 @@ const WorkloadPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Workload bar */}
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                         <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Task Load</span>

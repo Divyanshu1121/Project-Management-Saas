@@ -43,7 +43,16 @@ const messageSchema = new mongoose.Schema({
         url: String,
         fileType: String,
         name: String
-    }]
+    }],
+    reactions: [{
+        emoji: { type: String, required: true },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    }],
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message',
+        default: null
+    }
 }, { timestamps: true });
 
 // Indexing for faster retrieval
