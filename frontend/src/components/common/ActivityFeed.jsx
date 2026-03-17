@@ -65,7 +65,6 @@ const LogEntry = ({ log, isLast }) => {
 
     return (
         <div style={{ display: 'flex', gap: '0.875rem', position: 'relative' }}>
-            {/* Vertical line */}
             {!isLast && (
                 <div style={{
                     position: 'absolute',
@@ -77,7 +76,6 @@ const LogEntry = ({ log, isLast }) => {
                 }} />
             )}
 
-            {/* Icon bubble */}
             <div style={{
                 width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                 backgroundColor: meta.bg,
@@ -89,7 +87,6 @@ const LogEntry = ({ log, isLast }) => {
                 <IconComp size={14} color={meta.color} />
             </div>
 
-            {/* Content card */}
             <div style={{
                 flex: 1, marginBottom: '1.25rem',
                 background: 'white',
@@ -103,7 +100,6 @@ const LogEntry = ({ log, isLast }) => {
                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'}
             >
-                {/* Top row: label badge + time */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                     <span style={{
                         fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
@@ -118,7 +114,6 @@ const LogEntry = ({ log, isLast }) => {
                     </span>
                 </div>
 
-                {/* Message */}
                 <p style={{
                     margin: '0 0 0.3rem', fontSize: '0.855rem', color: '#1e293b',
                     lineHeight: 1.5, fontWeight: 500,
@@ -126,7 +121,6 @@ const LogEntry = ({ log, isLast }) => {
                     {log.message}
                 </p>
 
-                {/* Actor */}
                 {log.userId?.name && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <div style={{
@@ -147,7 +141,6 @@ const LogEntry = ({ log, isLast }) => {
     );
 };
 
-// ─── Date section divider ─────────────────────────────────────────────────────
 const DateDivider = ({ date }) => {
     const label = date === new Date().toDateString() ? 'Today'
         : date === new Date(Date.now() - 86400000).toDateString() ? 'Yesterday' : date;
@@ -170,7 +163,6 @@ const DateDivider = ({ date }) => {
     );
 };
 
-// ─── Skeleton rows ────────────────────────────────────────────────────────────
 const Skeleton = () => (
     <div style={{ display: 'flex', gap: '0.875rem', marginBottom: '1.25rem' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f1f5f9', flexShrink: 0 }} />
@@ -185,17 +177,6 @@ const Skeleton = () => (
     </div>
 );
 
-// ─── Main ActivityFeed ────────────────────────────────────────────────────────
-/**
- * Props:
- *   mode        — 'project' | 'task' | 'company'
- *   projectId   — required when mode === 'project'
- *   taskId      — required when mode === 'task'
- *   limit       — initial fetch limit (default 20)
- *   title       — panel header text
- *   maxHeight   — CSS max-height of the scrollable list
- *   compact     — if true, no outer card wrapper
- */
 const ActivityFeed = ({
     mode = 'project',
     projectId,
@@ -245,7 +226,6 @@ const ActivityFeed = ({
         await fetchLogs(nextSkip, true);
     };
 
-    // ── Render content ──────────────────────────────────────────────────────
     const listContent = (
         <div style={{ overflowY: 'auto', maxHeight, padding: '1.25rem 1.25rem 0' }}>
             {loading ? (
@@ -312,7 +292,6 @@ const ActivityFeed = ({
             boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
             overflow: 'hidden',
         }}>
-            {/* ── Header ── */}
             <div style={{
                 padding: '1rem 1.25rem',
                 borderBottom: '1px solid #f1f5f9',

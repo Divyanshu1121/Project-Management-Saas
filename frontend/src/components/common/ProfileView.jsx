@@ -22,7 +22,6 @@ const ProfileView = () => {
                 flexDirection: 'column',
                 gap: '2rem'
             }}>
-                {/* Header Section with Avatar */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -65,7 +64,6 @@ const ProfileView = () => {
                     </div>
                 </div>
 
-                {/* Details Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                     <div className="profile-field">
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#64748b', marginBottom: '0.5rem' }}>

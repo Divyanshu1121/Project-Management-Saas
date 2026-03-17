@@ -28,36 +28,55 @@ const AdminDashboard = () => {
 };
 
 
+import CircularChart from '../../components/common/CircularChart';
+
 const DashboardStatsView = () => {
     const [stats, setStats] = useState(null);
     useEffect(() => {
         api.get('/analytics').then(res => setStats(res.data.platformStats)).catch(console.error);
     }, []);
 
+    const chartData = [
+        { name: 'Active', value: stats?.activeCompanies || 0, color: '#16a34a' },
+        { name: 'Paused', value: stats?.pausedCompanies || 0, color: '#ea580c' },
+    ].filter(d => d.value > 0);
+
     return (
         <div>
             <h2 style={{ marginBottom: '2rem' }}>Dashboard Overview</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                <div className="card">
-                    <h3>Total Companies</h3>
-                    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2563eb' }}>{stats?.totalCompanies || 0}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem', alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                    <div className="card">
+                        <h3>Total Companies</h3>
+                        <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2563eb' }}>{stats?.totalCompanies || 0}</p>
+                    </div>
+                    <div className="card">
+                        <h3>Total Users</h3>
+                        <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#4b5563' }}>{stats?.totalPlatformUsers || 0}</p>
+                    </div>
+                    <div className="card" style={{ borderLeft: '4px solid #16a34a' }}>
+                        <h3 style={{ color: '#166534' }}>Active Companies</h3>
+                        <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#16a34a' }}>{stats?.activeCompanies || 0}</p>
+                    </div>
+                    <div className="card" style={{ borderLeft: '4px solid #ea580c' }}>
+                        <h3 style={{ color: '#9a3412' }}>Paused Companies</h3>
+                        <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>{stats?.pausedCompanies || 0}</p>
+                    </div>
                 </div>
-                <div className="card">
-                    <h3>Total Users</h3>
-                    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#4b5563' }}>{stats?.totalPlatformUsers || 0}</p>
-                </div>
-                <div className="card">
-                    <h3>Active Companies</h3>
-                    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#16a34a' }}>{stats?.activeCompanies || 0}</p>
-                </div>
-                <div className="card">
-                    <h3>Paused Companies</h3>
-                    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>{stats?.pausedCompanies || 0}</p>
+
+                <div className="card" style={{ padding: '1.5rem' }}>
+                    <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <BarChart3 size={18} color="#2563eb" /> Company Status
+                    </h3>
+                    <div style={{ height: 200 }}>
+                        <CircularChart data={chartData} height={200} donut />
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
+
 
 const CompaniesView = () => {
     const [companies, setCompanies] = useState([]);

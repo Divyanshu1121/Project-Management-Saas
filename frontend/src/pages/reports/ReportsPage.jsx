@@ -1,28 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { BarChart2, Briefcase, ListTodo, Users, Loader2, TrendingUp } from 'lucide-react';
+import { BarChart2, Briefcase, ListTodo, Users, Loader2, TrendingUp, PieChart as PieIcon } from 'lucide-react';
+import CircularChart from '../../components/common/CircularChart';
 
 const statusColors = {
-    'To Do': '#94a3b8',
+    'To Do': '#64748b',
     'In Progress': '#3b82f6',
     'In Review': '#a855f7',
     'Done': '#22c55e',
-};
-
-const priorityColors = {
-    Low: '#22c55e',
-    Medium: '#f59e0b',
-    High: '#f97316',
-    Urgent: '#ef4444',
+    'TODO': '#64748b',
+    'IN_PROGRESS': '#3b82f6',
+    'SUBMITTED': '#a855f7',
+    'APPROVED': '#22c55e',
 };
 
 const Bar = ({ label, count, total, color }) => {
     const pct = total === 0 ? 0 : Math.round((count / total) * 100);
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <span style={{ width: 80, fontSize: '0.8rem', color: '#64748b', fontWeight: 500, flexShrink: 0, textAlign: 'right' }}>{label}</span>
-            <div style={{ flex: 1, height: 10, background: '#f1f5f9', borderRadius: 5, overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 5, transition: 'width 0.6s ease' }} />
+            <span style={{ width: 100, fontSize: '0.8rem', color: '#64748b', fontWeight: 500, flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+            <div style={{ flex: 1, height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 4, transition: 'width 0.6s ease' }} />
             </div>
             <span style={{ width: 28, fontSize: '0.8rem', color: '#1e293b', fontWeight: 600 }}>{count}</span>
         </div>
@@ -77,6 +75,12 @@ const ReportsPage = () => {
     const tasksByStatus = data.tasksByStatus || [];
     const totalTasks = tasksByStatus.reduce((s, t) => s + (t.count || 0), 0);
 
+    const chartData = tasksByStatus.map(t => ({
+        name: t._id || 'Unknown',
+        value: t.count,
+        color: statusColors[t._id] || '#94a3b8'
+    }));
+
     return (
         <div>
             {/* Header */}
@@ -90,57 +94,71 @@ const ReportsPage = () => {
                 <StatCard label="Total Projects" value={data.totalProjects ?? '—'} Icon={Briefcase} bg="#eff6ff" color="#2563eb" />
                 <StatCard label="Total Tasks" value={data.totalTasks ?? '—'} Icon={ListTodo} bg="#dcfce7" color="#16a34a" />
                 <StatCard label="Total Users" value={data.totalUsers ?? '—'} Icon={Users} bg="#faf5ff" color="#7e22ce" />
-                <StatCard label="Completed Tasks" value={tasksByStatus.find(t => t._id === 'Done')?.count ?? 0} Icon={TrendingUp} bg="#fff9c3" color="#92400e" />
+                <StatCard label="Completed Tasks" value={tasksByStatus.find(t => ['Done', 'APPROVED'].includes(t._id))?.count ?? 0} Icon={TrendingUp} bg="#fff9c3" color="#92400e" />
             </div>
 
             {/* Charts row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
-                {/* Task Status Distribution */}
+                {/* Task Status Distribution (Circular) */}
                 <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Task Status Distribution</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <PieIcon size={18} style={{ color: '#2563eb' }} /> Status Distribution
+                        </h3>
+                    </div>
                     {tasksByStatus.length === 0 ? (
-                        <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No task data available.</p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.875rem', textAlign: 'center', padding: '2rem' }}>No task data available.</p>
                     ) : (
-                        tasksByStatus.map(t => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <CircularChart data={chartData} height={200} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                {tasksByStatus.map(t => (
+                                    <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#64748b', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '0.5rem' }}>
+                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusColors[t._id] || statusColors.TODO }} />
+                                        <div style={{ flex: 1, fontWeight: 500 }}>{t._id}</div>
+                                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{t.count}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Progress Overview (Bars) */}
+                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <h3 style={{ margin: '0 0 1.5rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <BarChart2 size={18} style={{ color: '#16a34a' }} /> Metric Bars
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {tasksByStatus.map(t => (
                             <Bar
                                 key={t._id}
                                 label={t._id || 'Unknown'}
                                 count={t.count}
                                 total={totalTasks}
-                                color={statusColors[t._id] || '#94a3b8'}
+                                color={statusColors[t._id] || statusColors.TODO}
                             />
-                        ))
-                    )}
-                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        {tasksByStatus.map(t => (
-                            <div key={t._id} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: '#64748b' }}>
-                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusColors[t._id] || '#94a3b8' }} />
-                                {t._id}: {t.count}
+                        ))}
+                    </div>
+
+                    <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                        <h4 style={{ margin: '0 0 1rem', fontSize: '0.875rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Summary Stats</h4>
+                        {[
+                            { label: 'Completion Rate', value: totalTasks > 0 ? `${Math.round(((tasksByStatus.find(t => ['Done', 'APPROVED'].includes(t._id))?.count ?? 0) / totalTasks) * 100)}%` : '0%', color: '#16a34a' },
+                            { label: 'Active Tasks', value: totalTasks - (tasksByStatus.find(t => ['Done', 'APPROVED'].includes(t._id))?.count ?? 0), color: '#2563eb' },
+                            { label: 'Critical Tasks', value: tasksByStatus.find(t => t._id === 'Urgent')?.count ?? 0, color: '#ef4444' },
+                        ].map(({ label, value, color }) => (
+                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0' }}>
+                                <span style={{ fontSize: '0.875rem', color: '#64748b' }}>{label}</span>
+                                <span style={{ fontWeight: 700, color, fontSize: '1rem' }}>{value}</span>
                             </div>
                         ))}
                     </div>
                 </div>
-
-                {/* Summary box */}
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Project Summary</h3>
-                    {[
-                        { label: 'Active Projects', value: data.totalProjects ?? 0, color: '#2563eb' },
-                        { label: 'Total Tasks', value: data.totalTasks ?? 0, color: '#16a34a' },
-                        { label: 'Team Members', value: data.totalUsers ?? 0, color: '#7e22ce' },
-                        { label: 'Completion Rate', value: totalTasks > 0 ? `${Math.round(((tasksByStatus.find(t => t._id === 'Done')?.count ?? 0) / totalTasks) * 100)}%` : '0%', color: '#f97316' },
-                    ].map(({ label, value, color }) => (
-                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid #f8fafc' }}>
-                            <span style={{ fontSize: '0.875rem', color: '#64748b' }}>{label}</span>
-                            <span style={{ fontWeight: 700, color, fontSize: '1.1rem' }}>{value}</span>
-                        </div>
-                    ))}
-                </div>
             </div>
-
-            <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
     );
 };
 
 export default ReportsPage;
+

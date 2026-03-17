@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-/* ── Base Card ─────────────────────────────────────────────── */
 const Card = ({ children, style = {}, hover = true, padding = '1.25rem 1.5rem', onClick, ...rest }) => {
     const [hov, setHov] = useState(false);
     return (
@@ -26,7 +25,6 @@ const Card = ({ children, style = {}, hover = true, padding = '1.25rem 1.5rem', 
     );
 };
 
-/* ── Stat Card ─────────────────────────────────────────────── */
 Card.Stat = ({
     label, value, icon: Icon,
     color = '#6366f1', bg = '#eef2ff',
@@ -79,7 +77,6 @@ Card.Stat = ({
     );
 };
 
-/* ── Section Card ──────────────────────────────────────────── */
 Card.Section = ({ title, subtitle, icon: Icon, iconColor = '#6366f1', iconBg = '#eef2ff', action, children, noPadBody = false }) => (
     <div style={{ background: 'white', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-xl)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
         <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--surface-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>

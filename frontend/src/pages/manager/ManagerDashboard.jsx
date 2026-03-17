@@ -7,7 +7,9 @@ import ActivityFeed from '../../components/common/ActivityFeed';
 import {
     Briefcase, CheckCircle2, Clock, Calendar, AlertTriangle,
     Users, ArrowRight, Zap, Plus, FolderOpen, TrendingUp,
+    PieChart as PieIcon, Loader2
 } from 'lucide-react';
+import CircularChart from '../../components/common/CircularChart';
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
 
@@ -54,6 +56,7 @@ const PersonRow = ({ leave, variant }) => (
 
 /* ── Main dashboard ──────────────────────────────────────── */
 const ManagerDashboard = () => {
+
     const navigate = useNavigate();
     const { user } = useAuth();
     const [projects, setProjects] = useState([]);
@@ -78,7 +81,15 @@ const ManagerDashboard = () => {
     const active = projects.filter(p => p.status === 'ACTIVE').length;
     const planning = projects.filter(p => p.status === 'PLANNING').length;
     const completed = projects.filter(p => p.status === 'COMPLETED').length;
+    const onHold = projects.filter(p => p.status === 'ON_HOLD').length;
     const overdue = projects.filter(p => p.deadline && new Date() > new Date(p.deadline) && p.status !== 'COMPLETED').length;
+
+    const projectChartData = [
+        { name: 'Active', value: active, color: '#10b981' },
+        { name: 'Planning', value: planning, color: '#f59e0b' },
+        { name: 'Completed', value: completed, color: '#2563eb' },
+        { name: 'On Hold', value: onHold, color: '#ef4444' },
+    ].filter(d => d.value > 0);
 
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -108,8 +119,8 @@ const ManagerDashboard = () => {
                 </>}
             </div>
 
-            {/* ── Two-column grid ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-5)', marginBottom: 'var(--sp-5)' }}>
+            {/* ── Three-column grid for middle section ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) 300px', gap: 'var(--sp-5)', marginBottom: 'var(--sp-5)' }}>
 
                 {/* Recent Projects */}
                 <Card.Section
@@ -122,6 +133,22 @@ const ManagerDashboard = () => {
                         ? <EmptyState icon={FolderOpen} title="No projects yet" description="Create your first project to get started." action={<Button size="sm" icon={Plus} onClick={() => navigate('/manager/projects')}>Create Project</Button>} />
                         : projects.slice(0, 5).map(p => <ProjectRow key={p._id} project={p} onClick={() => navigate(`/manager/projects/${p._id}`)} />)
                     }
+                </Card.Section>
+
+                {/* Reports / Insights Card */}
+                <Card.Section 
+                    title="Project Health" 
+                    subtitle="Distribution overview" 
+                    icon={PieIcon} 
+                    iconColor="#2563eb" 
+                    iconBg="#eff6ff"
+                    action={<button onClick={() => navigate('/manager/reports')} style={{ background: 'none', border: 'none', color: 'var(--clr-primary-500)', cursor: 'pointer', fontSize: 'var(--text-xs)', fontWeight: 600 }}>Full Report →</button>}
+                >
+                    <div style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {loading ? <div style={{ width: '100%', height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" color="#cbd5e1" /></div> : (
+                            <CircularChart data={projectChartData} height={180} />
+                        )}
+                    </div>
                 </Card.Section>
 
                 {/* Team panel */}
@@ -152,5 +179,6 @@ const ManagerDashboard = () => {
         </div>
     );
 };
+
 
 export default ManagerDashboard;

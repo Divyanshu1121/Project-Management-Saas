@@ -250,6 +250,10 @@ const TasksSection = () => {
     );
 };
 
+import CircularChart from '../../components/common/CircularChart';
+
+// ... (existing code)
+
 // ── Reports Section ───────────────────────────────────────
 const ReportsSection = () => {
     const [data, setData] = useState(null);
@@ -278,7 +282,7 @@ const ReportsSection = () => {
     const max = Math.max(...(data.tasksByStatus || []).map(s => s.count), 1);
 
     const statusColor = (id) => {
-        const map = { 'TODO': '#2563eb', 'IN_PROGRESS': '#7c3aed', 'SUBMITTED': '#db2777', 'APPROVED': '#16a34a', 'REJECTED': '#ef4444', 'To Do': '#64748b', 'In Progress': '#2563eb', 'Done': '#16a34a' };
+        const map = { 'TODO': '#64748b', 'IN_PROGRESS': '#2563eb', 'SUBMITTED': '#7c3aed', 'APPROVED': '#16a34a', 'REJECTED': '#ef4444', 'To Do': '#64748b', 'In Progress': '#2563eb', 'Done': '#16a34a' };
         return map[id] || '#64748b';
     };
 
@@ -288,6 +292,18 @@ const ReportsSection = () => {
         COMPLETED: projects.filter(p => p.status === 'COMPLETED').length,
         ON_HOLD: projects.filter(p => p.status === 'ON_HOLD').length,
     };
+
+    const taskChartData = (data.tasksByStatus || []).map(t => ({
+        name: t._id,
+        value: t.count,
+        color: statusColor(t._id)
+    }));
+
+    const projectChartData = Object.entries(projectStatusCounts).map(([name, value]) => ({
+        name,
+        value,
+        color: PROJECT_STATUS_META[name]?.color || '#64748b'
+    }));
 
     return (
         <div>
@@ -314,83 +330,50 @@ const ReportsSection = () => {
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
                 {/* Task Status Chart */}
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <BarChart2 size={16} style={{ color: '#2563eb' }} /> Tasks by Status
                     </h3>
-                    {data.tasksByStatus?.length === 0 ? (
-                        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem 0' }}>No task data yet</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                            {(data.tasksByStatus || []).map(({ _id, count }) => {
-                                const sm = STATUS_META[_id] || { label: _id, color: '#64748b' };
-                                const pct = Math.round((count / max) * 100);
-                                return (
-                                    <div key={_id}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>{sm.label || _id}</span>
-                                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusColor(_id) }}>{count}</span>
-                                        </div>
-                                        <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                                            <div style={{ width: `${pct}%`, height: '100%', background: statusColor(_id), borderRadius: 4, transition: 'width 0.6s ease' }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                    <CircularChart data={taskChartData} height={200} />
+                    {taskChartData.length === 0 && <p style={{ color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>No task data yet</p>}
                 </div>
 
                 {/* Project Status Chart */}
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <TrendingUp size={16} style={{ color: '#16a34a' }} /> Projects by Status
                     </h3>
-                    {projects.length === 0 ? (
-                        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem 0' }}>No project data yet</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                            {Object.entries(projectStatusCounts).map(([status, count]) => {
-                                const smeta = PROJECT_STATUS_META[status] || { color: '#475569' };
-                                const pct = Math.round((count / Math.max(...Object.values(projectStatusCounts), 1)) * 100);
-                                return (
-                                    <div key={status}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>{status}</span>
-                                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: smeta.color }}>{count}</span>
-                                        </div>
-                                        <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-                                            <div style={{ width: `${pct}%`, height: '100%', background: smeta.color, borderRadius: 4, transition: 'width 0.6s ease' }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                    <CircularChart data={projectChartData} height={200} />
+                    {projectChartData.length === 0 && <p style={{ color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>No project data yet</p>}
                 </div>
 
-                {/* Recent Projects list */}
+                {/* Task Bar Preview */}
                 <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Briefcase size={16} style={{ color: '#7e22ce' }} /> Recent Projects
-                    </h3>
-                    {projects.slice(0, 5).map(proj => {
-                        const smeta = PROJECT_STATUS_META[proj.status] || { bg: '#f1f5f9', color: '#475569' };
-                        return (
-                            <div key={proj._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                                <span style={{ fontSize: '0.875rem', color: '#1e293b', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{proj.name}</span>
-                                <Badge bg={smeta.bg} color={smeta.color} label={proj.status} />
-                            </div>
-                        );
-                    })}
-                    {projects.length === 0 && <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0 }}>No projects yet.</p>}
+                    <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Status Detail</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {(data.tasksByStatus || []).map(({ _id, count }) => {
+                            const pct = Math.round((count / max) * 100);
+                            return (
+                                <div key={_id}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>{_id}</span>
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusColor(_id) }}>{count}</span>
+                                    </div>
+                                    <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                                        <div style={{ width: `${pct}%`, height: '100%', background: statusColor(_id), transition: 'width 0.6s' }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
+
 
 // ── Main Dashboard ────────────────────────────────────────
 const CompanyDashboard = ({ defaultSection = 'dashboard' }) => {

@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import {
-    Users, Briefcase, UserPlus, ShieldCheck, Calendar, LayoutDashboard
+    Users, Briefcase, UserPlus, ShieldCheck, Calendar, LayoutDashboard,
+    PieChart as PieIcon
 } from 'lucide-react';
 import HREmployees from './HREmployees';
 import CompanyTeamTable from '../owner/CompanyTeamTable';
 import LeaveManagement from './LeaveManagement';
 import { PageHeader, PanelCard, SectionContainer, Button } from '../../design-system';
+import CircularChart from '../../components/common/CircularChart';
+
 
 const HRDashboard = ({ defaultSection = 'dashboard' }) => {
     const { user } = useAuth();
@@ -36,56 +39,78 @@ const HRDashboard = ({ defaultSection = 'dashboard' }) => {
         fetchData();
     }, []);
 
-    const renderDashboard = () => (
-        <>
-            <PageHeader
-                title="HR Overview"
-                subtitle="Manage employees and track leadership roles."
-                icon={LayoutDashboard}
-            />
+    const renderDashboard = () => {
+        // Prepare chart data from leadership/employees
+        const roleCounts = leadership.reduce((acc, u) => {
+            acc[u.role] = (acc[u.role] || 0) + 1;
+            return acc;
+        }, {});
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
-                <PanelCard
-                    variant="stat"
-                    label="Total Employees"
-                    value={stats?.totalEmployees || 0}
-                    icon={Users}
-                    color="var(--clr-success-500)"
-                    bg="var(--clr-success-50)"
-                    onClick={() => navigate('/hr/employees')}
-                />
-                <PanelCard
-                    variant="stat"
-                    label="Leadership"
-                    value={stats?.totalProjectManagers || 0}
-                    icon={ShieldCheck}
-                    color="var(--clr-primary-500)"
-                    bg="var(--clr-primary-50)"
-                    onClick={() => navigate('/hr/leadership')}
-                />
-            </div>
+        const chartData = Object.entries(roleCounts).map(([name, value]) => ({
+            name,
+            value,
+            color: name === 'PROJECT_MANAGER' ? '#2563eb' : name === 'HR' ? '#7e22ce' : '#16a34a'
+        }));
 
-            <PanelCard variant="section" title="Quick Actions" icon={Briefcase}>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <Button
-                        icon={UserPlus}
+        return (
+            <>
+                <PageHeader
+                    title="HR Overview"
+                    subtitle="Manage employees and track leadership roles."
+                    icon={LayoutDashboard}
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
+                    <PanelCard
+                        variant="stat"
+                        label="Total Employees"
+                        value={stats?.totalEmployees || 0}
+                        icon={Users}
+                        color="var(--clr-success-500)"
+                        bg="var(--clr-success-50)"
                         onClick={() => navigate('/hr/employees')}
-                        style={{ flex: 1, justifyContent: 'center' }}
-                    >
-                        Manage Employees
-                    </Button>
-                    <Button
+                    />
+                    <PanelCard
+                        variant="stat"
+                        label="Leadership"
+                        value={stats?.totalProjectManagers || 0}
                         icon={ShieldCheck}
-                        variant="secondary"
+                        color="var(--clr-primary-500)"
+                        bg="var(--clr-primary-50)"
                         onClick={() => navigate('/hr/leadership')}
-                        style={{ flex: 1, justifyContent: 'center' }}
-                    >
-                        View Leadership
-                    </Button>
+                    />
                 </div>
-            </PanelCard>
-        </>
-    );
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 'var(--sp-5)', marginBottom: 'var(--sp-6)' }}>
+                    <PanelCard variant="section" title="Quick Actions" icon={Briefcase}>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', height: '100%', alignItems: 'center' }}>
+                            <Button
+                                icon={UserPlus}
+                                onClick={() => navigate('/hr/employees')}
+                                style={{ flex: 1, justifyContent: 'center' }}
+                            >
+                                Manage Employees
+                            </Button>
+                            <Button
+                                icon={ShieldCheck}
+                                variant="secondary"
+                                onClick={() => navigate('/hr/leadership')}
+                                style={{ flex: 1, justifyContent: 'center' }}
+                            >
+                                View Leadership Team
+                            </Button>
+                        </div>
+                    </PanelCard>
+
+                    <PanelCard variant="section" title="Role Composition" icon={PieIcon}>
+                        <div style={{ minHeight: 180 }}>
+                            <CircularChart data={chartData} height={180} />
+                        </div>
+                    </PanelCard>
+                </div>
+            </>
+        );
+    };
 
     const renderContent = () => {
         switch (defaultSection) {

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { ListTodo, Clock, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ListTodo, Clock, CheckCircle2, AlertTriangle, Loader2, PieChart as PieIcon } from 'lucide-react';
+import CircularChart from '../../components/common/CircularChart';
 
 const STATUS_LABEL = {
     TODO: 'To Do', IN_PROGRESS: 'In Progress', SUBMITTED: 'Submitted',
     APPROVED: 'Approved', REJECTED: 'Rejected',
+    'To Do': 'To Do', 'In Progress': 'In Progress', 'Done': 'Approved'
 };
 
 const STATUS_COLOR = {
@@ -14,6 +16,9 @@ const STATUS_COLOR = {
     SUBMITTED: { bg: '#faf5ff', color: '#7e22ce' },
     APPROVED: { bg: '#dcfce7', color: '#166534' },
     REJECTED: { bg: '#fef2f2', color: '#991b1b' },
+    'To Do': { bg: '#f1f5f9', color: '#475569' },
+    'In Progress': { bg: '#eff6ff', color: '#1d4ed8' },
+    'Done': { bg: '#dcfce7', color: '#166534' },
 };
 
 const PRIORITY_COLOR = {
@@ -60,6 +65,31 @@ const EmployeeDashboard = () => {
     const totalMins = logs.reduce((s, l) => s + (l.duration || 0), 0);
     const totalHrs = (totalMins / 60).toFixed(1);
 
+    // Prepare chart data
+    const taskStatusCounts = tasks.reduce((acc, t) => {
+        const label = STATUS_LABEL[t.status] || t.status;
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+    }, {});
+
+    const chartData = Object.entries(taskStatusCounts).map(([name, value]) => ({
+        name,
+        value,
+        color: Object.values(STATUS_COLOR).find(c => STATUS_LABEL[Object.keys(STATUS_LABEL).find(k => STATUS_LABEL[k] === name)] === name || name === k)?.color || '#64748b'
+    }));
+    
+    // Better color mapping for chart
+    const getChartColor = (name) => {
+        if (name === 'To Do') return '#64748b';
+        if (name === 'In Progress') return '#2563eb';
+        if (name === 'Submitted') return '#7e22ce';
+        if (name === 'Approved') return '#16a34a';
+        if (name === 'Rejected') return '#ef4444';
+        return '#cbd5e1';
+    };
+
+    const finalChartData = chartData.map(d => ({ ...d, color: getChartColor(d.name) }));
+
     const card = (Icon, label, value, bg, color) => (
         <div style={{ background: bg, borderRadius: '1rem', padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ width: 44, height: 44, borderRadius: '0.75rem', background: color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
@@ -86,37 +116,61 @@ const EmployeeDashboard = () => {
                 {card(Clock, 'Hours Logged', totalHrs, '#faf5ff', '#7e22ce')}
             </div>
 
-            <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>My Tasks ({tasks.length})</h2>
-            {tasks.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0', color: '#94a3b8' }}>
-                    <ListTodo size={28} style={{ marginBottom: '0.75rem' }} />
-                    <p style={{ margin: 0 }}>No tasks assigned to you yet.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem', alignItems: 'start' }}>
+                <div>
+                    <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>My Tasks ({tasks.length})</h2>
+                    {tasks.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0', color: '#94a3b8' }}>
+                            <ListTodo size={28} style={{ marginBottom: '0.75rem' }} />
+                            <p style={{ margin: 0 }}>No tasks assigned to you yet.</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                            {tasks.slice(0, 8).map(task => {
+                                const sc = STATUS_COLOR[task.status] || STATUS_COLOR.TODO;
+                                const pc = PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.MEDIUM;
+                                const od = task.deadline && new Date() > new Date(task.deadline) && task.status !== 'APPROVED';
+                                const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
+                                return (
+                                    <div key={task._id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.875rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ margin: 0, fontWeight: 600, color: '#1e293b', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
+                                            {task.projectId?.name && <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>{task.projectId.name}</p>}
+                                        </div>
+                                        <span style={{ padding: '0.2rem 0.65rem', background: pc.bg, color: pc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{task.priority || 'MEDIUM'}</span>
+                                        {isBlocked && <span style={{ padding: '0.2rem 0.65rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Blocked</span>}
+                                        <span style={{ padding: '0.2rem 0.65rem', background: sc.bg, color: sc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{STATUS_LABEL[task.status] || task.status}</span>
+                                        {od && <span style={{ padding: '0.2rem 0.65rem', background: '#fef2f2', color: '#ef4444', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Overdue</span>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                    {tasks.slice(0, 8).map(task => {
-                        const sc = STATUS_COLOR[task.status] || STATUS_COLOR.TODO;
-                        const pc = PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.MEDIUM;
-                        const od = task.deadline && new Date() > new Date(task.deadline) && task.status !== 'APPROVED';
-                        const isBlocked = task.dependencies?.some(dep => dep.status !== 'APPROVED');
-                        return (
-                            <div key={task._id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '0.875rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ margin: 0, fontWeight: 600, color: '#1e293b', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
-                                    {task.projectId?.name && <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>{task.projectId.name}</p>}
+
+                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem' }}>
+                    <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <PieIcon size={18} style={{ color: '#2563eb' }} /> My Work Stats
+                    </h3>
+                    <CircularChart data={finalChartData} height={200} />
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {finalChartData.map(d => (
+                            <div key={d.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color }} />
+                                    <span style={{ color: '#64748b' }}>{d.name}</span>
                                 </div>
-                                <span style={{ padding: '0.2rem 0.65rem', background: pc.bg, color: pc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{task.priority || 'MEDIUM'}</span>
-                                {isBlocked && <span style={{ padding: '0.2rem 0.65rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Blocked</span>}
-                                <span style={{ padding: '0.2rem 0.65rem', background: sc.bg, color: sc.color, borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>{STATUS_LABEL[task.status] || task.status}</span>
-                                {od && <span style={{ padding: '0.2rem 0.65rem', background: '#fef2f2', color: '#ef4444', borderRadius: '2rem', fontSize: '0.73rem', fontWeight: 700, flexShrink: 0 }}>Overdue</span>}
+                                <span style={{ fontWeight: 700, color: '#1e293b' }}>{d.value}</span>
                             </div>
-                        );
-                    })}
+                        ))}
+                    </div>
                 </div>
-            )}
+            </div>
+
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
     );
 };
 
 export default EmployeeDashboard;
+

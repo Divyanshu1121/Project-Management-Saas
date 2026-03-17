@@ -36,7 +36,6 @@ const Login = () => {
         }
     }, []);
 
-    // If already authenticated, redirect to the appropriate dashboard
     if (!loading && user) {
         return <Navigate to={getRoleRedirect(user.role)} replace />;
     }
