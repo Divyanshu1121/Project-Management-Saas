@@ -118,20 +118,20 @@ const HREmployees = () => {
     if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading employees...</div>;
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div style={{ padding: 'min(5vw, 2rem)' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Employees</h2>
-                    <p style={{ color: '#64748b', margin: '0.25rem 0 0' }}>Manage company employees, their accounts and assignments.</p>
+                    <p style={{ color: '#64748b', margin: '0.25rem 0 0' }}>Manage company employees and assignments.</p>
                 </div>
-                <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>
+                <button onClick={() => setShowCreateModal(true)} style={{ ...btnPrimary, width: '100%', maxWidth: 'fit-content' }}>
                     <UserPlus size={18} />
                     Add Employee
                 </button>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: '1', minWidth: '300px' }}>
+            <div className="stack-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: '1', minWidth: 'min(100%, 300px)' }}>
                     <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                     <input
                         type="text"
@@ -142,38 +142,42 @@ const HREmployees = () => {
                     />
                 </div>
 
-                <select
-                    value={filterTeam}
-                    onChange={e => setFilterTeam(e.target.value)}
-                    style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
-                >
-                    <option value="all">All Teams</option>
-                    {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                </select>
+                <div className="stack-mobile" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <select
+                        value={filterTeam}
+                        onChange={e => setFilterTeam(e.target.value)}
+                        style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
+                    >
+                        <option value="all">All Teams</option>
+                        {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                    </select>
 
-                <select
-                    value={filterRole}
-                    onChange={e => setFilterRole(e.target.value)}
-                    style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
-                >
-                    <option value="all">All Roles</option>
-                    <option value="EMPLOYEE">Employees</option>
-                    <option value="PROJECT_MANAGER">Managers</option>
-                </select>
+                    <select
+                        value={filterRole}
+                        onChange={e => setFilterRole(e.target.value)}
+                        style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
+                    >
+                        <option value="all">All Roles</option>
+                        <option value="EMPLOYEE">Employees</option>
+                        <option value="PROJECT_MANAGER">Managers</option>
+                    </select>
 
-                <select
-                    value={filterStatus}
-                    onChange={e => setFilterStatus(e.target.value)}
-                    style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
-                >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                    <select
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        style={{ ...inputStyle, width: 'auto', marginBottom: 0 }}
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
             </div>
 
-            <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflowX: 'auto' }}>
+                <table style={{ minWidth: '850px', width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+
+
                     <thead>
                         <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                             <th style={{ padding: '1rem', color: '#64748b', fontWeight: 600 }}>Employee</th>

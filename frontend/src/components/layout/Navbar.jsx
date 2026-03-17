@@ -23,8 +23,9 @@ const Navbar = () => {
     return (
         <div className="navbar" style={{ position: 'relative', zIndex: 50 }}>
             <div className="navbar-left">
-                <h3>{user.companyId?.name || 'Workspace'}</h3>
+                <h3 className="navbar-brand-text">{user.companyId?.name || 'Workspace'}</h3>
             </div>
+
 
             <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div
@@ -35,10 +36,11 @@ const Navbar = () => {
                         backgroundColor: showDropdown ? '#f3f4f6' : 'transparent'
                     }}
                 >
-                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
+                    <div className="navbar-user-text" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1f2937' }}>{user.name}</span>
                         <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'capitalize' }}>{user.role.replace('_', ' ').toLowerCase()}</span>
                     </div>
+
                     <div className="avatar" style={{
                         width: '40px', height: '40px', borderRadius: '50%',
                         backgroundColor: '#3b82f6', color: 'white',

@@ -13,6 +13,22 @@ import CircularChart from '../../components/common/CircularChart';
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
 
+const responsiveSectionStyle = `
+    .manager-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 300px;
+        gap: var(--sp-5);
+        margin-bottom: var(--sp-5);
+    }
+    @media (max-width: 1200px) {
+        .manager-grid { grid-template-columns: minmax(0, 1fr) 300px; }
+    }
+    @media (max-width: 900px) {
+        .manager-grid { grid-template-columns: 1fr; }
+    }
+`;
+
+
 /* ── Project row ─────────────────────────────────────────── */
 const ProjectRow = ({ project, onClick }) => {
     const [hov, setHov] = useState(false);
@@ -95,7 +111,9 @@ const ManagerDashboard = () => {
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
     return (
-        <div style={{ maxWidth: 1280 }}>
+        <div style={{ maxWidth: 1280, width: '100%' }}>
+            <style>{responsiveSectionStyle}</style>
+
             {/* ── Header ── */}
             <SectionHeader
                 title={`${greeting}, ${user?.name?.split(' ')[0] || ''} 👋`}
@@ -119,8 +137,9 @@ const ManagerDashboard = () => {
                 </>}
             </div>
 
-            {/* ── Three-column grid for middle section ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) 300px', gap: 'var(--sp-5)', marginBottom: 'var(--sp-5)' }}>
+            {/* ── Responsive grid for middle section ── */}
+            <div className="manager-grid">
+
 
                 {/* Recent Projects */}
                 <Card.Section

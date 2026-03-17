@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import NotificationCenter from './NotificationCenter';
 import CommandPalette from '../common/CommandPalette';
 import { useAuth } from '../../context/AuthContext';
-import { Command } from 'lucide-react';
+import { Command, Menu, X } from 'lucide-react';
 import './layout.css';
 
 /* ── Breadcrumb from URL path ─────────────────────────────── */
@@ -29,6 +29,8 @@ const Layout = () => {
     const { user } = useAuth();
     const crumbs = useBreadcrumb();
     const [cmdOpen, setCmdOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const location = useLocation();
 
     /* Global Ctrl+K shortcut */
     useEffect(() => {
@@ -42,24 +44,43 @@ const Layout = () => {
         return () => window.removeEventListener('keydown', handler);
     }, []);
 
+    /* Close sidebar on desktop resize */
+    useEffect(() => {
+        const handleResize = () => { if (window.innerWidth > 1024) setSidebarOpen(false); };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    /* Hide sidebar on route change (mobile) */
+    useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+
     return (
         <div className="layout-container">
-            <Sidebar />
+            {/* Sidebar toggle for mobile/tablet */}
+            {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+            
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="main-content">
                 {/* ── Top Bar ── */}
                 {user && (
                     <div className="topbar">
-                        {/* Breadcrumb */}
-                        <div className="topbar-breadcrumb">
-                            {crumbs.map((crumb, i) => (
-                                <React.Fragment key={i}>
-                                    {i > 0 && <span style={{ color: '#cbd5e1', fontSize: '0.72rem' }}>/</span>}
-                                    <span style={{ color: i === crumbs.length - 1 ? '#1e293b' : '#94a3b8', fontWeight: i === crumbs.length - 1 ? 600 : 400, fontSize: '0.875rem', textTransform: 'capitalize' }}>
-                                        {crumb}
-                                    </span>
-                                </React.Fragment>
-                            ))}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                            </button>
+                            
+                            {/* Breadcrumb */}
+                            <div className="topbar-breadcrumb">
+                                {crumbs.map((crumb, i) => (
+                                    <React.Fragment key={i}>
+                                        {i > 0 && <span style={{ color: '#cbd5e1', fontSize: '0.72rem' }}>/</span>}
+                                        <span style={{ color: i === crumbs.length - 1 ? '#1e293b' : '#94a3b8', fontWeight: i === crumbs.length - 1 ? 600 : 400, fontSize: '0.875rem', textTransform: 'capitalize' }}>
+                                            {crumb}
+                                        </span>
+                                    </React.Fragment>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Right side */}
@@ -77,7 +98,7 @@ const Layout = () => {
                             </button>
 
                             {/* User greeting */}
-                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>
+                            <span>
                                 Hi, <strong style={{ color: '#1e293b' }}>{user.name?.split(' ')[0]}</strong>
                             </span>
 
@@ -97,5 +118,6 @@ const Layout = () => {
         </div>
     );
 };
+
 
 export default Layout;

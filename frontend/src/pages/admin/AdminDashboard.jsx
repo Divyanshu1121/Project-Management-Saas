@@ -9,7 +9,13 @@ const AdminDashboard = () => {
     const currentTab = location.pathname.split('/').pop() || 'admin';
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+        <div className="admin-dashboard-root" style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
+            <style>{`
+                @media (max-width: 640px) {
+                    .admin-dashboard-root { padding: 1rem 0.75rem !important; }
+                }
+            `}</style>
+
             <Routes>
                 <Route path="/" element={
                     <>
@@ -43,8 +49,9 @@ const DashboardStatsView = () => {
 
     return (
         <div>
-            <h2 style={{ marginBottom: '2rem' }}>Dashboard Overview</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem', alignItems: 'start' }}>
+            <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 700 }}>Dashboard Overview</h2>
+            <div className="responsive-grid grid-sidebar-layout" style={{ alignItems: 'start' }}>
+
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                     <div className="card">
                         <h3>Total Companies</h3>
@@ -58,10 +65,11 @@ const DashboardStatsView = () => {
                         <h3 style={{ color: '#166534' }}>Active Companies</h3>
                         <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#16a34a' }}>{stats?.activeCompanies || 0}</p>
                     </div>
-                    <div className="card" style={{ borderLeft: '4px solid #ea580c' }}>
+                    <div className="card" style={{ borderLeft: '4px solid #ea580c', marginBottom: 0 }}>
                         <h3 style={{ color: '#9a3412' }}>Paused Companies</h3>
-                        <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>{stats?.pausedCompanies || 0}</p>
+                        <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ea580c' }}>{stats?.pausedCompanies || 0}</p>
                     </div>
+
                 </div>
 
                 <div className="card" style={{ padding: '1.5rem' }}>
@@ -159,12 +167,12 @@ const CompaniesView = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
                 <div>
                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>Registered Companies</h3>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>Overview of all tenants and their platform usage</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div className="stack-mobile" style={{ display: 'flex', gap: '0.75rem', width: '100%', maxWidth: 'fit-content' }}>
                     <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ padding: '0.5rem 0.75rem', border: 'none', fontSize: '0.85rem', color: '#475569', outline: 'none' }}>
                             <option value="ALL">All Status</option>
@@ -173,15 +181,16 @@ const CompaniesView = () => {
                         </select>
                         <div style={{ width: '1px', background: '#e2e8f0' }} />
                         <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} style={{ padding: '0.5rem 0.75rem', border: 'none', background: 'white', cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
-                            Sort {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+                            {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
                         </button>
                     </div>
-                    <input type="text" placeholder="Search companies..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', width: '280px', fontSize: '0.85rem', outline: 'none' }} />
-                    <button className="btn btn-primary" onClick={handleOpenCreate} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Building2 size={16} /> New Company
+                    <input type="text" placeholder="Search companies..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', minWidth: '200px', flex: 1, fontSize: '0.85rem', outline: 'none' }} />
+                    <button className="btn btn-primary" onClick={handleOpenCreate} style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+                        <Building2 size={16} /> New
                     </button>
                 </div>
             </div>
+
 
             <CompanyTable
                 companies={filteredCompanies}

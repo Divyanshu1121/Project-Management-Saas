@@ -68,10 +68,16 @@ const Login = () => {
             background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
             alignItems: 'center', justifyContent: 'center', padding: '1rem'
         }}>
-            <div className="card" style={{
+            <div className="card login-card" style={{
                 width: '100%', maxWidth: '420px', padding: '2.5rem',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
             }}>
+                <style>{`
+                    @media (max-width: 480px) {
+                        .login-card { padding: 1.5rem !important; }
+                    }
+                `}</style>
+
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <div style={{
                         width: '56px', height: '56px', margin: '0 auto 1rem',

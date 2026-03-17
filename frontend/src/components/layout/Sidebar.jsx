@@ -156,7 +156,7 @@ const ROLE_LABELS = {
 };
 
 // ── Sidebar component ───────────────────────────────────────────────────
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     if (!user) return null;
@@ -164,13 +164,13 @@ const Sidebar = () => {
     const role = user.role;
     const groups = ROLE_LINKS[role] || [];
     // HR has its own sub-routes but uses the shared layout
-    const isHR = role === 'HR';
     const isOwner = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
     const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' :
         isOwner ? '/company/settings' : '/settings';
 
     return (
-        <div className="sidebar">
+        <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+
             {/* Brand */}
             <div className="sidebar-brand">
                 <div className="sidebar-brand-logo">P</div>

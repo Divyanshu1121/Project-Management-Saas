@@ -85,17 +85,19 @@ const ReportsPage = () => {
         <div>
             {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>Reports & Analytics</h1>
-                <p style={{ color: '#64748b', margin: 0 }}>Overview of your projects and task metrics</p>
+                <h1 style={{ fontSize: 'min(7vw, 1.75rem)', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>Reports & Analytics</h1>
+                <p style={{ color: '#64748b', fontSize: 'min(4vw, 1rem)', margin: 0 }}>Overview of your projects and task metrics</p>
             </div>
 
+
             {/* Stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(140px, 45%, 180px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <StatCard label="Total Projects" value={data.totalProjects ?? '—'} Icon={Briefcase} bg="#eff6ff" color="#2563eb" />
                 <StatCard label="Total Tasks" value={data.totalTasks ?? '—'} Icon={ListTodo} bg="#dcfce7" color="#16a34a" />
                 <StatCard label="Total Users" value={data.totalUsers ?? '—'} Icon={Users} bg="#faf5ff" color="#7e22ce" />
                 <StatCard label="Completed Tasks" value={tasksByStatus.find(t => ['Done', 'APPROVED'].includes(t._id))?.count ?? 0} Icon={TrendingUp} bg="#fff9c3" color="#92400e" />
             </div>
+
 
             {/* Charts row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>

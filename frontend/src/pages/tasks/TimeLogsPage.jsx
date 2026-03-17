@@ -40,11 +40,12 @@ const TimeLogsPage = () => {
     return (
         <div>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', gap: '1rem' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>Time Logs</h1>
-                    <p style={{ color: '#64748b', margin: 0 }}>Track time spent on tasks</p>
+                    <h1 style={{ fontSize: 'min(7vw, 1.75rem)', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>Time Logs</h1>
+                    <p style={{ color: '#64748b', fontSize: 'min(4vw, 1rem)', margin: 0 }}>Track time spent on tasks</p>
                 </div>
+
                 <button
                     onClick={() => setShowForm(v => !v)}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.6rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
@@ -54,18 +55,19 @@ const TimeLogsPage = () => {
             </div>
 
             {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(120px, 30%, 180px), 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
                 {[
-                    { label: 'Total Logs', value: logs.length, bg: '#eff6ff', color: '#2563eb' },
-                    { label: 'Total Hours', value: `${totalHours}h`, bg: '#dcfce7', color: '#16a34a' },
+                    { label: 'Logs', value: logs.length, bg: '#eff6ff', color: '#2563eb' },
+                    { label: 'Hours', value: `${totalHours}h`, bg: '#dcfce7', color: '#16a34a' },
                     { label: 'Avg (min)', value: logs.length ? Math.round(totalMinutes / logs.length) : 0, bg: '#faf5ff', color: '#7e22ce' },
                 ].map(({ label, value, bg, color }) => (
-                    <div key={label} style={{ background: bg, borderRadius: '0.875rem', padding: '1.25rem 1.5rem' }}>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color, fontWeight: 600, opacity: 0.8 }}>{label}</p>
-                        <p style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color, lineHeight: 1.2 }}>{value}</p>
+                    <div key={label} style={{ background: bg, borderRadius: '0.75rem', padding: '1.25rem' }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color, fontWeight: 600, opacity: 0.8 }}>{label}</p>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color, lineHeight: 1.2 }}>{value}</p>
                     </div>
                 ))}
             </div>
+
 
             {/* Log Form */}
             {showForm && (
@@ -86,13 +88,13 @@ const TimeLogsPage = () => {
                     </button>
                 </div>
             ) : (
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <div style={{ overflowX: 'auto' }}>
+                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', overflowY: 'hidden', overflowX: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ minWidth: '700px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                    {['Date', 'User', 'Task', 'Duration (min)'].map(h => (
-                                        <th key={h} style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                                    {['Date', 'User', 'Task', 'Duration'].map(h => (
+                                        <th key={h} style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -102,17 +104,17 @@ const TimeLogsPage = () => {
                                         onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
                                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                     >
-                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={13} />{formatDate(log.date)}</div>
                                         </td>
-                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#1e293b', fontWeight: 500 }}>
+                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.85rem', color: '#1e293b', fontWeight: 500 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><User size={13} style={{ color: '#94a3b8' }} />{log.userId?.name || '—'}</div>
                                         </td>
-                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#475569' }}>
+                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.85rem', color: '#475569' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><ListTodo size={13} style={{ color: '#94a3b8' }} />{log.taskId?.title || '—'}</div>
                                         </td>
-                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#1e293b', fontWeight: 600 }}>
-                                            {log.duration} min
+                                        <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.85rem', color: '#1e293b', fontWeight: 600 }}>
+                                            {log.duration}m
                                         </td>
                                     </tr>
                                 ))}
@@ -120,6 +122,7 @@ const TimeLogsPage = () => {
                         </table>
                     </div>
                 </div>
+
             )}
 
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>

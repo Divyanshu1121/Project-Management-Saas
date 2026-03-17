@@ -110,30 +110,25 @@ const ProjectsSection = () => {
             </div>
 
             {filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0' }}>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0' }}>
                     <FolderOpen size={32} style={{ marginBottom: '1rem' }} />
                     <p style={{ margin: 0 }}>{filter ? `No ${filter} projects` : 'No projects yet'}</p>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gap: '1rem' }}>
+                <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))' }}>
                     {filtered.map(proj => {
                         const smeta = PROJECT_STATUS_META[proj.status] || { bg: '#f1f5f9', color: '#475569' };
                         return (
-                            <div key={proj._id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.875rem', padding: '1.25rem 1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                                            <h3 style={{ margin: 0, fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>{proj.name}</h3>
-                                            <Badge bg={smeta.bg} color={smeta.color} label={proj.status} />
-                                        </div>
-                                        {proj.description && <p style={{ margin: '0 0 0.6rem', color: '#64748b', fontSize: '0.875rem' }}>{proj.description}</p>}
-                                        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-                                            {proj.startDate && <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={12} /> {fmt(proj.startDate)}</span>}
-                                            {proj.deadline && <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {fmt(proj.deadline)}</span>}
-                                            {proj.createdBy?.name && <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Users size={12} /> {proj.createdBy.name}</span>}
-                                            {proj.teamAssigned?.length > 0 && <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Layers size={12} /> {proj.teamAssigned.map(t => t.name).join(', ')}</span>}
-                                        </div>
-                                    </div>
+                            <div key={proj._id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.875rem', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                    <h3 style={{ margin: 0, fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>{proj.name}</h3>
+                                    <Badge bg={smeta.bg} color={smeta.color} label={proj.status} />
+                                </div>
+                                {proj.description && <p style={{ margin: '0 0 1rem', color: '#64748b', fontSize: '0.875rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{proj.description}</p>}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={12} /> {fmt(proj.startDate)}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {fmt(proj.deadline)}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4, gridColumn: 'span 2' }}><Users size={12} /> {proj.createdBy?.name || 'Unknown'}</span>
                                 </div>
                             </div>
                         );
@@ -143,6 +138,7 @@ const ProjectsSection = () => {
         </div>
     );
 };
+
 
 // ── Tasks Section ─────────────────────────────────────────
 const TasksSection = () => {
@@ -201,17 +197,17 @@ const TasksSection = () => {
             </div>
 
             {filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0' }}>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8', background: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0' }}>
                     <ListTodo size={32} style={{ marginBottom: '1rem' }} />
                     <p style={{ margin: 0 }}>No tasks found</p>
                 </div>
             ) : (
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ width: '100%', overflowX: 'auto', background: 'white', border: '1px solid #e2e8f0', borderRadius: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: '#f8fafc' }}>
-                                {['Task', 'Project', 'Assigned To', 'Status', 'Priority', 'Deadline'].map(h => (
-                                    <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                                {['Task', 'Project', 'Assigned', 'Status', 'Priority', 'Due'].map(h => (
+                                    <th key={h} style={{ padding: '0.875rem 1rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -221,24 +217,20 @@ const TasksSection = () => {
                                 const pm = PRIORITY_META[task.priority] || null;
                                 const overdue = isOverdue(task);
                                 return (
-                                    <tr key={task._id} style={{ borderTop: '1px solid #f1f5f9' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
-                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                        <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#1e293b', fontSize: '0.875rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {task.title}
-                                        </td>
-                                        <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#64748b' }}>{task.projectId?.name || '—'}</td>
-                                        <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#64748b' }}>{task.assignedTo?.name || '—'}</td>
-                                        <td style={{ padding: '0.75rem 1rem' }}>
-                                            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                                    <tr key={task._id} style={{ borderTop: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '0.875rem 1rem', fontWeight: 600, color: '#1e293b', fontSize: '0.875rem' }}>{task.title}</td>
+                                        <td style={{ padding: '0.875rem 1rem', fontSize: '0.82rem', color: '#64748b' }}>{task.projectId?.name || '—'}</td>
+                                        <td style={{ padding: '0.875rem 1rem', fontSize: '0.82rem', color: '#64748b' }}>{task.assignedTo?.name || '—'}</td>
+                                        <td style={{ padding: '0.875rem 1rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.35rem' }}>
                                                 <Badge bg={sm.bg} color={sm.color} label={sm.label} />
                                                 {overdue && <Badge bg="#fef2f2" color="#ef4444" label="Overdue" />}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '0.75rem 1rem' }}>
+                                        <td style={{ padding: '0.875rem 1rem' }}>
                                             {pm ? <Badge bg={pm.bg} color={pm.color} label={pm.label} /> : <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>—</span>}
                                         </td>
-                                        <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: overdue ? '#ef4444' : '#64748b', fontWeight: overdue ? 600 : 400 }}>{fmt(task.deadline)}</td>
+                                        <td style={{ padding: '0.875rem 1rem', fontSize: '0.82rem', color: overdue ? '#ef4444' : '#64748b', fontWeight: overdue ? 600 : 400 }}>{fmt(task.deadline)}</td>
                                     </tr>
                                 );
                             })}
@@ -249,6 +241,7 @@ const TasksSection = () => {
         </div>
     );
 };
+
 
 import CircularChart from '../../components/common/CircularChart';
 

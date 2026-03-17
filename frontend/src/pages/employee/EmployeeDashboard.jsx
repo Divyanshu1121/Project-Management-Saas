@@ -104,19 +104,22 @@ const EmployeeDashboard = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '1.75rem' }}>
-                <h1 style={{ margin: '0 0 0.25rem', fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>Welcome back, {user?.name} 👋</h1>
+            <div className="employee-header" style={{ marginBottom: '1.75rem' }}>
+                <h1 style={{ margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Welcome back, {user?.name} 👋</h1>
                 <p style={{ margin: 0, color: '#64748b' }}>Here's a quick look at your work today.</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                {card(ListTodo, 'Active Tasks', pending.length, '#eff6ff', '#2563eb')}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
+                {card(ListTodo, 'Tasks', pending.length, '#eff6ff', '#2563eb')}
                 {card(CheckCircle2, 'Approved', approved.length, '#dcfce7', '#16a34a')}
                 {card(AlertTriangle, 'Overdue', overdue.length, '#fef2f2', '#ef4444')}
-                {card(Clock, 'Hours Logged', totalHrs, '#faf5ff', '#7e22ce')}
+                {card(Clock, 'Hours', totalHrs, '#faf5ff', '#7e22ce')}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem', alignItems: 'start' }}>
+
+            <div className="responsive-grid grid-sidebar-layout" style={{ alignItems: 'start' }}>
+
                 <div>
                     <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>My Tasks ({tasks.length})</h2>
                     {tasks.length === 0 ? (

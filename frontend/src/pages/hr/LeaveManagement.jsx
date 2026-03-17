@@ -57,8 +57,9 @@ const LeaveManagement = () => {
     if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading leave management...</div>;
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div style={{ padding: 'min(5vw, 2rem)' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
+
                 <div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Leave Management</h2>
                     <p style={{ color: '#64748b', margin: '0.25rem 0 0' }}>Review employee time-off requests and track company availability.</p>
@@ -110,12 +111,13 @@ const LeaveManagement = () => {
                             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#854d0e' }}>Pending Requests ({pendingRequests.length})</h3>
                         </div>
                         {pendingRequests.length === 0 ? (
-                            <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
-                                <UserCheck size={40} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                                <p style={{ margin: 0 }}>All caught up! No pending leave requests.</p>
+                            <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                                <UserCheck size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                <p style={{ margin: 0, fontSize: '0.9rem' }}>All caught up! No pending leave requests.</p>
                             </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '1rem', padding: '1.5rem' }}>
+                            <div className="responsive-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))', padding: '1rem' }}>
+
                                 {pendingRequests.map(l => (
                                     <div key={l._id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.875rem', padding: '1.25rem', backgroundColor: '#fff' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -176,8 +178,9 @@ const LeaveManagement = () => {
                             </div>
                             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#334155' }}>Recent History ({pastRequests.length})</h3>
                         </div>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                            <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+
                                 <thead>
                                     <tr style={{ backgroundColor: '#fdfdfd', borderBottom: '1px solid #f1f5f9' }}>
                                         <th style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Employee</th>

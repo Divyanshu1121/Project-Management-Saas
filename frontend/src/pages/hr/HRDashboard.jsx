@@ -81,7 +81,8 @@ const HRDashboard = ({ defaultSection = 'dashboard' }) => {
                     />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 'var(--sp-5)', marginBottom: 'var(--sp-6)' }}>
+                <div className="responsive-grid grid-sidebar-layout" style={{ marginBottom: 'var(--sp-6)' }}>
+
                     <PanelCard variant="section" title="Quick Actions" icon={Briefcase}>
                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', height: '100%', alignItems: 'center' }}>
                             <Button

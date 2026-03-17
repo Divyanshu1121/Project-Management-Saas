@@ -1,6 +1,3 @@
-/* ═══════════════════════════════════════════════
-   LAYOUT — Shell, Sidebar, Topbar, Page Content
-   ═══════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import '../../design-system/theme.css';
 
@@ -23,7 +20,6 @@
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Shell ───────────────────────────────────── */
 .layout-container {
     display: flex;
     height: 100vh;
@@ -32,7 +28,6 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Sidebar ─────────────────────────────────── */
 .sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
@@ -46,7 +41,6 @@
     z-index: 20;
 }
 
-/* subtle gradient overlay */
 .sidebar::after {
     content: '';
     position: absolute;
@@ -55,7 +49,6 @@
     pointer-events: none;
 }
 
-/* brand */
 .sidebar-brand {
     padding: 1.25rem 1.25rem 1rem;
     display: flex;
@@ -98,7 +91,6 @@
     margin-top: 1px;
 }
 
-/* nav section labels */
 .sidebar-section-label {
     font-size: 0.62rem;
     font-weight: 700;
@@ -108,7 +100,6 @@
     padding: 0.875rem 1.25rem 0.35rem;
 }
 
-/* nav links */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
@@ -158,7 +149,6 @@
     background: var(--sidebar-active-border);
 }
 
-/* ── Main area ───────────────────────────────── */
 .main-content {
     flex: 1;
     display: flex;
@@ -168,7 +158,6 @@
     height: 100vh;
 }
 
-/* ── Top bar ─────────────────────────────────── */
 .topbar {
     height: var(--topbar-height);
     flex-shrink: 0;
@@ -182,6 +171,26 @@
     box-shadow: var(--shadow-sm);
     position: relative;
     z-index: 10;
+}
+
+.sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background: #f8fafc;
+    color: #1e293b;
+    border-color: #cbd5e1;
 }
 
 .topbar-breadcrumb {
@@ -199,7 +208,6 @@
     gap: 1rem;
 }
 
-/* ── Page content ────────────────────────────── */
 .page-content {
     flex: 1;
     overflow-y: auto;
@@ -207,12 +215,144 @@
     min-height: 0;
 }
 
-@media (max-width: 768px) {
-    .page-content {
-        padding: 1rem;
+.responsive-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.grid-2-1 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-sidebar-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+@media (max-width: 1024px) {
+    .grid-sidebar-layout {
+        grid-template-columns: 1fr;
     }
 
-    :root {
-        --sidebar-width: 220px;
+    .grid-2-1 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .responsive-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .stack-mobile {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .navbar-user-text {
+        display: none !important;
+    }
+
+    .navbar-brand-text {
+        font-size: 1rem !important;
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+
+
+@media (min-width: 1025px) {
+    .sidebar {
+        /* No transform needed */
+    }
+
+    .sidebar-toggle {
+        display: none;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 100;
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 90;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .main-content {
+        width: 100vw;
+        flex: none;
+    }
+
+    .topbar {
+        padding: 0 1rem;
+    }
+
+    .topbar-breadcrumb {
+        display: none;
+    }
+
+    .page-content {
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .topbar-right span {
+        display: none;
+        /* Hide "Hi, Name" greeting on mobile */
+    }
+
+    .topbar-right {
+        gap: 0.5rem;
+    }
+
+    .topbar-right button span {
+        display: none;
+        /* Hide "Search" text on small mobile */
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
     }
 }
