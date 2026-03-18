@@ -124,7 +124,7 @@ const CommandPalette = ({ open, onClose }) => {
 
             {/* Panel */}
             <div style={{ position: 'fixed', top: '16vh', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 580, zIndex: 1000, animation: 'ds-scale-in 160ms cubic-bezier(0.16,1,0.3,1)', padding: '0 1rem' }} onKeyDown={handleKey}>
-                <div style={{ background: 'white', borderRadius: 'var(--r-xl)', boxShadow: '0 24px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.10)', border: '1px solid var(--surface-border)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--card-bg, white)', borderRadius: 'var(--r-xl)', boxShadow: '0 24px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.10)', border: '1px solid var(--card-border, var(--surface-border))', overflow: 'hidden' }}>
 
                     {/* Input row */}
                     <div style={{ display: 'flex', alignItems: 'center', padding: '0.875rem 1rem', borderBottom: '1px solid var(--surface-subtle)', gap: '0.65rem' }}>
@@ -132,7 +132,7 @@ const CommandPalette = ({ open, onClose }) => {
                         <input
                             ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
                             placeholder="Search pages, create actions…"
-                            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 'var(--text-md)', color: 'var(--clr-slate-800)', fontFamily: 'var(--font-sans)', fontWeight: 500 }}
+                            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 'var(--text-md)', color: 'var(--text-primary, var(--clr-slate-800))', fontFamily: 'var(--font-sans)', fontWeight: 500 }}
                         />
                         <KbdChip k="ESC" />
                     </div>
@@ -162,12 +162,12 @@ const CommandPalette = ({ open, onClose }) => {
                                                 display: 'flex', alignItems: 'center', gap: '0.75rem',
                                                 padding: '0.6rem 0.875rem', borderRadius: 'var(--r-md)',
                                                 cursor: 'pointer', marginBottom: '0.1rem',
-                                                background: active ? 'var(--clr-primary-50)' : 'transparent',
-                                                color: active ? 'var(--clr-primary-600)' : 'var(--clr-slate-700)',
+                                                background: active ? 'var(--theme-option-active-bg, var(--clr-primary-50))' : 'transparent',
+                                                color: active ? 'var(--theme-option-active-text, var(--clr-primary-600))' : 'var(--text-secondary, var(--clr-slate-700))',
                                                 transition: 'background var(--t-fast)',
                                             }}
                                         >
-                                            <div style={{ width: 30, height: 30, borderRadius: 'var(--r-sm)', background: active ? 'white' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background var(--t-fast)', boxShadow: active ? 'var(--sh-xs)' : 'none' }}>
+                                            <div style={{ width: 30, height: 30, borderRadius: 'var(--r-sm)', background: active ? 'var(--card-bg, white)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background var(--t-fast)', boxShadow: active ? 'var(--sh-xs)' : 'none' }}>
                                                 <Icon size={14} />
                                             </div>
                                             <span style={{ flex: 1, fontSize: 'var(--text-base)', fontWeight: active ? 600 : 500 }}>{cmd.label}</span>

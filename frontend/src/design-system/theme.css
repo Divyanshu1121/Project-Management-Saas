@@ -40,13 +40,6 @@
     --clr-slate-800: #1e293b;
     --clr-slate-900: #0f172a;
 
-    /* ── Surfaces ── */
-    --surface-0: #ffffff;
-    --surface-1: #f8fafc;
-    --surface-2: #f1f5f9;
-    --surface-border: #e2e8f0;
-    --surface-subtle: #f1f5f9;
-
     /* ── Typography ── */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -103,6 +96,222 @@
     --z-command: 1000;
 }
 
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME (default)
+═══════════════════════════════════════════════════════ */
+:root,
+html[data-theme="light"] {
+    /* Surfaces */
+    --surface-0: #ffffff;
+    --surface-1: #f8fafc;
+    --surface-2: #f1f5f9;
+    --surface-3: #e8edf5;
+    --surface-border: #e2e8f0;
+    --surface-subtle: #f1f5f9;
+
+    /* Page background */
+    --page-bg: #f8fafc;
+
+    /* Topbar */
+    --topbar-bg: #ffffff;
+    --topbar-border: #e2e8f0;
+    --topbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    /* Text */
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-faint: #94a3b8;
+
+    /* Border */
+    --border-color: #e2e8f0;
+    --border-color-strong: #cbd5e1;
+
+    /* Input */
+    --input-bg: #ffffff;
+    --input-border: #e2e8f0;
+    --input-focus-border: #6366f1;
+    --input-text: #0f172a;
+    --input-placeholder: #94a3b8;
+
+    /* Card */
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    /* Badge/chip */
+    --badge-bg: #f1f5f9;
+    --badge-text: #475569;
+
+    /* Topbar button */
+    --topbar-btn-bg: #f8fafc;
+    --topbar-btn-border: #e2e8f0;
+    --topbar-btn-text: #64748b;
+    --topbar-btn-hover-bg: #eef2ff;
+    --topbar-btn-hover-border: #6366f1;
+    --topbar-btn-hover-text: #6366f1;
+
+    /* Sidebar */
+    --sidebar-bg: #ffffff;
+    --sidebar-border-color: #e2e8f0;
+    --sidebar-hover: #f8fafc;
+    --sidebar-active: #eef2ff;
+    --sidebar-active-border: #6366f1;
+    --sidebar-text: #64748b;
+    --sidebar-text-active: #6366f1;
+    --sidebar-brand-text: #0f172a;
+    --sidebar-brand-sub: #64748b;
+    --sidebar-collapse-bg: #ffffff;
+    --sidebar-collapse-border: #e2e8f0;
+    --sidebar-collapse-text: #64748b;
+    --sidebar-collapse-hover-bg: #f8fafc;
+
+
+    /* Breadcrumb */
+    --breadcrumb-active: #1e293b;
+    --breadcrumb-inactive: #94a3b8;
+
+    /* Sidebar toggle */
+    --toggle-bg: #ffffff;
+    --toggle-border: #e2e8f0;
+    --toggle-text: #64748b;
+    --toggle-hover-bg: #f8fafc;
+    --toggle-hover-text: #1e293b;
+    --toggle-hover-border: #cbd5e1;
+
+    /* Greeting text */
+    --greeting-text: #64748b;
+    --greeting-name: #1e293b;
+
+    /* Theme switcher */
+    --theme-btn-bg: #f8fafc;
+    --theme-btn-border: #e2e8f0;
+    --theme-btn-text: #64748b;
+    --theme-dropdown-bg: #ffffff;
+    --theme-dropdown-border: #e2e8f0;
+    --theme-dropdown-shadow: 0 10px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+    --theme-option-hover: #f8fafc;
+    --theme-option-active-bg: #eef2ff;
+    --theme-option-active-text: #6366f1;
+    --theme-option-text: #334155;
+    --theme-option-icon-bg: #f1f5f9;
+    --theme-option-icon-text: #64748b;
+    --theme-option-active-icon-bg: #e0e7ff;
+    --theme-option-active-icon-text: #6366f1;
+    --theme-header-text: #94a3b8;
+
+    /* Shimmer */
+    --shimmer-from: #f1f5f9;
+    --shimmer-mid: #e8edf5;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DARK THEME
+═══════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+    /* Surfaces */
+    --surface-0: #1e2433;
+    --surface-1: #151b28;
+    --surface-2: #1a2032;
+    --surface-3: #242c3d;
+    --surface-border: rgba(255, 255, 255, 0.07);
+    --surface-subtle: #1e2433;
+
+    /* Page background */
+    --page-bg: #111622;
+
+    /* Topbar */
+    --topbar-bg: #1a2032;
+    --topbar-border: rgba(255, 255, 255, 0.06);
+    --topbar-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+
+    /* Text */
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --text-faint: #475569;
+
+    /* Border */
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-color-strong: rgba(255, 255, 255, 0.12);
+
+    /* Input */
+    --input-bg: #1e2433;
+    --input-border: rgba(255, 255, 255, 0.09);
+    --input-focus-border: #6366f1;
+    --input-text: #f1f5f9;
+    --input-placeholder: #475569;
+
+    /* Card */
+    --card-bg: #1e2433;
+    --card-border: rgba(255, 255, 255, 0.06);
+    --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    /* Badge/chip */
+    --badge-bg: #242c3d;
+    --badge-text: #94a3b8;
+
+    /* Topbar button */
+    --topbar-btn-bg: #242c3d;
+    --topbar-btn-border: rgba(255, 255, 255, 0.08);
+    --topbar-btn-text: #94a3b8;
+    --topbar-btn-hover-bg: rgba(99, 102, 241, 0.15);
+    --topbar-btn-hover-border: rgba(99, 102, 241, 0.4);
+    --topbar-btn-hover-text: #818cf8;
+
+    /* Breadcrumb */
+    --breadcrumb-active: #e2e8f0;
+    --breadcrumb-inactive: #475569;
+
+    /* Sidebar */
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: rgba(255, 255, 255, 0.06);
+    --sidebar-active: rgba(99, 102, 241, 0.18);
+    --sidebar-active-border: #6366f1;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #f1f5f9;
+    --sidebar-border-color: rgba(255, 255, 255, 0.06);
+    --sidebar-brand-text: #f1f5f9;
+    --sidebar-brand-sub: #64748b;
+    --sidebar-collapse-bg: #1e293b;
+    --sidebar-collapse-border: rgba(99, 102, 241, 0.4);
+    --sidebar-collapse-text: #94a3b8;
+    --sidebar-collapse-hover-bg: #6366f1;
+
+    /* Sidebar toggle */
+    --toggle-bg: #242c3d;
+    --toggle-border: rgba(255, 255, 255, 0.08);
+    --toggle-text: #94a3b8;
+    --toggle-hover-bg: #2d3748;
+    --toggle-hover-text: #e2e8f0;
+    --toggle-hover-border: rgba(255, 255, 255, 0.15);
+
+    /* Greeting text */
+    --greeting-text: #64748b;
+    --greeting-name: #e2e8f0;
+
+    /* Theme switcher */
+    --theme-btn-bg: #242c3d;
+    --theme-btn-border: rgba(255, 255, 255, 0.08);
+    --theme-btn-text: #94a3b8;
+    --theme-dropdown-bg: #1e2433;
+    --theme-dropdown-border: rgba(255, 255, 255, 0.08);
+    --theme-dropdown-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+    --theme-option-hover: #242c3d;
+    --theme-option-active-bg: rgba(99, 102, 241, 0.15);
+    --theme-option-active-text: #818cf8;
+    --theme-option-text: #94a3b8;
+    --theme-option-icon-bg: #242c3d;
+    --theme-option-icon-text: #64748b;
+    --theme-option-active-icon-bg: rgba(99, 102, 241, 0.2);
+    --theme-option-active-icon-text: #818cf8;
+    --theme-header-text: #475569;
+
+    /* Shimmer */
+    --shimmer-from: #1e2433;
+    --shimmer-mid: #242c3d;
+}
+
 /* ── Global base ───────────────────────────────────── */
 *,
 *::before,
@@ -110,12 +319,17 @@
     box-sizing: border-box;
 }
 
+html {
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
 body {
     font-family: var(--font-sans);
-    color: var(--clr-slate-800);
-    background: var(--surface-1);
+    color: var(--text-primary, var(--clr-slate-800));
+    background: var(--page-bg, var(--surface-1));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* ── Keyframes ─────────────────────────────────────── */
@@ -241,7 +455,7 @@ body {
 }
 
 .ds-shimmer-el {
-    background: linear-gradient(90deg, #f1f5f9 25%, #e8edf5 50%, #f1f5f9 75%);
+    background: linear-gradient(90deg, var(--shimmer-from, #f1f5f9) 25%, var(--shimmer-mid, #e8edf5) 50%, var(--shimmer-from, #f1f5f9) 75%);
     background-size: 200% 100%;
     animation: ds-shimmer 1.4s ease infinite;
 }
@@ -263,4 +477,12 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--clr-slate-300);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
 }

@@ -24,7 +24,7 @@ const DataTable = ({
 }) => {
     if (loading) {
         return (
-            <div style={{ borderRadius: 'var(--r-xl)', border: '1px solid var(--surface-border)', overflow: 'hidden', background: 'white', boxShadow: 'var(--sh-sm)' }}>
+            <div style={{ borderRadius: 'var(--r-xl)', border: '1px solid var(--card-border, var(--surface-border))', overflow: 'hidden', background: 'var(--card-bg, white)', boxShadow: 'var(--card-shadow, var(--sh-sm))' }}>
                 <div style={{ background: 'var(--surface-1)', padding: '0.625rem 1.25rem', borderBottom: '1px solid var(--surface-subtle)' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: `2fr ${Array(columns.length - 1).fill('1fr').join(' ')}`, gap: '1rem' }}>
                         {columns.map((_, i) => <Skeleton key={i} h={11} />)}
@@ -37,14 +37,14 @@ const DataTable = ({
 
     if (!data?.length) {
         return (
-            <div style={{ border: '1px solid var(--surface-border)', borderRadius: 'var(--r-xl)', background: 'white', boxShadow: 'var(--sh-sm)' }}>
+            <div style={{ border: '1px solid var(--card-border, var(--surface-border))', borderRadius: 'var(--r-xl)', background: 'var(--card-bg, white)', boxShadow: 'var(--card-shadow, var(--sh-sm))' }}>
                 <EmptyState icon={emptyIcon || Database} title={emptyTitle} description={emptyDescription} action={emptyAction} />
             </div>
         );
     }
 
     return (
-        <div style={{ borderRadius: 'var(--r-xl)', border: '1px solid var(--surface-border)', overflow: 'hidden', background: 'white', boxShadow: 'var(--sh-sm)' }}>
+        <div style={{ borderRadius: 'var(--r-xl)', border: '1px solid var(--card-border, var(--surface-border))', overflow: 'hidden', background: 'var(--card-bg, white)', boxShadow: 'var(--card-shadow, var(--sh-sm))' }}>
             <div style={{ overflowX: 'auto', maxHeight }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ position: stickyHeader ? 'sticky' : 'static', top: 0, zIndex: 2 }}>
@@ -66,7 +66,7 @@ const DataTable = ({
                                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                             >
                                 {columns.map(col => (
-                                    <td key={col.key} style={{ padding: '0.875rem 1.25rem', fontSize: 'var(--text-base)', color: 'var(--clr-slate-700)', textAlign: col.align || 'left', verticalAlign: 'middle' }}>
+                                    <td key={col.key} style={{ padding: '0.875rem 1.25rem', fontSize: 'var(--text-base)', color: 'var(--text-secondary, var(--clr-slate-700))', textAlign: col.align || 'left', verticalAlign: 'middle' }}>
                                         {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
                                     </td>
                                 ))}

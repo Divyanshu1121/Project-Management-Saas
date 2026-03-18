@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import NotificationCenter from './NotificationCenter';
 import CommandPalette from '../common/CommandPalette';
+import ThemeSwitcher from '../common/ThemeSwitcher';
 import { useAuth } from '../../context/AuthContext';
 import { Command, Menu, X } from 'lucide-react';
 import './layout.css';
@@ -29,8 +30,16 @@ const Layout = () => {
     const { user } = useAuth();
     const crumbs = useBreadcrumb();
     const [cmdOpen, setCmdOpen] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);       // mobile drawer
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        return localStorage.getItem('pm-sidebar-collapsed') === 'true';
+    }); // desktop collapse
     const location = useLocation();
+
+    /* Persist collapsed state */
+    useEffect(() => {
+        localStorage.setItem('pm-sidebar-collapsed', sidebarCollapsed);
+    }, [sidebarCollapsed]);
 
     /* Global Ctrl+K shortcut */
     useEffect(() => {
@@ -56,26 +65,32 @@ const Layout = () => {
 
     return (
         <div className="layout-container">
-            {/* Sidebar toggle for mobile/tablet */}
+            {/* Mobile backdrop */}
             {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
-            
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+            <Sidebar
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                isCollapsed={sidebarCollapsed}
+                onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+            />
 
             <div className="main-content">
                 {/* ── Top Bar ── */}
                 {user && (
                     <div className="topbar">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {/* Mobile hamburger */}
                             <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
                                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                             </button>
-                            
+
                             {/* Breadcrumb */}
                             <div className="topbar-breadcrumb">
                                 {crumbs.map((crumb, i) => (
                                     <React.Fragment key={i}>
-                                        {i > 0 && <span style={{ color: '#cbd5e1', fontSize: '0.72rem' }}>/</span>}
-                                        <span style={{ color: i === crumbs.length - 1 ? '#1e293b' : '#94a3b8', fontWeight: i === crumbs.length - 1 ? 600 : 400, fontSize: '0.875rem', textTransform: 'capitalize' }}>
+                                        {i > 0 && <span className="crumb-sep">/</span>}
+                                        <span className={i === crumbs.length - 1 ? 'crumb-active' : 'crumb-inactive'}>
                                             {crumb}
                                         </span>
                                     </React.Fragment>
@@ -85,21 +100,23 @@ const Layout = () => {
 
                         {/* Right side */}
                         <div className="topbar-right">
-                            {/* Ctrl+K trigger */}
+                            {/* Ctrl+K search trigger */}
                             <button
+                                className="topbar-search-btn"
                                 onClick={() => setCmdOpen(true)}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.875rem', borderRadius: '0.5rem', border: '1.5px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 500, color: '#94a3b8', transition: 'all 0.15s' }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.color = '#6366f1'; e.currentTarget.style.background = '#eef2ff'; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+                                id="cmd-palette-trigger"
                             >
                                 <Command size={12} />
-                                <span>Search</span>
-                                <kbd style={{ padding: '0.1rem 0.35rem', borderRadius: '0.25rem', background: 'white', border: '1px solid #e2e8f0', fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8' }}>⌘K</kbd>
+                                <span className="topbar-search-text">Search</span>
+                                <kbd className="topbar-search-kbd">⌘K</kbd>
                             </button>
 
+                            {/* Theme Switcher */}
+                            <ThemeSwitcher />
+
                             {/* User greeting */}
-                            <span>
-                                Hi, <strong style={{ color: '#1e293b' }}>{user.name?.split(' ')[0]}</strong>
+                            <span className="topbar-greeting">
+                                Hi, <strong>{user.name?.split(' ')[0]}</strong>
                             </span>
 
                             <NotificationCenter />

@@ -39,8 +39,10 @@ const CircularChart = ({ data, donut = true, height = 240 }) => {
                     <Tooltip 
                         contentStyle={{ 
                             borderRadius: '0.75rem', 
-                            border: 'none', 
-                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                            border: '1px solid var(--border-color)', 
+                            boxShadow: 'var(--sh-md, 0 10px 15px -3px rgba(0,0,0,0.1))',
+                            background: 'var(--card-bg, white)',
+                            color: 'var(--text-primary, #1e293b)',
                             fontSize: '0.875rem',
                             fontWeight: 600
                         }}
@@ -48,7 +50,7 @@ const CircularChart = ({ data, donut = true, height = 240 }) => {
                     <Legend 
                         verticalAlign="bottom" 
                         height={36}
-                        formatter={(value) => <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>{value}</span>}
+                        formatter={(value) => <span style={{ color: 'var(--text-secondary, #64748b)', fontSize: '0.75rem', fontWeight: 500 }}>{value}</span>}
                     />
                 </PieChart>
             </ResponsiveContainer>

@@ -8,10 +8,10 @@ const Card = ({ children, style = {}, hover = true, padding = '1.25rem 1.5rem', 
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
             style={{
-                background: 'white',
-                border: `1px solid ${hov && hover ? 'var(--clr-primary-200)' : 'var(--surface-border)'}`,
+                background: 'var(--card-bg, white)',
+                border: `1px solid ${hov && hover ? 'var(--clr-primary-200)' : 'var(--card-border, var(--surface-border))'}`,
                 borderRadius: 'var(--r-xl)',
-                boxShadow: hov && hover ? 'var(--sh-md)' : 'var(--sh-sm)',
+                boxShadow: hov && hover ? 'var(--sh-md)' : 'var(--card-shadow, var(--sh-sm))',
                 padding,
                 transform: hov && hover && onClick ? 'translateY(-2px)' : 'none',
                 transition: 'all var(--t-base)',
@@ -33,7 +33,7 @@ Card.Stat = ({
     const [hov, setHov] = useState(false);
 
     if (loading) return (
-        <div style={{ background: 'white', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-xl)', padding: '1.25rem 1.5rem', boxShadow: 'var(--sh-sm)' }}>
+        <div style={{ background: 'var(--card-bg, white)', border: '1px solid var(--card-border, var(--surface-border))', borderRadius: 'var(--r-xl)', padding: '1.25rem 1.5rem', boxShadow: 'var(--card-shadow, var(--sh-sm))' }}>
             <div className="ds-shimmer-el" style={{ width: '55%', height: 12, borderRadius: 'var(--r-sm)', marginBottom: 12 }} />
             <div className="ds-shimmer-el" style={{ width: '35%', height: 32, borderRadius: 'var(--r-sm)' }} />
         </div>
@@ -45,11 +45,11 @@ Card.Stat = ({
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
             style={{
-                background: 'white',
-                border: `1px solid ${hov ? color + '30' : 'var(--surface-border)'}`,
+                background: 'var(--card-bg, white)',
+                border: `1px solid ${hov ? color + '30' : 'var(--card-border, var(--surface-border))'}`,
                 borderRadius: 'var(--r-xl)',
                 padding: '1.25rem 1.5rem',
-                boxShadow: hov ? `var(--sh-md), 0 0 0 3px ${color}15` : 'var(--sh-sm)',
+                boxShadow: hov ? `var(--sh-md), 0 0 0 3px ${color}15` : 'var(--card-shadow, var(--sh-sm))',
                 display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem',
                 cursor: onClick ? 'pointer' : 'default',
                 transform: hov && onClick ? 'translateY(-2px)' : 'none',
@@ -57,10 +57,10 @@ Card.Stat = ({
             }}
         >
             <div>
-                <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--clr-slate-400)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                <p style={{ margin: '0 0 0.5rem', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted, var(--clr-slate-400))', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                     {label}
                 </p>
-                <p style={{ margin: 0, fontSize: 'var(--text-3xl)', fontWeight: 800, color: 'var(--clr-slate-800)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+                <p style={{ margin: 0, fontSize: 'var(--text-3xl)', fontWeight: 800, color: 'var(--text-primary, var(--clr-slate-800))', lineHeight: 1, letterSpacing: '-0.02em' }}>
                     {value}
                 </p>
                 {delta != null && (
@@ -78,7 +78,7 @@ Card.Stat = ({
 };
 
 Card.Section = ({ title, subtitle, icon: Icon, iconColor = '#6366f1', iconBg = '#eef2ff', action, children, noPadBody = false }) => (
-    <div style={{ background: 'white', border: '1px solid var(--surface-border)', borderRadius: 'var(--r-xl)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
+    <div style={{ background: 'var(--card-bg, white)', border: '1px solid var(--card-border, var(--surface-border))', borderRadius: 'var(--r-xl)', overflow: 'hidden', boxShadow: 'var(--card-shadow, var(--sh-sm))' }}>
         <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--surface-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 {Icon && (
@@ -87,8 +87,8 @@ Card.Section = ({ title, subtitle, icon: Icon, iconColor = '#6366f1', iconBg = '
                     </div>
                 )}
                 <div>
-                    <h3 style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 700, color: 'var(--clr-slate-800)' }}>{title}</h3>
-                    {subtitle && <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)' }}>{subtitle}</p>}
+                    <h3 style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 700, color: 'var(--text-primary, var(--clr-slate-800))' }}>{title}</h3>
+                    {subtitle && <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--text-muted, var(--clr-slate-400))' }}>{subtitle}</p>}
                 </div>
             </div>
             {action}

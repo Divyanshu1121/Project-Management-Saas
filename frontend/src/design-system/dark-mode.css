@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════
+   GLOBAL DARK MODE OVERRIDES
+   Targets common HTML elements and shared utility classes
+   so they automatically adapt without touching every component.
+═══════════════════════════════════════════════════════ */
+
+/* ── Body / Root ── */
+[data-theme="dark"] body {
+    background: var(--page-bg);
+    color: var(--text-primary);
+}
+
+/* ── Tables & text in data tables ── */
+[data-theme="dark"] table thead tr {
+    background: var(--surface-2) !important;
+}
+
+[data-theme="dark"] table th {
+    color: var(--text-faint) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] table td {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] table tr:hover td {
+    background: var(--surface-2) !important;
+}
+
+/* ── Form inputs & selects ── */
+[data-theme="dark"] input:not([class*="sidebar"]):not([class*="search-input"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: var(--input-border) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--input-placeholder) !important;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+    border-color: var(--input-focus-border) !important;
+}
+
+/* ── Dropdowns/Selects option ── */
+[data-theme="dark"] select option {
+    background: var(--surface-0);
+    color: var(--text-primary);
+}
+
+/* ── Common modal/dialog overlays ── */
+[data-theme="dark"] [class*="modal"],
+[data-theme="dark"] [class*="dialog"],
+[data-theme="dark"] [class*="panel"] {
+    background: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ── Headings ── */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary);
+}
+
+/* ── Paragraph / generic text ── */
+[data-theme="dark"] p {
+    color: var(--text-secondary);
+}
+
+/* ── Borders ── */
+[data-theme="dark"] hr {
+    border-color: var(--border-color);
+}
+
+/* ── Notification Center ── */
+[data-theme="dark"] .notif-panel,
+[data-theme="dark"] [class*="notification"] {
+    background: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ── Page-level card panels ── */
+[data-theme="dark"] .panel-card,
+[data-theme="dark"] .section-card {
+    background: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ── Surface & shimmer in dark mode ── */
+[data-theme="dark"] .ds-shimmer-el {
+    background: linear-gradient(
+        90deg,
+        var(--shimmer-from) 25%,
+        var(--shimmer-mid) 50%,
+        var(--shimmer-from) 75%
+    );
+    background-size: 200% 100%;
+    animation: ds-shimmer 1.4s ease infinite;
+}
+
+/* ── Badges / pills ── */
+[data-theme="dark"] [class*="badge"],
+[data-theme="dark"] [class*="chip"],
+[data-theme="dark"] [class*="tag"] {
+    background: var(--badge-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* ── Topbar (non-sidebar) containers ── */
+[data-theme="dark"] .topbar {
+    background: var(--topbar-bg) !important;
+    border-color: var(--topbar-border) !important;
+}

@@ -8,9 +8,9 @@ const VARIANTS = {
         hoverShadow: '0 4px 16px rgba(99,102,241,0.4)',
     },
     secondary: {
-        bg: '#fff', color: 'var(--clr-slate-700)',
-        border: '1.5px solid var(--surface-border)',
-        shadow: 'var(--sh-xs)', hoverBg: 'var(--surface-1)',
+        bg: 'var(--card-bg, #fff)', color: 'var(--clr-slate-700)',
+        border: '1.5px solid var(--border-color, var(--surface-border))',
+        shadow: 'var(--sh-xs)', hoverBg: 'var(--surface-2, var(--surface-1))',
     },
     ghost: {
         bg: 'transparent', color: 'var(--clr-slate-600)',

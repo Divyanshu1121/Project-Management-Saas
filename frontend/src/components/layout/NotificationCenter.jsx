@@ -46,14 +46,14 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
         <div
             style={{
                 display: 'flex', gap: '0.75rem', padding: '0.75rem 1rem',
-                background: isUnread ? '#fafbff' : 'white',
-                borderBottom: '1px solid #f1f5f9',
+                background: isUnread ? 'var(--surface-1)' : 'var(--card-bg, white)',
+                borderBottom: '1px solid var(--border-color)',
                 cursor: 'pointer',
                 transition: 'background 0.15s',
                 position: 'relative',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-            onMouseLeave={e => e.currentTarget.style.background = isUnread ? '#fafbff' : 'white'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+            onMouseLeave={e => e.currentTarget.style.background = isUnread ? 'var(--surface-1)' : 'var(--card-bg, white)'}
             onClick={() => {
                 if (isUnread) onRead(notif._id);
                 if (notif.link) onNavigate(notif.link);
@@ -78,14 +78,14 @@ const NotifRow = ({ notif, onRead, onDelete, onNavigate }) => {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{
                     margin: '0 0 0.2rem', fontWeight: isUnread ? 600 : 500,
-                    fontSize: '0.825rem', color: '#1e293b',
+                    fontSize: '0.825rem', color: 'var(--text-primary)',
                     lineHeight: 1.35, wordBreak: 'break-word',
                 }}>
                     {notif.title}
                 </p>
                 <p style={{
                     margin: '0 0 0.375rem', fontSize: '0.75rem',
-                    color: '#64748b', lineHeight: 1.4, wordBreak: 'break-word',
+                    color: 'var(--text-muted)', lineHeight: 1.4, wordBreak: 'break-word',
                 }}>
                     {notif.message}
                 </p>
@@ -161,12 +161,12 @@ const NotificationCenter = () => {
                 onClick={handleOpen}
                 style={{
                     position: 'relative', width: 38, height: 38,
-                    border: open ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0',
+                    border: open ? '1.5px solid #6366f1' : '1.5px solid var(--border-color)',
                     borderRadius: '0.5rem',
-                    background: open ? '#eef2ff' : 'white',
+                    background: open ? '#eef2ff' : 'var(--card-bg, white)',
                     cursor: 'pointer', display: 'flex', alignItems: 'center',
                     justifyContent: 'center',
-                    color: open ? '#6366f1' : '#64748b',
+                    color: open ? '#6366f1' : 'var(--text-muted)',
                     transition: 'all 0.15s',
                     boxShadow: open ? '0 2px 8px rgba(99,102,241,0.2)' : 'none',
                 }}
@@ -179,9 +179,9 @@ const NotificationCenter = () => {
                 }}
                 onMouseLeave={e => {
                     if (!open) {
-                        e.currentTarget.style.borderColor = '#e2e8f0';
-                        e.currentTarget.style.color = '#64748b';
-                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.color = 'var(--text-muted)';
+                        e.currentTarget.style.background = 'var(--card-bg, white)';
                     }
                 }}
                 title="Notifications"
@@ -209,9 +209,9 @@ const NotificationCenter = () => {
                     style={{
                         position: 'absolute', top: 'calc(100% + 10px)', right: 0,
                         width: 380, maxHeight: 520,
-                        background: 'white', borderRadius: '1rem',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                        border: '1.5px solid #e2e8f0',
+                        background: 'var(--card-bg, white)', borderRadius: '1rem',
+                        boxShadow: 'var(--theme-dropdown-shadow, 0 20px 60px rgba(0,0,0,0.15))',
+                        border: '1.5px solid var(--card-border, var(--border-color))',
                         display: 'flex', flexDirection: 'column',
                         overflow: 'hidden', zIndex: 9999,
                         animation: 'panel-in 0.18s ease',
@@ -219,7 +219,7 @@ const NotificationCenter = () => {
                 >
                     <div style={{
                         padding: '1rem 1rem 0.75rem',
-                        borderBottom: '1px solid #f1f5f9',
+                        borderBottom: '1px solid var(--border-color)',
                         flexShrink: 0,
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
@@ -232,7 +232,7 @@ const NotificationCenter = () => {
                                 }}>
                                     <Bell size={14} />
                                 </div>
-                                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>
+                                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
                                     Notifications
                                 </span>
                                 {unreadCount > 0 && (
@@ -259,7 +259,7 @@ const NotificationCenter = () => {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', gap: '0.25rem', background: '#f1f5f9', borderRadius: '0.375rem', padding: '0.2rem' }}>
+                            <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-2)', borderRadius: '0.375rem', padding: '0.2rem' }}>
                                 {['all', 'unread'].map(f => (
                                     <button
                                         key={f}
@@ -267,8 +267,8 @@ const NotificationCenter = () => {
                                         style={{
                                             padding: '0.25rem 0.625rem', border: 'none', borderRadius: '0.25rem',
                                             fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-                                            background: filter === f ? 'white' : 'transparent',
-                                            color: filter === f ? '#1e293b' : '#64748b',
+                                            background: filter === f ? 'var(--card-bg, white)' : 'transparent',
+                                            color: filter === f ? 'var(--text-primary)' : 'var(--text-muted)',
                                             boxShadow: filter === f ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                                             transition: 'all 0.15s', textTransform: 'capitalize',
                                         }}
@@ -348,9 +348,9 @@ const NotificationCenter = () => {
 
                     {filtered.length > 0 && (
                         <div style={{
-                            padding: '0.625rem 1rem', borderTop: '1px solid #f1f5f9',
+                            padding: '0.625rem 1rem', borderTop: '1px solid var(--border-color)',
                             textAlign: 'center', flexShrink: 0,
-                            background: '#fafbff',
+                            background: 'var(--surface-1)',
                         }}>
                             <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                                 {notifications.length} total notification{notifications.length !== 1 ? 's' : ''}

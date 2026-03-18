@@ -89,16 +89,16 @@ const LogEntry = ({ log, isLast }) => {
 
             <div style={{
                 flex: 1, marginBottom: '1.25rem',
-                background: 'white',
-                border: '1px solid #f1f5f9',
+                background: 'var(--card-bg, white)',
+                border: '1px solid var(--border-color, #f1f5f9)',
                 borderLeft: `3px solid ${meta.color}`,
                 borderRadius: '0.625rem',
                 padding: '0.75rem 1rem',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                transition: 'box-shadow 0.15s',
+                boxShadow: 'var(--sh-xs, 0 1px 3px rgba(0,0,0,0.04))',
+                transition: 'box-shadow var(--t-fast, 0.15s)',
             }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--sh-sm, 0 2px 8px rgba(0,0,0,0.08))'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = 'var(--sh-xs, 0 1px 3px rgba(0,0,0,0.04))'}
             >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                     <span style={{
@@ -115,7 +115,7 @@ const LogEntry = ({ log, isLast }) => {
                 </div>
 
                 <p style={{
-                    margin: '0 0 0.3rem', fontSize: '0.855rem', color: '#1e293b',
+                    margin: '0 0 0.3rem', fontSize: '0.855rem', color: 'var(--text-primary, #1e293b)',
                     lineHeight: 1.5, fontWeight: 500,
                 }}>
                     {log.message}
@@ -149,16 +149,16 @@ const DateDivider = ({ date }) => {
             display: 'flex', alignItems: 'center', gap: '0.75rem',
             margin: '0.5rem 0 1rem 0',
         }}>
-            <div style={{ flex: 1, height: 1, background: '#f1f5f9' }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--border-color, #f1f5f9)' }} />
             <span style={{
-                fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8',
+                fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted, #94a3b8)',
                 textTransform: 'uppercase', letterSpacing: '0.07em',
-                background: 'white', padding: '0 0.25rem',
+                background: 'var(--page-bg, white)', padding: '0 0.25rem',
                 whiteSpace: 'nowrap',
             }}>
                 {label}
             </span>
-            <div style={{ flex: 1, height: 1, background: '#f1f5f9' }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--border-color, #f1f5f9)' }} />
         </div>
     );
 };
@@ -287,16 +287,16 @@ const ActivityFeed = ({
 
     return (
         <div style={{
-            background: 'white', borderRadius: '1rem',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            background: 'var(--card-bg, white)', borderRadius: '1rem',
+            border: '1px solid var(--card-border, #e2e8f0)',
+            boxShadow: 'var(--card-shadow, 0 1px 4px rgba(0,0,0,0.05))',
             overflow: 'hidden',
         }}>
             <div style={{
                 padding: '1rem 1.25rem',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: '1px solid var(--border-color, #f1f5f9)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: 'linear-gradient(135deg, #f8fafc 0%, white 100%)',
+                background: 'var(--surface-1, #f8fafc)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                     <div style={{
@@ -308,7 +308,7 @@ const ActivityFeed = ({
                         <Activity size={16} color="#2563eb" />
                     </div>
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '0.925rem', fontWeight: 700, color: '#1e293b' }}>
+                        <h3 style={{ margin: 0, fontSize: '0.925rem', fontWeight: 700, color: 'var(--text-primary, #1e293b)' }}>
                             {title}
                         </h3>
                         {!loading && (

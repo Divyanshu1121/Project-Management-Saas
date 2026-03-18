@@ -62,7 +62,7 @@ const PageHeader = ({
                         margin: 0,
                         fontSize: s.title,
                         fontWeight: 800,
-                        color: 'var(--clr-slate-800)',
+                        color: 'var(--text-primary, var(--clr-slate-800))',
                         letterSpacing: '-0.02em',
                         lineHeight: 1.15,
                     }}>

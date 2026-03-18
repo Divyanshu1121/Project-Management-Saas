@@ -43,25 +43,25 @@ const RightPanel = ({ open, onClose, title, subtitle, width = 480, children, foo
             {/* Panel */}
             <div style={{
                 position: 'fixed', top: 0, right: 0, bottom: 0,
-                width: panelW, background: 'white',
+                width: panelW, background: 'var(--card-bg, white)',
                 boxShadow: '-6px 0 40px rgba(0,0,0,0.12)',
                 zIndex: 700, display: 'flex', flexDirection: 'column',
                 animation: 'ds-slide-in-right 260ms cubic-bezier(0.16,1,0.3,1)',
-                borderLeft: '1px solid var(--surface-border)',
+                borderLeft: '1px solid var(--border-color, var(--surface-border))',
             }}>
                 {/* Header */}
-                <div style={{ padding: '1.125rem 1.5rem', borderBottom: '1px solid var(--surface-subtle)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexShrink: 0 }}>
+                <div style={{ padding: '1.125rem 1.5rem', borderBottom: '1px solid var(--border-color, var(--surface-subtle))', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexShrink: 0 }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--clr-slate-800)', letterSpacing: '-0.01em' }}>
+                        <h2 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary, var(--clr-slate-800))', letterSpacing: '-0.01em' }}>
                             {title}
                         </h2>
-                        {subtitle && <p style={{ margin: '0.2rem 0 0', fontSize: 'var(--text-sm)', color: 'var(--clr-slate-400)' }}>{subtitle}</p>}
+                        {subtitle && <p style={{ margin: '0.2rem 0 0', fontSize: 'var(--text-sm)', color: 'var(--text-muted, var(--clr-slate-400))' }}>{subtitle}</p>}
                     </div>
                     <button
                         onClick={onClose}
-                        style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', border: '1px solid var(--surface-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-slate-400)', flexShrink: 0, transition: 'all var(--t-fast)' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--clr-slate-700)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--clr-slate-400)'; }}
+                        style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', border: '1px solid var(--border-color, var(--surface-border))', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, var(--clr-slate-400))', flexShrink: 0, transition: 'all var(--t-fast)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text-primary, var(--clr-slate-700))'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted, var(--clr-slate-400))'; }}
                     >
                         <X size={14} />
                     </button>
@@ -74,7 +74,7 @@ const RightPanel = ({ open, onClose, title, subtitle, width = 480, children, foo
 
                 {/* Optional footer */}
                 {footer && (
-                    <div style={{ padding: '0.875rem 1.5rem', borderTop: '1px solid var(--surface-subtle)', background: 'var(--surface-1)', flexShrink: 0 }}>
+                    <div style={{ padding: '0.875rem 1.5rem', borderTop: '1px solid var(--border-color, var(--surface-subtle))', background: 'var(--surface-1)', flexShrink: 0 }}>
                         {footer}
                     </div>
                 )}

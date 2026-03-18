@@ -37,11 +37,11 @@ const ProjectRow = ({ project, onClick }) => {
             onClick={onClick}
             onMouseEnter={() => setHov(true)}
             onMouseLeave={() => setHov(false)}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 0.875rem', borderRadius: 'var(--r-md)', cursor: 'pointer', background: hov ? 'var(--surface-1)' : 'white', transition: 'background var(--t-fast)', marginBottom: '0.25rem' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 0.875rem', borderRadius: 'var(--r-md)', cursor: 'pointer', background: hov ? 'var(--surface-1)' : 'var(--card-bg, white)', transition: 'background var(--t-fast)', marginBottom: '0.25rem' }}
         >
             <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--clr-slate-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</p>
-                {project.deadline && <p style={{ margin: '0.1rem 0 0', fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)' }}>Due {fmt(project.deadline)}</p>}
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--text-primary, var(--clr-slate-800))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</p>
+                {project.deadline && <p style={{ margin: '0.1rem 0 0', fontSize: 'var(--text-xs)', color: 'var(--text-muted, var(--clr-slate-400))' }}>Due {fmt(project.deadline)}</p>}
             </div>
             {/* Progress bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
@@ -59,14 +59,14 @@ const ProjectRow = ({ project, onClick }) => {
 /* ── Person row ──────────────────────────────────────────── */
 const PersonRow = ({ leave, variant }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0', borderBottom: '1px solid var(--surface-subtle)' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', flex: 'none', background: variant === 'away' ? '#fef3c7' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-sm)', fontWeight: 700, color: variant === 'away' ? '#92400e' : 'var(--clr-slate-500)' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', flex: 'none', background: variant === 'away' ? 'var(--clr-warning-50, #fef3c7)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-sm)', fontWeight: 700, color: variant === 'away' ? 'var(--clr-warning-600, #d97706)' : 'var(--text-secondary, var(--clr-slate-500))' }}>
             {leave.userId?.name?.[0]}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--clr-slate-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leave.userId?.name}</p>
-            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--clr-slate-400)' }}>{variant === 'away' ? `Back ${fmt(leave.endDate)}` : `Leaves ${fmt(leave.startDate)}`}</p>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-primary, var(--clr-slate-800))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leave.userId?.name}</p>
+            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--text-muted, var(--clr-slate-400))' }}>{variant === 'away' ? `Back ${fmt(leave.endDate)}` : `Leaves ${fmt(leave.startDate)}`}</p>
         </div>
-        <Badge label={variant === 'away' ? 'Away' : 'Soon'} bg={variant === 'away' ? '#fef3c7' : 'var(--surface-2)'} color={variant === 'away' ? '#92400e' : 'var(--clr-slate-500)'} showDot={false} size="xs" />
+        <Badge label={variant === 'away' ? 'Away' : 'Soon'} bg={variant === 'away' ? 'var(--clr-warning-50, #fef3c7)' : 'var(--surface-2)'} color={variant === 'away' ? 'var(--clr-warning-600, #d97706)' : 'var(--text-secondary, var(--clr-slate-500))'} showDot={false} size="xs" />
     </div>
 );
 

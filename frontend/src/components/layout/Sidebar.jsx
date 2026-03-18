@@ -1,10 +1,10 @@
 import React from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
     Clock, BarChart2, Settings, LogOut, Activity,
-    Calendar, MessageSquare, Kanban, ChevronRight, ShieldCheck, Layers
+    Calendar, MessageSquare, Kanban, ChevronRight, ShieldCheck, ChevronLeft
 } from 'lucide-react';
 import './layout.css';
 
@@ -12,9 +12,7 @@ import './layout.css';
 const MANAGER_LINKS = [
     {
         group: 'Overview',
-        items: [
-            { name: 'Dashboard', path: '/manager', icon: LayoutDashboard },
-        ]
+        items: [{ name: 'Dashboard', path: '/manager', icon: LayoutDashboard }]
     },
     {
         group: 'Work',
@@ -45,9 +43,7 @@ const MANAGER_LINKS = [
 const EMPLOYEE_LINKS = [
     {
         group: 'Overview',
-        items: [
-            { name: 'Dashboard', path: '/employee', icon: LayoutDashboard },
-        ]
+        items: [{ name: 'Dashboard', path: '/employee', icon: LayoutDashboard }]
     },
     {
         group: 'Work',
@@ -80,9 +76,7 @@ const ADMIN_LINKS = [
 const HR_LINKS = [
     {
         group: 'Overview',
-        items: [
-            { name: 'Dashboard', path: '/hr', icon: LayoutDashboard },
-        ]
+        items: [{ name: 'Dashboard', path: '/hr', icon: LayoutDashboard }]
     },
     {
         group: 'People',
@@ -93,24 +87,18 @@ const HR_LINKS = [
     },
     {
         group: 'Time Off',
-        items: [
-            { name: 'Leave Management', path: '/hr/leaves', icon: Calendar },
-        ]
+        items: [{ name: 'Leave Management', path: '/hr/leaves', icon: Calendar }]
     },
     {
         group: 'Other',
-        items: [
-            { name: 'Settings', path: '/settings', icon: Settings },
-        ]
+        items: [{ name: 'Settings', path: '/settings', icon: Settings }]
     },
 ];
 
 const COMPANY_LINKS = [
     {
         group: 'Overview',
-        items: [
-            { name: 'Dashboard', path: '/company', icon: LayoutDashboard },
-        ]
+        items: [{ name: 'Dashboard', path: '/company', icon: LayoutDashboard }]
     },
     {
         group: 'Management',
@@ -129,9 +117,7 @@ const COMPANY_LINKS = [
     },
     {
         group: 'Other',
-        items: [
-            { name: 'Settings', path: '/company/settings', icon: Settings },
-        ]
+        items: [{ name: 'Settings', path: '/company/settings', icon: Settings }]
     },
 ];
 
@@ -156,45 +142,61 @@ const ROLE_LABELS = {
 };
 
 // ── Sidebar component ───────────────────────────────────────────────────
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, isCollapsed, onToggleCollapse }) => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     if (!user) return null;
 
     const role = user.role;
     const groups = ROLE_LINKS[role] || [];
-    // HR has its own sub-routes but uses the shared layout
     const isOwner = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
     const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' :
         isOwner ? '/company/settings' : '/settings';
 
-    return (
-        <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+    const sidebarClasses = [
+        'sidebar',
+        isOpen ? 'sidebar-open' : '',
+        isCollapsed ? 'sidebar-collapsed' : '',
+    ].filter(Boolean).join(' ');
 
-            {/* Brand */}
-            <div className="sidebar-brand">
+    return (
+        <div className={sidebarClasses}>
+
+            {/* ── Brand ── */}
+            <div className="sidebar-brand" style={{ position: 'relative' }}>
                 <div className="sidebar-brand-logo">P</div>
-                <div>
+                <div className="sidebar-brand-text">
                     <div className="sidebar-brand-name">ProManage</div>
                     <div className="sidebar-brand-sub">Project Suite</div>
                 </div>
+
+                {/* Desktop collapse toggle */}
+                <button
+                    className="sidebar-collapse-btn"
+                    onClick={onToggleCollapse}
+                    title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                >
+                    <ChevronLeft size={13} />
+                </button>
             </div>
 
-            {/* Nav */}
+            {/* ── Nav ── */}
             <nav className="sidebar-nav">
                 {groups.map(({ group, items }) => (
                     <div key={group}>
                         <div className="sidebar-section-label">{group}</div>
                         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                             {items.map(({ name, path, icon: Icon }) => (
-                                <li key={path}>
+                                <li key={path} className="nav-item">
                                     <NavLink
                                         to={path}
                                         end={['/manager', '/employee', '/admin', '/company', '/hr'].includes(path)}
                                         className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                                     >
-                                        <Icon size={17} style={{ flexShrink: 0 }} />
-                                        {name}
+                                        <Icon size={17} className="nav-icon" />
+                                        <span className="nav-link-text">{name}</span>
+                                        <span className="nav-link-tooltip">{name}</span>
                                     </NavLink>
                                 </li>
                             ))}
@@ -203,60 +205,32 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ))}
             </nav>
 
-            {/* Profile footer */}
-            <div style={{
-                margin: '0.5rem 0.75rem 0.75rem',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
-                paddingTop: '0.75rem',
-            }}>
+            {/* ── Profile footer ── */}
+            <div className="sidebar-footer">
                 {/* User card */}
                 <div
+                    className="sidebar-user-card"
                     onClick={() => navigate(settingsPath)}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: '0.7rem',
-                        padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
-                        cursor: 'pointer', transition: 'background 0.15s',
-                        marginBottom: '0.5rem',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    title={isCollapsed ? user.name : undefined}
                 >
-                    {/* Avatar */}
-                    <div style={{
-                        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                        background: 'linear-gradient(135deg, #6366f1, #818cf8)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.85rem', fontWeight: 700, color: 'white',
-                        boxShadow: '0 2px 6px rgba(99,102,241,0.3)',
-                    }}>
+                    <div className="sidebar-user-avatar">
                         {user.name?.charAt(0).toUpperCase()}
                     </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                        <p style={{ margin: 0, fontWeight: 600, fontSize: '0.845rem', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {user.name}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            {ROLE_LABELS[role] || role}
-                        </p>
+                    <div className="sidebar-user-info">
+                        <p className="sidebar-user-name">{user.name}</p>
+                        <p className="sidebar-user-role">{ROLE_LABELS[role] || role}</p>
                     </div>
-                    <ChevronRight size={13} color="#475569" style={{ flexShrink: 0 }} />
+                    <ChevronRight size={13} className="sidebar-user-chevron" />
                 </div>
 
                 {/* Logout */}
                 <button
+                    className="sidebar-logout-btn"
                     onClick={logout}
-                    style={{
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                        background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
-                        color: '#f87171', cursor: 'pointer', fontSize: '0.845rem', fontWeight: 500,
-                        transition: 'background 0.15s, border-color 0.15s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.16)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.15)'; }}
+                    title={isCollapsed ? 'Sign out' : undefined}
                 >
-                    <LogOut size={14} />
-                    Sign out
+                    <LogOut size={14} className="sidebar-logout-icon" />
+                    <span className="sidebar-logout-text">Sign out</span>
                 </button>
             </div>
         </div>
