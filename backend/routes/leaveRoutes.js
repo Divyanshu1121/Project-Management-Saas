@@ -13,7 +13,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'HR'];
+const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO', 'HR'];
 const PM_ROLES = [...LEADERSHIP_ROLES, 'PROJECT_MANAGER'];
 
 router.post('/', protect, requestLeave);

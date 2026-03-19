@@ -4,7 +4,7 @@ const { createProjectManager, getUsers } = require('../controllers/userControlle
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-router.post('/project-manager', protect, roleCheck(['COMPANY_OWNER']), createProjectManager);
-router.get('/', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER', 'SUPER_ADMIN']), getUsers);
+router.post('/project-manager', protect, roleCheck(['COMPANY_OWNER', 'owner']), createProjectManager);
+router.get('/', protect, roleCheck(['COMPANY_OWNER', 'owner', 'PROJECT_MANAGER', 'SUPER_ADMIN', 'superadmin']), getUsers);
 
 module.exports = router;

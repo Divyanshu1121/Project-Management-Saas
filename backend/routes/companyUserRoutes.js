@@ -5,9 +5,9 @@ const { protect } = require('../middleware/authMiddleware');
 
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'HR'];
-const OWNER_ROLES = ['COMPANY_OWNER', 'CEO'];
-const HR_ROLES = ['COMPANY_OWNER', 'CEO', 'HR'];
+const LEADERSHIP_ROLES = ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO', 'HR'];
+const OWNER_ROLES = ['COMPANY_OWNER', 'owner', 'CEO'];
+const HR_ROLES = ['COMPANY_OWNER', 'owner', 'CEO', 'HR'];
 
 router.post('/users', protect, roleCheck(OWNER_ROLES), createCompanyUser);
 router.get('/users', protect, roleCheck(LEADERSHIP_ROLES), getCompanyUsers);

@@ -4,7 +4,7 @@ const { createTask, getTasks, updateTask, deleteTask } = require('../controllers
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-const LEADER_ROLES = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'PROJECT_MANAGER'];
+const LEADER_ROLES = ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO', 'PROJECT_MANAGER'];
 
 router.post('/', protect, roleCheck(LEADER_ROLES), createTask);
 router.get('/', protect, roleCheck(LEADER_ROLES), getTasks);

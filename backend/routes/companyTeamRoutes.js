@@ -4,7 +4,7 @@ const { createTeam, getTeams, deleteTeam, addMember, removeMember, updateEmploye
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-const leadershipRoles = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'VP', 'HR'];
+const leadershipRoles = ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO', 'VP', 'HR'];
 
 router.route('/')
     .post(protect, roleCheck(leadershipRoles), createTeam)

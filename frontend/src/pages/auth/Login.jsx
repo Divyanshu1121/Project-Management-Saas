@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Mail, Lock, ArrowRight, LayoutDashboard } from 'lucide-react';
@@ -183,7 +183,7 @@ const Login = () => {
 
                 <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
                     Don't have an account?{' '}
-                    <a href="mailto:admin@saasproject.com?subject=Account Access Request" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Contact Admin</a>
+                    <Link to="/signup" style={{ color: 'var(--primary-color)', fontWeight: 600, textDecoration: 'none' }}>Create Account</Link>
                 </div>
             </div>
 

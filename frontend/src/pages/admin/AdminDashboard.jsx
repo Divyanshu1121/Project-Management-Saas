@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Users, ChevronDown, ChevronRight, Building2, Mail, Shield, BarChart3, Settings as SettingsIcon } from 'lucide-react';
+import { Users, ChevronDown, ChevronRight, Building2, Mail, Shield, BarChart3, Settings as SettingsIcon, CheckCircle2, XCircle } from 'lucide-react';
 import CompanyTable from './CompanyTable';
 
 const AdminDashboard = () => {
@@ -156,12 +156,16 @@ const CompaniesView = () => {
     };
 
     const filteredCompanies = companies.filter(c => {
-        const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-            c.owner?.email?.toLowerCase().includes(search.toLowerCase());
+        const companyName = c.companyName || c.name || "";
+        const ownerEmail = c.owner?.email || "";
+        const matchesSearch = companyName.toLowerCase().includes(search.toLowerCase()) ||
+            ownerEmail.toLowerCase().includes(search.toLowerCase()) ||
+            (c.companyId && c.companyId.toLowerCase().includes(search.toLowerCase()));
+        
         if (statusFilter === "ACTIVE") return matchesSearch && c.isActive;
         if (statusFilter === "PAUSED") return matchesSearch && !c.isActive;
         return matchesSearch;
-    }).sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+    }).sort((a, b) => sortOrder === "asc" ? (a.companyName || a.name).localeCompare(b.companyName || b.name) : (b.companyName || b.name).localeCompare(a.companyName || a.name));
 
     if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading companies...</div>;
 
@@ -208,7 +212,7 @@ const CompaniesView = () => {
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group"><label className="form-label">Company Name</label><input className="form-input" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} required /></div>
-                            <div className="form-group"><label className="form-label">Plan</label><select className="form-input" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}><option value="Free">Free</option><option value="Basic">Basic</option><option value="Pro">Pro</option><option value="Advanced">Advanced</option></select></div>
+                            <div className="form-group"><label className="form-label">Plan</label><select className="form-input" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}><option value="free">free</option><option value="basic">basic</option><option value="pro">pro</option><option value="advanced">advanced</option></select></div>
                             {!isEditing && (<><div style={{ margin: '1rem 0', borderTop: '1px solid #eee', paddingTop: '1rem' }}><h4>Owner Details</h4></div><div className="form-group"><label className="form-label">Owner Role</label><select className="form-input" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} required><option value="CEO">CEO</option><option value="CTO">CTO</option><option value="CFO">CFO</option></select></div><div className="form-group"><label className="form-label">Owner Email</label><input type="email" className="form-input" value={formData.ownerEmail} onChange={(e) => setFormData({ ...formData, ownerEmail: e.target.value })} required /></div><div className="form-group"><label className="form-label">Owner Password</label><input type="password" className="form-input" value={formData.ownerPassword} onChange={(e) => setFormData({ ...formData, ownerPassword: e.target.value })} required /></div></>)}
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}><button type="button" className="btn" onClick={() => setShowModal(false)} style={{ border: '1px solid #ddd' }}>Cancel</button><button type="submit" className="btn btn-primary">{isEditing ? 'Save Changes' : 'Create Company'}</button></div>
                         </form>
@@ -318,9 +322,10 @@ const UsersView = () => {
                                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
                                             <thead>
                                                 <tr style={{ textAlign: 'left', borderBottom: '1px solid #f1f5f9' }}>
-                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Member Name</th>
-                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Email Address</th>
-                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>System Role</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>User Info</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Contact</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Role & Verification</th>
+                                                    <th style={{ padding: '0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Last Login</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -331,18 +336,31 @@ const UsersView = () => {
                                                                 <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700 }}>
                                                                     {user.name.charAt(0)}
                                                                 </div>
-                                                                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>{user.name}</span>
+                                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                    <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>{user.name}</span>
+                                                                    <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontFamily: 'monospace' }}>{user.userId || 'N/A'}</span>
+                                                                </div>
                                                             </div>
                                                         </td>
-                                                        <td style={{ padding: '1rem 0.5rem', fontSize: '0.85rem', color: '#64748b' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                                <Mail size={12} /> {user.email}
+                                                        <td style={{ padding: '1rem 0.5rem', fontSize: '0.8rem', color: '#64748b' }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={12} /> {user.email}</div>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>📞 {user.phone || 'N/A'}</div>
                                                             </div>
                                                         </td>
                                                         <td style={{ padding: '1rem 0.5rem' }}>
-                                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.6rem', borderRadius: '4px', background: '#eff6ff', color: '#1e40af', fontSize: '0.75rem', fontWeight: 600 }}>
-                                                                <Shield size={10} /> {user.role}
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                <div style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#eff6ff', color: '#1e40af', fontSize: '0.7rem', fontWeight: 600 }}>
+                                                                    <Shield size={10} /> {user.role}
+                                                                </div>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: user.isEmailVerified ? '#16a34a' : '#ea580c' }}>
+                                                                    {user.isEmailVerified ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
+                                                                    {user.isEmailVerified ? 'Verified' : 'Unverified'}
+                                                                </div>
                                                             </div>
+                                                        </td>
+                                                        <td style={{ padding: '1rem 0.5rem', fontSize: '0.75rem', color: '#64748b' }}>
+                                                            {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
                                                         </td>
                                                     </tr>
                                                 ))}

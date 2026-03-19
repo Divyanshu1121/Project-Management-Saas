@@ -12,7 +12,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-router.post('/', protect, roleCheck(['COMPANY_OWNER', 'PROJECT_MANAGER']), createSprint);
+router.post('/', protect, roleCheck(['COMPANY_OWNER', 'owner', 'PROJECT_MANAGER']), createSprint);
 router.get('/project/:projectId', protect, getSprints);
 router.get('/project/:projectId/active', protect, getActiveSprint);
 router.patch('/:id/start', protect, roleCheck(['PROJECT_MANAGER']), startSprint);

@@ -1,13 +1,19 @@
 import React from 'react';
-import { Shield, Users, Briefcase, LayoutGrid, Calendar, MoreVertical, Edit, Trash2, StopCircle, PlayCircle, ExternalLink } from 'lucide-react';
+import { Shield, Users, Briefcase, LayoutGrid, Calendar, MoreVertical, Edit, Trash2, StopCircle, PlayCircle, CheckCircle2, XCircle, Globe, Info } from 'lucide-react';
 
 const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
     const formatDate = (date) => {
+        if (!date) return 'N/A';
         return new Date(date).toLocaleDateString('en-IN', {
             day: '2-digit',
             month: 'short',
             year: 'numeric'
         });
+    };
+
+    const isTrialExpired = (trialEndsAt) => {
+        if (!trialEndsAt) return false;
+        return new Date(trialEndsAt) < new Date();
     };
 
     return (
@@ -16,11 +22,12 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                 <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                         <th style={thStyle}>Sr.</th>
-                        <th style={thStyle}>Company Details</th>
+                        <th style={thStyle}>Company Info</th>
+                        <th style={thStyle}>Industry & Size</th>
                         <th style={thStyle}>Owner</th>
-                        <th style={thStyle}>Metrics</th>
-                        <th style={thStyle}>Plan & Status</th>
-                        <th style={thStyle}>Created</th>
+                        <th style={thStyle}>Plan & Trial</th>
+                        <th style={thStyle}>Verification</th>
+                        <th style={thStyle}>Status</th>
                         <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
                     </tr>
                 </thead>
@@ -32,59 +39,70 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                             </td>
                             <td style={tdStyle}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    <span style={{ fontWeight: 600, color: '#1e293b' }}>{company.name}</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>ID: {company._id}</span>
-                                </div>
-                            </td>
-                            <td style={tdStyle}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    <span style={{ fontSize: '0.9rem', color: '#444' }}>{company.owner?.name || 'N/A'}</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{company.owner?.email || 'N/A'}</span>
-                                </div>
-                            </td>
-                            <td style={tdStyle}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', minWidth: '160px' }}>
-                                    <MetricBadge icon={<Users size={12} />} label="Users" value={company.totalUsers} color="#2563eb" />
-                                    <MetricBadge icon={<Shield size={12} />} label="PMs" value={company.totalProjectManagers} color="#7c3aed" />
-                                    <MetricBadge icon={<Briefcase size={12} />} label="Emps" value={company.totalEmployees} color="#059669" />
-                                    <MetricBadge icon={<LayoutGrid size={12} />} label="Projs" value={company.totalProjects} color="#ea580c" />
-                                </div>
-                            </td>
-                            <td style={tdStyle}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <span style={{ alignSelf: 'flex-start', padding: '0.2rem 0.6rem', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>
-                                        {company.plan}
-                                    </span>
-                                    <div
-                                        onClick={() => onToggleStatus(company)}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            color: company.isActive ? '#166534' : '#9a3412',
-                                            background: company.isActive ? '#dcfce7' : '#ffedd5',
-                                            padding: '0.2rem 0.6rem',
-                                            borderRadius: '20px',
-                                            width: 'fit-content'
-                                        }}
-                                    >
-                                        {company.isActive ? <PlayCircle size={12} /> : <StopCircle size={12} />}
-                                        {company.isActive ? 'Active' : 'Paused'}
+                                    <span style={{ fontWeight: 600, color: '#1e293b' }}>{company.companyName || company.name}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>ID: {company.companyId || 'N/A'}</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', color: '#94a3b8' }}>
+                                        <Globe size={10} /> {company.country}, {company.city}
                                     </div>
                                 </div>
                             </td>
                             <td style={tdStyle}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '0.85rem' }}>
-                                    <Calendar size={13} />
-                                    {formatDate(company.createdAt)}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>{company.industry || 'N/A'}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Size: {company.companySize || 'N/A'}</span>
+                                </div>
+                            </td>
+                            <td style={tdStyle}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ fontSize: '0.85rem', color: '#1e293b', fontWeight: 500 }}>{company.owner?.name || 'N/A'}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{company.owner?.email || 'N/A'}</span>
+                                </div>
+                            </td>
+                            <td style={tdStyle}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <span style={{ alignSelf: 'flex-start', padding: '0.1rem 0.5rem', background: '#eff6ff', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, color: '#2563eb', textTransform: 'uppercase' }}>
+                                        {company.plan}
+                                    </span>
+                                    {company.isTrialActive && (
+                                        <div style={{ fontSize: '0.7rem', color: isTrialExpired(company.trialEndsAt) ? '#dc2626' : '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Info size={10} /> {isTrialExpired(company.trialEndsAt) ? 'Trial Expired' : `Trial ends ${formatDate(company.trialEndsAt)}`}
+                                        </div>
+                                    )}
+                                </div>
+                            </td>
+                            <td style={tdStyle}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: company.isEmailVerified ? '#16a34a' : '#ea580c' }}>
+                                        {company.isEmailVerified ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                                        {company.isEmailVerified ? 'Verified' : 'Unverified'}
+                                    </div>
+                                    <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Type: {company.signupType || 'manual'}</span>
+                                </div>
+                            </td>
+                            <td style={tdStyle}>
+                                <div
+                                    onClick={() => onToggleStatus(company)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        color: company.isActive ? '#166534' : '#9a3412',
+                                        background: company.isActive ? '#dcfce7' : '#ffedd5',
+                                        padding: '0.2rem 0.6rem',
+                                        borderRadius: '20px',
+                                        width: 'fit-content'
+                                    }}
+                                >
+                                    {company.isActive ? <PlayCircle size={12} /> : <StopCircle size={12} />}
+                                    {company.isActive ? 'Active' : 'Paused'}
                                 </div>
                             </td>
                             <td style={{ ...tdStyle, textAlign: 'right' }}>
                                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                                    <button onClick={() => onEdit(company)} style={actionBtnStyle} title="Edit Company">
+                                    <button onClick={() => onEdit(company)} style={actionBtnStyle} title="Edit Company/Plan">
                                         <Edit size={14} />
                                     </button>
                                     <button onClick={() => onDelete(company._id)} style={{ ...actionBtnStyle, color: '#dc2626' }} title="Delete Company">
@@ -100,18 +118,9 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
     );
 };
 
-const MetricBadge = ({ icon, label, value, color }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b' }}>
-        <div style={{ color }}>{icon}</div>
-        <span style={{ fontSize: '0.75rem' }}>
-            <strong style={{ color: '#1e293b' }}>{value}</strong> {label}
-        </span>
-    </div>
-);
-
 const thStyle = {
     padding: '1rem',
-    fontSize: '0.75rem',
+    fontSize: '0.7rem',
     fontWeight: 600,
     color: '#64748b',
     textTransform: 'uppercase',
@@ -119,7 +128,7 @@ const thStyle = {
 };
 
 const tdStyle = {
-    padding: '1.25rem 1rem',
+    padding: '1rem',
     verticalAlign: 'middle'
 };
 

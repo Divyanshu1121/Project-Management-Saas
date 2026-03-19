@@ -127,17 +127,22 @@ const ROLE_LINKS = {
     SUPER_ADMIN: ADMIN_LINKS,
     HR: HR_LINKS,
     COMPANY_OWNER: COMPANY_LINKS,
+    owner: COMPANY_LINKS,
     CEO: COMPANY_LINKS,
     CTO: COMPANY_LINKS,
     CFO: COMPANY_LINKS,
     COO: COMPANY_LINKS,
+    SUPER_ADMIN: ADMIN_LINKS,
+    superadmin: ADMIN_LINKS,
 };
 
 const ROLE_LABELS = {
     SUPER_ADMIN: 'Super Admin',
+    superadmin: 'Super Admin',
     PROJECT_MANAGER: 'Project Manager',
     EMPLOYEE: 'Employee',
     COMPANY_OWNER: 'Company Owner',
+    owner: 'Company Owner',
     HR: 'HR Manager',
 };
 
@@ -149,8 +154,8 @@ const Sidebar = ({ isOpen, isCollapsed, onToggleCollapse }) => {
 
     const role = user.role;
     const groups = ROLE_LINKS[role] || [];
-    const isOwner = ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
-    const settingsPath = role === 'SUPER_ADMIN' ? '/admin/settings' :
+    const isOwner = ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO'].includes(role);
+    const settingsPath = (role === 'SUPER_ADMIN' || role === 'superadmin') ? '/admin/settings' :
         isOwner ? '/company/settings' : '/settings';
 
     const sidebarClasses = [

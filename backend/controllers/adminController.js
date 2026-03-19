@@ -8,11 +8,12 @@ const Project = require('../models/Project');
 const getCompaniesWithStats = async (req, res) => {
     try {
         const companies = await Company.aggregate([
+            { $match: { isDeleted: { $ne: true } } },
             {
                 $lookup: {
                     from: 'users',
                     localField: '_id',
-                    foreignField: 'companyId',
+                    foreignField: 'company',
                     as: 'members'
                 }
             },
@@ -32,7 +33,7 @@ const getCompaniesWithStats = async (req, res) => {
                             $filter: {
                                 input: '$members',
                                 as: 'u',
-                                cond: { $eq: ['$$u.role', 'PROJECT_MANAGER'] }
+                                cond: { $in: ['$$u.role', ['PROJECT_MANAGER', 'pm']] }
                             }
                         }
                     },
@@ -41,7 +42,7 @@ const getCompaniesWithStats = async (req, res) => {
                             $filter: {
                                 input: '$members',
                                 as: 'u',
-                                cond: { $eq: ['$$u.role', 'EMPLOYEE'] }
+                                cond: { $in: ['$$u.role', ['EMPLOYEE', 'employee']] }
                             }
                         }
                     },
@@ -59,14 +60,25 @@ const getCompaniesWithStats = async (req, res) => {
             { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
             {
                 $project: {
+                    companyId: 1,
+                    companyName: 1,
                     name: 1,
+                    industry: 1,
+                    companySize: 1,
+                    country: 1,
+                    city: 1,
                     plan: 1,
+                    isTrialActive: 1,
+                    trialEndsAt: 1,
+                    isEmailVerified: 1,
                     isActive: 1,
+                    signupType: 1,
                     createdAt: 1,
                     totalUsers: 1,
                     totalProjectManagers: 1,
                     totalEmployees: 1,
                     totalProjects: 1,
+                    ownerId: 1,
                     'owner.name': 1,
                     'owner.email': 1
                 }
@@ -86,13 +98,10 @@ const getCompaniesWithStats = async (req, res) => {
 // @access  Private (Super Admin)
 const getPlatformUsers = async (req, res) => {
     try {
-        // Only show Company Owners and other Super Admins
-        // This enforces data isolation by hiding project managers and employees from super admin.
-        const users = await User.find({
-            role: { $in: ['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO', 'SUPER_ADMIN'] }
-        })
+        // Show all users for Super Admin with their details
+        const users = await User.find({})
             .select('-password')
-            .populate('companyId', 'name')
+            .populate('company', 'name companyName companyId')
             .sort({ createdAt: -1 });
 
         res.json(users);

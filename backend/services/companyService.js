@@ -51,7 +51,7 @@ const createCompany = async (companyData, ownerData) => {
 };
 
 const getAllCompanies = async () => {
-    return await Company.find({}).populate('ownerId', 'name email');
+    return await Company.find({ isDeleted: { $ne: true } }).populate('ownerId', 'name email');
 };
 
 const updateCompany = async (id, updateData) => {
@@ -63,24 +63,21 @@ const updateCompany = async (id, updateData) => {
 };
 
 const deleteCompany = async (id) => {
-
     const company = await Company.findById(id);
     if (!company) {
         throw new Error('Company not found');
     }
 
-    const projects = await Project.find({ companyId: id });
-    const projectIds = projects.map(p => p._id);
+    // Soft delete company
+    company.isDeleted = true;
+    company.deletedAt = new Date();
+    company.isActive = false;
+    await company.save();
 
-    const taskDeleteResult = await Task.deleteMany({ projectId: { $in: projectIds } });
+    // Deactivate all users of this company
+    await User.updateMany({ companyId: id }, { isActive: false });
 
-    const projectDeleteResult = await Project.deleteMany({ companyId: id });
-
-    const userDeleteResult = await User.deleteMany({ companyId: id });
-
-    await Company.findByIdAndDelete(id);
-
-    return { message: 'Company and all associated data (Users, Projects, Tasks) deleted successfully', _id: id };
+    return { message: 'Company soft-deleted successfully', _id: id };
 };
 
 module.exports = {

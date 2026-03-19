@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import EmailVerification from './pages/auth/EmailVerification';
 import Unauthorized from './pages/auth/Unauthorized';
 import Layout from './components/layout/Layout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -44,6 +46,8 @@ function App() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             <Route path="/" element={<Layout />}>
@@ -52,7 +56,7 @@ function App() {
                 <Route
                     path="admin/*"
                     element={
-                        <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'superadmin']}>
                             <AdminDashboard />
                         </ProtectedRoute>
                     }
@@ -167,7 +171,7 @@ function App() {
                 <Route
                     path="settings"
                     element={
-                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR', 'COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR', 'COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <SettingsPage />
                         </ProtectedRoute>
                     }
@@ -219,7 +223,7 @@ function App() {
                 <Route
                     path="company"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="dashboard" />
                         </ProtectedRoute>
                     }
@@ -227,7 +231,7 @@ function App() {
                 <Route
                     path="company/c-executives"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="c-executives" />
                         </ProtectedRoute>
                     }
@@ -235,7 +239,7 @@ function App() {
                 <Route
                     path="company/projects"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="projects" />
                         </ProtectedRoute>
                     }
@@ -243,7 +247,7 @@ function App() {
                 <Route
                     path="company/teams"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="teams" />
                         </ProtectedRoute>
                     }
@@ -251,7 +255,7 @@ function App() {
                 <Route
                     path="company/tasks"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="tasks" />
                         </ProtectedRoute>
                     }
@@ -259,7 +263,7 @@ function App() {
                 <Route
                     path="company/reports"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="reports" />
                         </ProtectedRoute>
                     }
@@ -267,7 +271,7 @@ function App() {
                 <Route
                     path="company/settings"
                     element={
-                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO']}>
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <CompanyDashboard defaultSection="settings" />
                         </ProtectedRoute>
                     }
@@ -287,8 +291,10 @@ const NavigateToDashboard = () => {
 
     switch (user.role) {
         case 'SUPER_ADMIN':
+        case 'superadmin':
             return <Navigate to="/admin" />;
         case 'COMPANY_OWNER':
+        case 'owner':
         case 'CEO':
         case 'CTO':
         case 'CFO':
