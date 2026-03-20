@@ -25,6 +25,7 @@ import SettingsPage from './pages/common/SettingsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import TimeLogsPage from './pages/tasks/TimeLogsPage';
 import GlobalChatPage from './pages/common/GlobalChatPage';
+import Landing from './pages/common/Landing';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
@@ -50,9 +51,9 @@ function App() {
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            <Route path="/" element={<Layout />}>
-                <Route index element={<NavigateToDashboard />} />
+            <Route path="/" element={<NavigateToDashboard />} />
 
+            <Route element={<Layout />}>
                 <Route
                     path="admin/*"
                     element={
@@ -287,7 +288,7 @@ const NavigateToDashboard = () => {
     const { user, loading } = useAuth();
 
     if (loading) return <div>Loading...</div>;
-    if (!user) return <Navigate to="/login" />;
+    if (!user) return <Landing />;
 
     switch (user.role) {
         case 'SUPER_ADMIN':
