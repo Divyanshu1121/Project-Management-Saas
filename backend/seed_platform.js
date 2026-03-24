@@ -15,15 +15,6 @@ const seed = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('Connected to MongoDB for seeding...');
 
-        // Clear existing data (OPTIONAL - but helpful for clean state)
-        // await Company.deleteMany({});
-        // await User.deleteMany({ role: { $ne: 'SUPER_ADMIN' } });
-        // await Team.deleteMany({});
-        // await Project.deleteMany({});
-        // await Task.deleteMany({});
-        // await Sprint.deleteMany({});
-
-        // 1. Create Company
         let company = await Company.findOne({ name: 'Innovatech Corp' });
         if (!company) {
             company = await Company.create({
@@ -35,7 +26,6 @@ const seed = async () => {
             console.log('Created Company:', company.name);
         }
 
-        // 2. Create Project Manager
         let pm = await User.findOne({ email: 'pm@innovatech.com' });
         if (!pm) {
             pm = await User.create({
@@ -48,7 +38,6 @@ const seed = async () => {
             console.log('Created PM:', pm.email);
         }
 
-        // 3. Create Employees
         const employeeData = [
             { name: 'Alice Developer', email: 'alice@innovatech.com', role: 'EMPLOYEE', empId: 'EMP001' },
             { name: 'Bob Designer', email: 'bob@innovatech.com', role: 'EMPLOYEE', empId: 'EMP002' },
@@ -69,7 +58,6 @@ const seed = async () => {
             employees.push(emp);
         }
 
-        // 4. Create Team
         let team = await Team.findOne({ name: 'Frontend Squad', companyId: company._id });
         if (!team) {
             team = await Team.create({
@@ -81,14 +69,12 @@ const seed = async () => {
             });
             console.log('Created Team:', team.name);
 
-            // Assign team to employees
             for (const emp of employees) {
                 emp.teamId = team._id;
                 await emp.save();
             }
         }
 
-        // 5. Create Project
         let project = await Project.findOne({ name: 'Project Phoenix', companyId: company._id });
         if (!project) {
             project = await Project.create({
@@ -104,7 +90,6 @@ const seed = async () => {
             console.log('Created Project:', project.name);
         }
 
-        // 6. Create Tasks
         const taskData = [
             { title: 'Design Landing Page', status: 'APPROVED', priority: 'HIGH', assignedTo: employees[1]._id },
             { title: 'Setup Authentication', status: 'IN_PROGRESS', priority: 'URGENT', assignedTo: employees[0]._id },
@@ -128,12 +113,10 @@ const seed = async () => {
             tasks.push(t);
         }
 
-        // Update project progress
         const approvedCount = tasks.filter(t => t.status === 'APPROVED').length;
         project.progress = Math.round((approvedCount / tasks.length) * 100);
         await project.save();
 
-        // 7. Create Sprint
         let sprint = await Sprint.findOne({ name: 'Sprint 1 - Foundation', projectId: project._id });
         if (!sprint) {
             sprint = await Sprint.create({
@@ -146,7 +129,6 @@ const seed = async () => {
             });
             console.log('Created Sprint:', sprint.name);
 
-            // Assign first 3 tasks to sprint
             for (let i = 0; i < 3; i++) {
                 tasks[i].sprintId = sprint._id;
                 await tasks[i].save();

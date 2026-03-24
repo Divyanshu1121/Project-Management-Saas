@@ -19,11 +19,27 @@ const getAnalytics = async (req, res) => {
         ]);
 
         let platformStats = {};
-        if (req.user.role === 'Platform Admin' || req.user.role === 'SUPER_ADMIN') {
-            const totalCompanies = await Company.countDocuments();
-            const activeCompanies = await Company.countDocuments({ isActive: true });
-            const pausedCompanies = await Company.countDocuments({ isActive: false });
-            const totalPlatformUsers = await User.countDocuments();
+        const role = req.user.role;
+        const isSuperAdmin = role === 'SUPER_ADMIN' || role === 'superadmin' || role === 'Platform Admin';
+
+        if (isSuperAdmin) {
+            // Fix 1: Only count non-deleted companies for all stats
+            const validCompanyFilter = { isDeleted: { $ne: true } };
+
+            const totalCompanies = await Company.countDocuments(validCompanyFilter);
+            const activeCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: true });
+            const pausedCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: false });
+
+            // Fix 1: Only count users that belong to a valid (non-deleted) company
+            const validCompanies = await Company.find(validCompanyFilter).select('_id');
+            const validCompanyIds = validCompanies.map(c => c._id);
+
+            const totalPlatformUsers = await User.countDocuments({
+                $or: [
+                    { company: { $in: validCompanyIds } },
+                    { companyId: { $in: validCompanyIds } }
+                ]
+            });
 
             platformStats = {
                 totalCompanies,
@@ -31,6 +47,8 @@ const getAnalytics = async (req, res) => {
                 activeCompanies,
                 pausedCompanies
             };
+
+            console.log('[analytics] Platform stats:', platformStats);
         }
 
         res.json({

@@ -61,13 +61,12 @@ const io = new Server(server, {
     }
 });
 
-const userSockets = new Map(); // userId -> socketId
-const socketUsers = new Map(); // socketId -> { userId, userName, companyId, status }
-const roomUsers = new Map();   // roomId -> Set of userIds
+const userSockets = new Map();
+const socketUsers = new Map();
+const roomUsers = new Map();
 
 io.on('connection', (socket) => {
     socket.on('register_user', (userData) => {
-        // userData can be userId or { userId, name, companyId }
         const userId = typeof userData === 'string' ? userData : userData.userId;
         const name = userData.name || 'Unknown';
         const companyId = userData.companyId;
@@ -84,8 +83,7 @@ io.on('connection', (socket) => {
         if (user) {
             if (!roomUsers.has(roomId)) roomUsers.set(roomId, new Set());
             roomUsers.get(roomId).add(user.userId);
-            
-            // Broadcast updated member list to room
+
             broadcastRoomMembers(roomId);
         }
     });
@@ -93,9 +91,8 @@ io.on('connection', (socket) => {
     const broadcastRoomMembers = async (roomId) => {
         const userIds = Array.from(roomUsers.get(roomId) || []);
         const User = require('./models/User');
-        
+
         try {
-            // Get user details and their current status
             const users = await User.find({ _id: { $in: userIds } }).select('name role');
             const membersWithStatus = users.map(u => {
                 const sId = userSockets.get(u._id.toString());
@@ -107,7 +104,7 @@ io.on('connection', (socket) => {
                     status: detail ? detail.status : 'offline'
                 };
             });
-            
+
             io.to(roomId).emit('room_members', membersWithStatus);
         } catch (err) {
             console.error('Error broadcasting members:', err);
@@ -158,7 +155,6 @@ io.on('connection', (socket) => {
                     io.to(recipientSocketId).emit('receive_message', populatedMessage);
                 }
 
-                // Global notification for whisper
                 if (parseResult.recipientId.toString() !== sender) {
                     await sendNotification(io, userSockets, {
                         recipientId: parseResult.recipientId,
@@ -192,7 +188,6 @@ io.on('connection', (socket) => {
                     priority: 'MEDIUM'
                 });
 
-                // Notify the assigned user
                 if (parseResult.taskData.assignedTo) {
                     const senderUser = await require('./models/User').findById(sender).select('name');
                     await sendNotification(io, userSockets, {
@@ -227,7 +222,6 @@ io.on('connection', (socket) => {
             } else {
                 io.to(roomId).emit('receive_message', populatedMessage);
 
-                // Global notification for reply
                 if (populatedMessage.replyTo && populatedMessage.replyTo.sender && populatedMessage.replyTo.sender._id.toString() !== sender) {
                     await sendNotification(io, userSockets, {
                         recipientId: populatedMessage.replyTo.sender._id,
@@ -243,7 +237,6 @@ io.on('connection', (socket) => {
                 mentionedUserIds.forEach(async (mId) => {
                     const sid = userSockets.get(mId.toString());
                     if (mId.toString() !== sender) {
-                        // Persist mention notification
                         await sendNotification(io, userSockets, {
                             recipientId: mId,
                             companyId,
@@ -273,16 +266,13 @@ io.on('connection', (socket) => {
             const message = await Message.findById(messageId);
             if (!message) return;
 
-            // Check if reaction already exists
             const existingIndex = message.reactions.findIndex(
                 r => r.user.toString() === userId && r.emoji === emoji
             );
 
             if (existingIndex >= 0) {
-                // Remove reaction if it exists (toggle)
                 message.reactions.splice(existingIndex, 1);
             } else {
-                // Add the new reaction
                 message.reactions.push({ emoji, user: userId });
             }
 
@@ -291,14 +281,13 @@ io.on('connection', (socket) => {
             const populatedMessage = await Message.findById(messageId)
                 .populate('sender', 'name email')
                 .populate('recipient', 'name email')
-                .populate('reactions.user', 'name'); // populating users who reacted
+                .populate('reactions.user', 'name');
 
             io.to(roomId).emit('reaction_updated', {
                 messageId,
                 reactions: populatedMessage.reactions
             });
 
-            // Notify message owner if someone else reacts
             if (populatedMessage.sender && populatedMessage.sender._id.toString() !== userId) {
                 const latestReaction = populatedMessage.reactions[populatedMessage.reactions.length - 1];
                 if (latestReaction && latestReaction.user._id.toString() === userId) {
@@ -322,13 +311,11 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const user = socketUsers.get(socket.id);
         if (user) {
-            // Only delete if this is the active socket for the user
             if (userSockets.get(user.userId) === socket.id) {
                 userSockets.delete(user.userId);
             }
             socketUsers.delete(socket.id);
 
-            // Remove from all rooms
             for (const [roomId, users] of roomUsers.entries()) {
                 if (users.has(user.userId)) {
                     users.delete(user.userId);

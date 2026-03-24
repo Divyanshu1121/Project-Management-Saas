@@ -6,12 +6,47 @@ const User = require('../models/User');
 // @route   POST /api/companies
 // @access  Private (Super Admin)
 const registerCompany = async (req, res) => {
-    const { companyName, ownerName, ownerEmail, ownerPassword, plan } = req.body;
+    const {
+        // Company fields
+        companyName,
+        companySize,
+        industry,
+        website,
+        country,
+        city,
+        plan,
+        isTrialActive,
+        isEmailVerified,
+        isActive,
+        // Owner fields
+        ownerName,
+        ownerEmail,
+        ownerPassword,
+        ownerPhone,
+        ownerRole,
+    } = req.body;
 
     try {
         const result = await companyService.createCompany(
-            { name: companyName, plan },
-            { name: ownerName, email: ownerEmail, password: ownerPassword }
+            {
+                name: companyName,
+                companySize,
+                industry,
+                website,
+                country,
+                city,
+                plan,
+                isTrialActive,
+                isEmailVerified,
+                isActive,
+            },
+            {
+                name: ownerName,
+                email: ownerEmail,
+                password: ownerPassword,
+                phone: ownerPhone,
+                ownerRole,
+            }
         );
         res.status(201).json(result);
     } catch (error) {
@@ -37,7 +72,7 @@ const getCompanies = async (req, res) => {
     }
 };
 
-// @desc    Update company (plan/status)
+// @desc    Update company (plan/status/trial)
 // @route   PUT /api/companies/:id
 // @access  Private (Super Admin)
 const updateCompany = async (req, res) => {

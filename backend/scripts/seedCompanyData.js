@@ -46,7 +46,6 @@ const seedData = async () => {
                 process.exit(1);
             }
         } else {
-            // Target the company associated with the provided credentials
             const targetOwner = await User.findOne({ email: 'g@gmail.com' });
             if (targetOwner) {
                 companyId = targetOwner.companyId;

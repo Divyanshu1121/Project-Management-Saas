@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
     empId: {
         type: String,
     },
+    roleTitle: {
+        type: [String],  // Array of role titles: ['CEO', 'Founder'] etc.
+        default: []
+    },
     teamId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team',

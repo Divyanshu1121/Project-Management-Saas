@@ -6,13 +6,35 @@ import CompanyTable from './CompanyTable';
 
 const AdminDashboard = () => {
     const location = useLocation();
-    const currentTab = location.pathname.split('/').pop() || 'admin';
 
     return (
         <div className="admin-dashboard-root" style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
             <style>{`
                 @media (max-width: 640px) {
                     .admin-dashboard-root { padding: 1rem 0.75rem !important; }
+                }
+                .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+                .toggle-switch input { opacity: 0; width: 0; height: 0; }
+                .toggle-slider {
+                    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+                    background-color: #cbd5e1; transition: 0.3s; border-radius: 24px;
+                }
+                .toggle-slider:before {
+                    position: absolute; content: ''; height: 18px; width: 18px;
+                    left: 3px; bottom: 3px; background-color: white;
+                    transition: 0.3s; border-radius: 50%;
+                }
+                input:checked + .toggle-slider { background-color: #2563eb; }
+                input:checked + .toggle-slider:before { transform: translateX(20px); }
+                .section-divider {
+                    margin: 1.25rem 0 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 1px solid #e2e8f0;
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
                 }
             `}</style>
 
@@ -86,20 +108,265 @@ const DashboardStatsView = () => {
 };
 
 
+// ─── Toggle Helper ──────────────────────────────────────────────────────────
+const Toggle = ({ checked, onChange, label }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <label className="toggle-switch">
+            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+            <span className="toggle-slider" />
+        </label>
+        <span style={{ fontSize: '0.875rem', color: checked ? '#1d4ed8' : '#64748b', fontWeight: 500 }}>{label}</span>
+    </div>
+);
+
+// ─── Form Field Helper ───────────────────────────────────────────────────────
+const Field = ({ label, required, children }) => (
+    <div className="form-group" style={{ marginBottom: 0 }}>
+        <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem', display: 'block' }}>
+            {label}{required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+        </label>
+        {children}
+    </div>
+);
+
+const inputSt = {
+    width: '100%', padding: '0.55rem 0.75rem', border: '1px solid #e2e8f0',
+    borderRadius: '7px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box',
+    background: 'white', color: '#1e293b'
+};
+
+// ─── Create / Edit Modal ─────────────────────────────────────────────────────
+const EMPTY_FORM = {
+    // Company
+    companyName: '', companySize: '1-10', industry: 'Technology',
+    website: '', country: '', city: '',
+    plan: 'free', isTrialActive: false,
+    // Owner
+    ownerName: '', ownerEmail: '', ownerPhone: '', ownerPassword: '', ownerRole: ['CEO'],
+    // Admin controls
+    isEmailVerified: true, isActive: true,
+};
+
+const CompanyFormModal = ({ isEditing, formData, setFormData, onSubmit, onClose, submitting }) => {
+    const set = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
+    const bind = (key) => ({ value: formData[key], onChange: e => set(key, e.target.value) });
+    const [showPw, setShowPw] = useState(false);
+
+    return (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex',
+            justifyContent: 'center', alignItems: 'center', zIndex: 1000,
+            padding: '1rem'
+        }}>
+            <div style={{
+                background: 'white', borderRadius: '16px', width: '100%', maxWidth: '620px',
+                maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.18)'
+            }}>
+                {/* Header */}
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0',
+                    position: 'sticky', top: 0, background: 'white', zIndex: 1, borderRadius: '16px 16px 0 0'
+                }}>
+                    <div>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                            {isEditing ? '✏️ Edit Company' : '🏢 Create New Company'}
+                        </h3>
+                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                            {isEditing ? 'Update plan, trial, and status settings' : 'Manually onboard a new tenant company'}
+                        </p>
+                    </div>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#64748b', padding: '0.25rem' }}>×</button>
+                </div>
+
+                <form onSubmit={onSubmit}>
+                    <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+
+                        {/* ── Section: Company Info ── */}
+                        <div className="section-divider">🏢 Company Information</div>
+
+                        <Field label="Company Name" required>
+                            <input className="form-input" style={inputSt} {...bind('companyName')} required placeholder="Acme Corp" />
+                        </Field>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <Field label="Company Size" required>
+                                <select className="form-input" style={inputSt} {...bind('companySize')}>
+                                    {['1-10', '11-50', '51-200', '201-500', '500+'].map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                            </Field>
+                            <Field label="Industry" required>
+                                <select className="form-input" style={inputSt} {...bind('industry')}>
+                                    {['Technology', 'Finance', 'Healthcare', 'Education', 'Retail', 'Manufacturing', 'Marketing', 'Other'].map(i => <option key={i} value={i}>{i}</option>)}
+                                </select>
+                            </Field>
+                        </div>
+
+                        <Field label="Company Website">
+                            <input className="form-input" style={inputSt} type="url" {...bind('website')} placeholder="https://example.com" />
+                        </Field>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <Field label="Country" required>
+                                <input className="form-input" style={inputSt} {...bind('country')} required placeholder="India" />
+                            </Field>
+                            <Field label="City" required>
+                                <input className="form-input" style={inputSt} {...bind('city')} required placeholder="Mumbai" />
+                            </Field>
+                        </div>
+
+                        {/* ── Section: Plan & Trial ── */}
+                        <div className="section-divider">💳 Plan & Trial</div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                            <Field label="Subscription Plan" required>
+                                <select className="form-input" style={inputSt} {...bind('plan')}>
+                                    <option value="free">Free</option>
+                                    <option value="basic">Basic</option>
+                                    <option value="pro">Pro</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </Field>
+                            <div style={{ paddingTop: '1.4rem' }}>
+                                <Toggle
+                                    checked={formData.isTrialActive}
+                                    onChange={val => set('isTrialActive', val)}
+                                    label={formData.isTrialActive ? 'Trial Active (7 days)' : 'No Trial'}
+                                />
+                            </div>
+                        </div>
+
+                        {/* ── Section: Owner Details (create only) ── */}
+                        {!isEditing && (
+                            <>
+                                <div className="section-divider">👤 Owner Details</div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <Field label="Full Name" required>
+                                        <input className="form-input" style={inputSt} {...bind('ownerName')} required placeholder="John Doe" />
+                                    </Field>
+                                    <Field label="Role Title (Multi-select)" required>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+                                            {['CEO', 'CTO', 'COO', 'CFO', 'Founder', 'MD', 'Director', 'President', 'VP', 'Other'].map(r => {
+                                                const isSelected = Array.isArray(formData.ownerRole) && formData.ownerRole.includes(r);
+                                                return (
+                                                    <div 
+                                                        key={r}
+                                                        onClick={() => {
+                                                            let currentRoles = Array.isArray(formData.ownerRole) ? formData.ownerRole : [formData.ownerRole];
+                                                            const newRoles = isSelected 
+                                                                ? currentRoles.filter(x => x !== r)
+                                                                : [...currentRoles, r];
+                                                            if (newRoles.length > 0) set('ownerRole', newRoles);
+                                                        }}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            borderRadius: '16px',
+                                                            fontSize: '0.75rem',
+                                                            cursor: 'pointer',
+                                                            border: isSelected ? '1px solid #2563eb' : '1px solid #e2e8f0',
+                                                            background: isSelected ? '#eff6ff' : '#f8fafc',
+                                                            color: isSelected ? '#1d4ed8' : '#64748b',
+                                                            fontWeight: isSelected ? 600 : 400,
+                                                            transition: 'all 0.2s',
+                                                            userSelect: 'none'
+                                                        }}
+                                                    >
+                                                        {r}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </Field>
+                                </div>
+
+                                <Field label="Work Email" required>
+                                    <input className="form-input" style={inputSt} type="email" {...bind('ownerEmail')} required placeholder="owner@company.com" />
+                                </Field>
+
+                                <Field label="Phone Number" required>
+                                    <input className="form-input" style={inputSt} type="tel" {...bind('ownerPhone')} required placeholder="+91 9876543210" />
+                                </Field>
+
+                                <Field label="Password" required>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            className="form-input"
+                                            style={{ ...inputSt, paddingRight: '3rem' }}
+                                            type={showPw ? 'text' : 'password'}
+                                            {...bind('ownerPassword')}
+                                            required
+                                            placeholder="Min 8 chars"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPw(p => !p)}
+                                            style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '0.75rem' }}
+                                        >
+                                            {showPw ? 'Hide' : 'Show'}
+                                        </button>
+                                    </div>
+                                </Field>
+                            </>
+                        )}
+
+                        {/* ── Section: Admin Controls ── */}
+                        <div className="section-divider">⚙️ Admin Controls</div>
+
+                        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', padding: '0.5rem 0' }}>
+                            <Toggle
+                                checked={formData.isEmailVerified}
+                                onChange={val => set('isEmailVerified', val)}
+                                label={formData.isEmailVerified ? 'Email Verified' : 'Email Unverified'}
+                            />
+                            <Toggle
+                                checked={formData.isActive}
+                                onChange={val => set('isActive', val)}
+                                label={formData.isActive ? 'Account Active' : 'Account Paused'}
+                            />
+                        </div>
+
+                        {!isEditing && (
+                            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.78rem', color: '#166534' }}>
+                                💡 <strong>signupType</strong> will be set to <code>manual</code> automatically. Readable Company ID (COMP-YYYY-XXXXX) and User ID (USR-YYYY-XXXXX) are auto-generated.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <div style={{
+                        display: 'flex', justifyContent: 'flex-end', gap: '0.75rem',
+                        padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0',
+                        position: 'sticky', bottom: 0, background: 'white', borderRadius: '0 0 16px 16px'
+                    }}>
+                        <button type="button" onClick={onClose} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={submitting} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.875rem', opacity: submitting ? 0.7 : 1 }}>
+                            {submitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Company'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+// ─── Companies View ──────────────────────────────────────────────────────────
 const CompaniesView = () => {
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentCompanyId, setCurrentCompanyId] = useState(null);
-    const [search, setSearch] = useState("");
-    const [sortOrder, setSortOrder] = useState("asc");
-    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [submitting, setSubmitting] = useState(false);
+    const [search, setSearch] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [statusFilter, setStatusFilter] = useState('ALL');
     const [deleteModal, setDeleteModal] = useState({ show: false, companyId: null, password: '' });
 
-    const [formData, setFormData] = useState({
-        companyName: '', ownerName: 'CEO', ownerEmail: '', ownerPassword: '', plan: 'Free'
-    });
+    const [formData, setFormData] = useState({ ...EMPTY_FORM });
 
     const fetchData = async () => {
         try {
@@ -111,25 +378,75 @@ const CompaniesView = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const resetForm = () => { setFormData({ companyName: '', ownerName: 'CEO', ownerEmail: '', ownerPassword: '', plan: 'Free' }); setIsEditing(false); setCurrentCompanyId(null); };
+    const resetForm = () => { setFormData({ ...EMPTY_FORM }); setIsEditing(false); setCurrentCompanyId(null); };
+
     const handleOpenCreate = () => { resetForm(); setShowModal(true); };
+
     const handleOpenEdit = (company) => {
-        setFormData({ companyName: company.name, ownerName: '', ownerEmail: '', ownerPassword: '', plan: company.plan });
-        setCurrentCompanyId(company._id); setIsEditing(true); setShowModal(true);
+        setFormData({
+            companyName: company.companyName || company.name || '',
+            companySize: company.companySize || '1-10',
+            industry: company.industry || 'Technology',
+            website: company.website || '',
+            country: company.country || '',
+            city: company.city || '',
+            plan: (company.plan || 'free').toLowerCase(),
+            isTrialActive: !!company.isTrialActive,
+            // Owner (not editable in edit mode, but keep in state)
+            ownerName: '', ownerEmail: '', ownerPhone: '', ownerPassword: '', ownerRole: 'CEO',
+            // Admin controls
+            isEmailVerified: !!company.isEmailVerified,
+            isActive: company.isActive !== false,
+        });
+        setCurrentCompanyId(company._id);
+        setIsEditing(true);
+        setShowModal(true);
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             if (isEditing) {
-                await api.put(`/companies/${currentCompanyId}`, { name: formData.companyName, plan: formData.plan });
+                await api.put(`/companies/${currentCompanyId}`, {
+                    name: formData.companyName,
+                    companyName: formData.companyName,
+                    companySize: formData.companySize,
+                    industry: formData.industry,
+                    website: formData.website,
+                    country: formData.country,
+                    city: formData.city,
+                    plan: formData.plan,
+                    isTrialActive: formData.isTrialActive,
+                    isEmailVerified: formData.isEmailVerified,
+                    isActive: formData.isActive,
+                });
             } else {
-                await api.post('/companies', formData);
+                await api.post('/companies', {
+                    companyName: formData.companyName,
+                    companySize: formData.companySize,
+                    industry: formData.industry,
+                    website: formData.website,
+                    country: formData.country,
+                    city: formData.city,
+                    plan: formData.plan,
+                    isTrialActive: formData.isTrialActive,
+                    isEmailVerified: formData.isEmailVerified,
+                    isActive: formData.isActive,
+                    ownerName: formData.ownerName,
+                    ownerEmail: formData.ownerEmail,
+                    ownerPhone: formData.ownerPhone,
+                    ownerPassword: formData.ownerPassword,
+                    ownerRole: formData.ownerRole,
+                });
             }
             setShowModal(false);
             resetForm();
             fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Error saving company');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -156,16 +473,19 @@ const CompaniesView = () => {
     };
 
     const filteredCompanies = companies.filter(c => {
-        const companyName = c.companyName || c.name || "";
-        const ownerEmail = c.owner?.email || "";
+        const companyName = c.companyName || c.name || '';
+        const ownerEmail = c.owner?.email || '';
         const matchesSearch = companyName.toLowerCase().includes(search.toLowerCase()) ||
             ownerEmail.toLowerCase().includes(search.toLowerCase()) ||
             (c.companyId && c.companyId.toLowerCase().includes(search.toLowerCase()));
-        
-        if (statusFilter === "ACTIVE") return matchesSearch && c.isActive;
-        if (statusFilter === "PAUSED") return matchesSearch && !c.isActive;
+
+        if (statusFilter === 'ACTIVE') return matchesSearch && c.isActive;
+        if (statusFilter === 'PAUSED') return matchesSearch && !c.isActive;
         return matchesSearch;
-    }).sort((a, b) => sortOrder === "asc" ? (a.companyName || a.name).localeCompare(b.companyName || b.name) : (b.companyName || b.name).localeCompare(a.companyName || a.name));
+    }).sort((a, b) => sortOrder === 'asc'
+        ? (a.companyName || a.name).localeCompare(b.companyName || b.name)
+        : (b.companyName || b.name).localeCompare(a.companyName || a.name)
+    );
 
     if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading companies...</div>;
 
@@ -184,7 +504,7 @@ const CompaniesView = () => {
                             <option value="PAUSED">Paused Only</option>
                         </select>
                         <div style={{ width: '1px', background: '#e2e8f0' }} />
-                        <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} style={{ padding: '0.5rem 0.75rem', border: 'none', background: 'white', cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
+                        <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.5rem 0.75rem', border: 'none', background: 'white', cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
                             {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
                         </button>
                     </div>
@@ -195,7 +515,6 @@ const CompaniesView = () => {
                 </div>
             </div>
 
-
             <CompanyTable
                 companies={filteredCompanies}
                 onEdit={handleOpenEdit}
@@ -204,21 +523,16 @@ const CompaniesView = () => {
             />
 
             {showModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div className="card" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3>{isEditing ? 'Edit Company' : 'Create New Company'}</h3>
-                            <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
-                        </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group"><label className="form-label">Company Name</label><input className="form-input" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} required /></div>
-                            <div className="form-group"><label className="form-label">Plan</label><select className="form-input" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}><option value="free">free</option><option value="basic">basic</option><option value="pro">pro</option><option value="advanced">advanced</option></select></div>
-                            {!isEditing && (<><div style={{ margin: '1rem 0', borderTop: '1px solid #eee', paddingTop: '1rem' }}><h4>Owner Details</h4></div><div className="form-group"><label className="form-label">Owner Role</label><select className="form-input" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} required><option value="CEO">CEO</option><option value="CTO">CTO</option><option value="CFO">CFO</option></select></div><div className="form-group"><label className="form-label">Owner Email</label><input type="email" className="form-input" value={formData.ownerEmail} onChange={(e) => setFormData({ ...formData, ownerEmail: e.target.value })} required /></div><div className="form-group"><label className="form-label">Owner Password</label><input type="password" className="form-input" value={formData.ownerPassword} onChange={(e) => setFormData({ ...formData, ownerPassword: e.target.value })} required /></div></>)}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}><button type="button" className="btn" onClick={() => setShowModal(false)} style={{ border: '1px solid #ddd' }}>Cancel</button><button type="submit" className="btn btn-primary">{isEditing ? 'Save Changes' : 'Create Company'}</button></div>
-                        </form>
-                    </div>
-                </div>
+                <CompanyFormModal
+                    isEditing={isEditing}
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleSubmit}
+                    onClose={() => { setShowModal(false); resetForm(); }}
+                    submitting={submitting}
+                />
             )}
+
             {deleteModal.show && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
                     <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
@@ -256,12 +570,34 @@ const UsersView = () => {
 
     const grouped = React.useMemo(() => {
         return users.reduce((acc, u) => {
-            const cid = u.companyId?._id || 'unassigned';
+            // Super Admins get their own group
+            const isSuperAdmin = u.role === 'superadmin' || u.role === 'SUPER_ADMIN';
+            if (isSuperAdmin) {
+                if (!acc['__superadmins__']) {
+                    acc['__superadmins__'] = { name: '🛡️ System Admins (Super Admin)', members: [], isSuperAdmin: true };
+                }
+                acc['__superadmins__'].members.push(u);
+                return acc;
+            }
+
+            // Resolve company from either `company` or `companyId` (both are now populated)
+            const companyObj = u.company || u.companyId;
+            const cid = (companyObj && typeof companyObj === 'object' && companyObj._id)
+                ? companyObj._id.toString()
+                : null;
+
+            if (!cid) {
+                // No company assigned
+                if (!acc['__unassigned__']) {
+                    acc['__unassigned__'] = { name: '⚠️ Unassigned', members: [] };
+                }
+                acc['__unassigned__'].members.push(u);
+                return acc;
+            }
+
             if (!acc[cid]) {
-                acc[cid] = {
-                    name: u.companyId?.name || 'Unassigned / System Admins',
-                    members: []
-                };
+                const displayName = companyObj.companyName || companyObj.name || `Company (${cid})`;
+                acc[cid] = { name: displayName, members: [] };
             }
             acc[cid].members.push(u);
             return acc;
@@ -350,8 +686,21 @@ const UsersView = () => {
                                                         </td>
                                                         <td style={{ padding: '1rem 0.5rem' }}>
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                                <div style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#eff6ff', color: '#1e40af', fontSize: '0.7rem', fontWeight: 600 }}>
-                                                                    <Shield size={10} /> {user.role}
+                                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#eff6ff', color: '#1e40af', fontSize: '0.7rem', fontWeight: 600 }}>
+                                                                        <Shield size={10} /> {user.role}
+                                                                    </div>
+                                                                    {user.roleTitle?.length > 0 ? (
+                                                                        user.roleTitle.map(r => (
+                                                                            <div key={r} style={{ display: 'inline-flex', alignItems: 'center', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#f1f5f9', color: '#475569', fontSize: '0.7rem', fontWeight: 600, border: '1px solid #e2e8f0' }}>
+                                                                                {r}
+                                                                            </div>
+                                                                        ))
+                                                                    ) : user.empId ? (
+                                                                        <div style={{ display: 'inline-flex', alignItems: 'center', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#f1f5f9', color: '#475569', fontSize: '0.7rem', fontWeight: 600, border: '1px solid #e2e8f0' }}>
+                                                                            {user.empId}
+                                                                        </div>
+                                                                    ) : null}
                                                                 </div>
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: user.isEmailVerified ? '#16a34a' : '#ea580c' }}>
                                                                     {user.isEmailVerified ? <CheckCircle2 size={10} /> : <XCircle size={10} />}

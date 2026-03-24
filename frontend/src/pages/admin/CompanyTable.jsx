@@ -56,6 +56,19 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <span style={{ fontSize: '0.85rem', color: '#1e293b', fontWeight: 500 }}>{company.owner?.name || 'N/A'}</span>
                                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{company.owner?.email || 'N/A'}</span>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                                        {company.owner?.roleTitle?.length > 0 ? (
+                                            company.owner.roleTitle.map(r => (
+                                                <span key={r} style={{ padding: '2px 6px', background: '#f1f5f9', color: '#475569', fontSize: '0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: 500 }}>
+                                                    {r}
+                                                </span>
+                                            ))
+                                        ) : company.owner?.empId ? (
+                                            <span style={{ padding: '2px 6px', background: '#f1f5f9', color: '#475569', fontSize: '0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', fontWeight: 500 }}>
+                                                {company.owner.empId}
+                                            </span>
+                                        ) : null}
+                                    </div>
                                 </div>
                             </td>
                             <td style={tdStyle}>

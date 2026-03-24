@@ -80,7 +80,9 @@ const getCompaniesWithStats = async (req, res) => {
                     totalProjects: 1,
                     ownerId: 1,
                     'owner.name': 1,
-                    'owner.email': 1
+                    'owner.email': 1,
+                    'owner.roleTitle': 1,
+                    'owner.empId': 1
                 }
             },
             { $sort: { createdAt: -1 } }
@@ -93,20 +95,40 @@ const getCompaniesWithStats = async (req, res) => {
     }
 };
 
-// @desc    Get only platform owners (Strict data isolation)
+// @desc    Get all platform users (grouped by company on frontend)
 // @route   GET /api/admin/users
 // @access  Private (Super Admin)
 const getPlatformUsers = async (req, res) => {
     try {
-        // Show all users for Super Admin with their details
-        const users = await User.find({})
+        // Step 1: Get all valid (non-deleted) company IDs
+        const validCompanies = await Company.find({ isDeleted: { $ne: true } }).select('_id');
+        const validCompanyIds = validCompanies.map(c => c._id);
+
+        // Step 2: Fetch only:
+        //   (a) Super Admins (no company assigned — these are platform-level)
+        //   (b) Users whose company OR companyId field points to a valid company
+        const users = await User.find({
+            $or: [
+                { role: { $in: ['superadmin', 'SUPER_ADMIN'] } },
+                { company: { $in: validCompanyIds } },
+                { companyId: { $in: validCompanyIds } }
+            ]
+        })
             .select('-password')
-            .populate('company', 'name companyName companyId')
+            .populate('company', 'name companyName companyId _id')
+            .populate('companyId', 'name companyName companyId _id')
             .sort({ createdAt: -1 });
+
+        console.log(`[getPlatformUsers] Valid companies: ${validCompanyIds.length}, Returned users: ${users.length}`);
+        users.forEach(u => {
+            const compObj = u.company || u.companyId;
+            const compName = (compObj && typeof compObj === 'object') ? (compObj.companyName || compObj.name) : 'N/A';
+            console.log(`  User: ${u.name} | role: ${u.role} | company: ${compName}`);
+        });
 
         res.json(users);
     } catch (error) {
-        console.error(error);
+        console.error('[getPlatformUsers] Error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
