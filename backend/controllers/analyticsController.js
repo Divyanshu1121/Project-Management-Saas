@@ -7,6 +7,46 @@ const Company = require('../models/Company');
 
 const getAnalytics = async (req, res) => {
     try {
+        const role = req.user.role;
+        const isSuperAdmin = role === 'SUPER_ADMIN' || role === 'superadmin' || role === 'Platform Admin';
+
+        // Super admin: skip company-level queries (companyId is null), return platform-wide stats only
+        if (isSuperAdmin) {
+            const validCompanyFilter = { isDeleted: { $ne: true } };
+
+            const totalCompanies = await Company.countDocuments(validCompanyFilter);
+            const activeCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: true });
+            const pausedCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: false });
+
+            const validCompanies = await Company.find(validCompanyFilter).select('_id');
+            const validCompanyIds = validCompanies.map(c => c._id);
+
+            const totalPlatformUsers = await User.countDocuments({
+                $or: [
+                    { company: { $in: validCompanyIds } },
+                    { companyId: { $in: validCompanyIds } }
+                ]
+            });
+
+            const platformStats = {
+                totalCompanies,
+                totalPlatformUsers,
+                activeCompanies,
+                pausedCompanies
+            };
+
+            console.log('[analytics] Platform stats:', platformStats);
+
+            return res.json({
+                totalProjects: 0,
+                totalTasks: 0,
+                totalUsers: 0,
+                tasksByStatus: [],
+                platformStats,
+            });
+        }
+
+        // Company-level analytics for non-super-admin users
         const companyId = req.user.companyId;
 
         const totalProjects = await Project.countDocuments({ companyId });
@@ -18,45 +58,12 @@ const getAnalytics = async (req, res) => {
             { $group: { _id: '$status', count: { $sum: 1 } } }
         ]);
 
-        let platformStats = {};
-        const role = req.user.role;
-        const isSuperAdmin = role === 'SUPER_ADMIN' || role === 'superadmin' || role === 'Platform Admin';
-
-        if (isSuperAdmin) {
-            // Fix 1: Only count non-deleted companies for all stats
-            const validCompanyFilter = { isDeleted: { $ne: true } };
-
-            const totalCompanies = await Company.countDocuments(validCompanyFilter);
-            const activeCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: true });
-            const pausedCompanies = await Company.countDocuments({ ...validCompanyFilter, isActive: false });
-
-            // Fix 1: Only count users that belong to a valid (non-deleted) company
-            const validCompanies = await Company.find(validCompanyFilter).select('_id');
-            const validCompanyIds = validCompanies.map(c => c._id);
-
-            const totalPlatformUsers = await User.countDocuments({
-                $or: [
-                    { company: { $in: validCompanyIds } },
-                    { companyId: { $in: validCompanyIds } }
-                ]
-            });
-
-            platformStats = {
-                totalCompanies,
-                totalPlatformUsers,
-                activeCompanies,
-                pausedCompanies
-            };
-
-            console.log('[analytics] Platform stats:', platformStats);
-        }
-
         res.json({
             totalProjects,
             totalTasks,
             totalUsers,
             tasksByStatus,
-            platformStats,
+            platformStats: {},
         });
 
     } catch (error) {

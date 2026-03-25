@@ -26,6 +26,7 @@ import ReportsPage from './pages/reports/ReportsPage';
 import TimeLogsPage from './pages/tasks/TimeLogsPage';
 import GlobalChatPage from './pages/common/GlobalChatPage';
 import Landing from './pages/common/Landing';
+import ProjectDocs from './pages/projects/ProjectDocs';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
@@ -182,6 +183,15 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
                             <GlobalChatPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="projects/:projectId/docs"
+                    element={
+                        <ProtectedRoute allowedRoles={['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO', 'PROJECT_MANAGER', 'EMPLOYEE', 'HR']}>
+                            <ProjectDocs />
                         </ProtectedRoute>
                     }
                 />

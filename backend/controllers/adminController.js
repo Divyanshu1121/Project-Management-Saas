@@ -9,11 +9,23 @@ const getCompaniesWithStats = async (req, res) => {
     try {
         const companies = await Company.aggregate([
             { $match: { isDeleted: { $ne: true } } },
+            // Lookup users who have company OR companyId pointing to this company
             {
                 $lookup: {
                     from: 'users',
-                    localField: '_id',
-                    foreignField: 'company',
+                    let: { compId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $or: [
+                                        { $eq: ['$company', '$$compId'] },
+                                        { $eq: ['$companyId', '$$compId'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: 'members'
                 }
             },

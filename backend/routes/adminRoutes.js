@@ -4,9 +4,8 @@ const { getCompaniesWithStats, getPlatformUsers } = require('../controllers/admi
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
 
-// All routes here require SUPER_ADMIN role
 router.use(protect);
-router.use(roleCheck(['SUPER_ADMIN']));
+router.use(roleCheck(['SUPER_ADMIN', 'superadmin']));
 
 router.get('/companies', getCompaniesWithStats);
 router.get('/users', getPlatformUsers);

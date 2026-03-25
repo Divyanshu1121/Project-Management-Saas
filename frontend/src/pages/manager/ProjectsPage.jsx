@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import {
     Plus, Pencil, Trash2, X, Calendar,
-    Users, AlertTriangle, Loader2, FolderOpen, Clock, User, Tag, ChevronRight
+    Users, AlertTriangle, Loader2, FolderOpen, Clock, User, Tag, ChevronRight, FileText
 } from 'lucide-react';
 import './ProjectsPage.css';
 
@@ -409,7 +409,7 @@ const DeleteConfirm = ({ project, onCancel, onConfirm, loading }) => (
 );
 
 // ── Project Card ─────────────────────────────────────────────────
-const ProjectCard = ({ project, onView, onEdit, onDelete }) => (
+const ProjectCard = ({ project, onView, onEdit, onDelete, onDocs }) => (
     <div className="project-card" onClick={() => onView(project)} style={{ cursor: 'pointer' }}>
         <div className="project-card-header">
             <div className="project-card-title-row">
@@ -419,6 +419,9 @@ const ProjectCard = ({ project, onView, onEdit, onDelete }) => (
                 </span>
             </div>
             <div className="project-card-actions" onClick={e => e.stopPropagation()}>
+                <button className="btn-icon" onClick={() => onDocs(project)} title="View Documentation" style={{ color: '#0ea5e9', background: '#e0f2fe' }}>
+                    <FileText size={14} />
+                </button>
                 <button className="btn-icon" onClick={() => onEdit(project)} title="Edit">
                     <Pencil size={14} />
                 </button>
@@ -511,6 +514,10 @@ const ProjectsPage = () => {
 
     const handleView = (project) => {
         navigate(`/manager/projects/${project._id}`);
+    };
+
+    const handleDocs = (project) => {
+        navigate(`/projects/${project._id}/docs`);
     };
 
     const handleSubmit = async (formData) => {
@@ -621,6 +628,7 @@ const ProjectsPage = () => {
                             key={project._id}
                             project={project}
                             onView={handleView}
+                            onDocs={handleDocs}
                             onEdit={handleEdit}
                             onDelete={handleDeleteClick}
                         />

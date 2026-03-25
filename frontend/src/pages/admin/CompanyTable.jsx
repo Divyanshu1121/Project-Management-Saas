@@ -25,6 +25,7 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                         <th style={thStyle}>Company Info</th>
                         <th style={thStyle}>Industry & Size</th>
                         <th style={thStyle}>Owner</th>
+                        <th style={thStyle}>Stats</th>
                         <th style={thStyle}>Plan & Trial</th>
                         <th style={thStyle}>Verification</th>
                         <th style={thStyle}>Status</th>
@@ -69,6 +70,19 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                                             </span>
                                         ) : null}
                                     </div>
+                                </div>
+                            </td>
+                            <td style={tdStyle}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#475569' }}>
+                                        <Users size={12} /> {company.totalUsers ?? 0} Users
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#475569' }}>
+                                        <Briefcase size={12} /> {company.totalProjects ?? 0} Projects
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                        {company.totalEmployees ?? 0} emp · {company.totalProjectManagers ?? 0} PM
+                                    </span>
                                 </div>
                             </td>
                             <td style={tdStyle}>
@@ -127,6 +141,11 @@ const CompanyTable = ({ companies, onEdit, onDelete, onToggleStatus }) => {
                     ))}
                 </tbody>
             </table>
+            {companies.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.95rem' }}>
+                    No companies found.
+                </div>
+            )}
         </div>
     );
 };

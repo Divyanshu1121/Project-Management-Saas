@@ -165,7 +165,7 @@ const ManagerDashboard = () => {
                 >
                     <div style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {loading ? <div style={{ width: '100%', height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" color="#cbd5e1" /></div> : (
-                            <CircularChart data={projectChartData} height={180} />
+                            <CircularChart data={projectChartData} width="100%" height={180} />
                         )}
                     </div>
                 </Card.Section>

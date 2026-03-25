@@ -483,8 +483,8 @@ const CompaniesView = () => {
         if (statusFilter === 'PAUSED') return matchesSearch && !c.isActive;
         return matchesSearch;
     }).sort((a, b) => sortOrder === 'asc'
-        ? (a.companyName || a.name).localeCompare(b.companyName || b.name)
-        : (b.companyName || b.name).localeCompare(a.companyName || a.name)
+        ? (a.companyName || a.name || '').localeCompare(b.companyName || b.name || '')
+        : (b.companyName || b.name || '').localeCompare(a.companyName || a.name || '')
     );
 
     if (loading) return <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Loading companies...</div>;
