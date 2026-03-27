@@ -19,8 +19,10 @@ import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
 import EmployeeTimeLogsPage from './pages/employee/EmployeeTimeLogsPage';
 import LeaveRequest from './pages/employee/LeaveRequest';
+import WFHRequestPage from './pages/employee/WFHRequestPage';
 import TimelineCalendarPage from './pages/manager/TimelineCalendarPage';
 import HRDashboard from './pages/hr/HRDashboard';
+import WFHManagement from './pages/hr/WFHManagement';
 import SettingsPage from './pages/common/SettingsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import TimeLogsPage from './pages/tasks/TimeLogsPage';
@@ -164,8 +166,16 @@ function App() {
                 <Route
                     path="employee/leave"
                     element={
-                        <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+                        <ProtectedRoute allowedRoles={['EMPLOYEE', 'PROJECT_MANAGER', 'HR', 'COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <LeaveRequest />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="employee/wfh"
+                    element={
+                        <ProtectedRoute allowedRoles={['EMPLOYEE', 'PROJECT_MANAGER', 'HR', 'COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <WFHRequestPage />
                         </ProtectedRoute>
                     }
                 />
@@ -224,8 +234,16 @@ function App() {
                 <Route
                     path="hr/leaves"
                     element={
-                        <ProtectedRoute allowedRoles={['HR']}>
+                        <ProtectedRoute allowedRoles={['HR', 'COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
                             <HRDashboard defaultSection="leaves" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="hr/wfh"
+                    element={
+                        <ProtectedRoute allowedRoles={['HR', 'COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO']}>
+                            <WFHManagement />
                         </ProtectedRoute>
                     }
                 />

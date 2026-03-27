@@ -14,7 +14,6 @@ const leaveRequestSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: ['ANNUAL', 'SICK', 'CASUAL', 'UNPAID', 'OTHER'],
-        required: true,
     },
     startDate: {
         type: Date,
@@ -31,7 +30,6 @@ const leaveRequestSchema = new mongoose.Schema({
     },
     reason: {
         type: String,
-        required: true,
         trim: true,
     },
     approvedBy: {
@@ -41,7 +39,11 @@ const leaveRequestSchema = new mongoose.Schema({
     comment: {
         type: String,
         trim: true,
-    }
+    },
+    isInformOnly: {
+        type: Boolean,
+        default: false,
+    },
 }, { timestamps: true });
 
 leaveRequestSchema.pre('save', async function () {

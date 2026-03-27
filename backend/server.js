@@ -28,6 +28,7 @@ app.use('/api/sprints', require('./routes/sprintRoutes'));
 app.use('/api/time-logs', require('./routes/timeLogRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/leaves', require('./routes/leaveRoutes'));
+app.use('/api/wfh', require('./routes/wfhRoutes'));
 app.use('/api/company', require('./routes/companyUserRoutes'));
 app.use('/api/company', require('./routes/companyDashboardRoutes'));
 app.use('/api/company/teams', require('./routes/companyTeamRoutes'));

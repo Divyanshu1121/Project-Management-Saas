@@ -118,4 +118,37 @@ const generateDocAssist = async (projectName, action, section, contextText) => {
     }
 };
 
-module.exports = { generateContent, generateDocAssist };
+const improveText = async (text, context = 'general') => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error('GROQ_API_KEY is not defined');
+
+    const prompt = `Improve the following text for a ${context} context. 
+Make it professional, clear, and concise. 
+Fix any grammar or spelling issues.
+Original text: "${text}"
+
+Return ONLY the improved text, without any introductory or concluding remarks.`;
+
+    try {
+        const response = await axios.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            {
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: 'You are a professional writing assistant. Return only the polished version of the user text.' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.5,
+            },
+            {
+                headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+            }
+        );
+        return response.data.choices[0].message.content.replace(/^"|"$/g, '').trim();
+    } catch (error) {
+        console.error('Groq API Error (improveText):', error.message);
+        throw new Error('Failed to improve text');
+    }
+};
+
+module.exports = { generateContent, generateDocAssist, improveText };

@@ -2,6 +2,8 @@ const Project = require('../models/Project');
 const Task = require('../models/Task');
 const TimeLog = require('../models/TimeLog');
 const User = require('../models/User');
+const LeaveRequest = require('../models/LeaveRequest');
+const WFHRequest = require('../models/WFHRequest');
 const workflow = require('./taskWorkflowService');
 const dependencyService = require('./dependencyService');
 const { createNotification } = require('./notificationService');
@@ -496,6 +498,31 @@ const getTaskTimeLogs = async (taskId, companyId) => {
 const getWorkload = async (companyId) => {
     const employees = await User.find({ companyId, role: 'EMPLOYEE' }).select('name email empId');
 
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    const dateFilter = { startDate: { $lte: todayEnd }, endDate: { $gte: todayStart } };
+
+    const [allLeaves, allWfh] = await Promise.all([
+        LeaveRequest.find({ companyId, status: 'APPROVED', ...dateFilter }).select('userId'),
+        WFHRequest.find({ company: companyId, status: 'approved', ...dateFilter }).select('employee workLocation customLocation')
+    ]);
+
+    const statusMap = {};
+    allLeaves.forEach(l => {
+        statusMap[l.userId.toString()] = { status: 'on_leave' };
+    });
+    allWfh.forEach(w => {
+        if (!statusMap[w.employee.toString()]) {
+            statusMap[w.employee.toString()] = {
+                status: 'wfh',
+                workLocation: w.workLocation,
+                customLocation: w.customLocation
+            };
+        }
+    });
+
     const workload = await Promise.all(
         employees.map(async (emp) => {
             const [activeTasks, timeLogs] = await Promise.all([
@@ -514,6 +541,7 @@ const getWorkload = async (companyId) => {
                 employee: emp,
                 activeTasks,
                 totalLoggedHours: totalHours,
+                todayStatus: statusMap[emp._id.toString()] || { status: 'in_office' }
             };
         })
     );

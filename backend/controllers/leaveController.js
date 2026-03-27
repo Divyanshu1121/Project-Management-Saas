@@ -1,5 +1,19 @@
 const LeaveRequest = require('../models/LeaveRequest');
 const User = require('../models/User');
+const { createNotification } = require('../services/notificationService');
+
+// ── Helper: notify all Leadership users in a company ──────────────────────
+const notifyLeadership = async (companyId, { type, title, message, link, metadata }) => {
+    const leaders = await User.find({ 
+        companyId, 
+        role: { $in: ['COMPANY_OWNER', 'owner', 'CEO', 'CTO', 'CFO', 'COO'] } 
+    }).select('_id');
+    await Promise.all(
+        leaders.map(leader =>
+            createNotification({ recipientId: leader._id, companyId, type, title, message, link, metadata })
+        )
+    );
+};
 
 // @desc    Request a leave
 // @route   POST /api/leaves
@@ -8,14 +22,62 @@ const requestLeave = async (req, res) => {
     try {
         const { type, startDate, endDate, reason } = req.body;
 
+        const isOwner = ['owner', 'COMPANY_OWNER', 'CEO', 'CTO', 'CFO', 'COO'].includes(req.user.role);
+
         const leave = await LeaveRequest.create({
             userId: req.user._id,
             companyId: req.user.companyId,
-            type,
+            type: isOwner ? (type || 'OTHER') : type,
             startDate,
             endDate,
-            reason
+            reason: isOwner ? (reason || 'Leadership Notice') : reason,
+            status: isOwner ? 'APPROVED' : 'PENDING',
+            isInformOnly: isOwner,
+            reviewNote: isOwner ? 'Auto approved - Owner notice' : undefined,
+            approvedBy: isOwner ? req.user._id : undefined
         });
+
+        const start = new Date(startDate).toDateString();
+        const end = new Date(endDate).toDateString();
+
+        if (isOwner) {
+            // Owner already auto-approved, just inform HR
+            const hrUsers = await User.find({ companyId: req.user.companyId, role: 'HR' }).select('_id');
+            await Promise.all(hrUsers.map(hr => 
+                createNotification({
+                    recipientId: hr._id,
+                    companyId: req.user.companyId,
+                    type: 'LEAVE_REQUEST',
+                    title: 'Leadership Leave Notice',
+                    message: `Owner ${req.user.name} will be on leave (${start} → ${end})`,
+                    link: '/hr/leaves',
+                    metadata: { leaveId: leave._id },
+                })
+            ));
+        } else if (req.user.role === 'HR') {
+            // HR request needs Leadership approval
+            await notifyLeadership(req.user.companyId, {
+                type: 'LEAVE_REQUEST',
+                title: 'HR Leave Request',
+                message: `HR ${req.user.name} submitted a leave request (${start} → ${end})`,
+                link: '/hr/leaves',
+                metadata: { leaveId: leave._id },
+            });
+        } else {
+            // Regular employee/manager request goes to HR
+            const hrUsers = await User.find({ companyId: req.user.companyId, role: 'HR' }).select('_id');
+            await Promise.all(hrUsers.map(hr => 
+                createNotification({
+                    recipientId: hr._id,
+                    companyId: req.user.companyId,
+                    type: 'LEAVE_REQUEST',
+                    title: 'New Leave Request',
+                    message: `${req.user.name} submitted a leave request (${start} → ${end})`,
+                    link: '/hr/leaves',
+                    metadata: { leaveId: leave._id },
+                })
+            ));
+        }
 
         res.status(201).json(leave);
     } catch (error) {

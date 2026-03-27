@@ -33,4 +33,19 @@ const generateTaskContent = async (req, res) => {
     }
 };
 
-module.exports = { generateTaskContent };
+const improveWriting = async (req, res) => {
+    try {
+        const { text, context } = req.body;
+
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+
+        const improvedText = await groqService.improveText(text, context);
+        res.json({ improvedText });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { generateTaskContent, improveWriting };

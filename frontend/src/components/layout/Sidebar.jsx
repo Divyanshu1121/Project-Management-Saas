@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard, Users, Briefcase, ListTodo,
     Clock, BarChart2, Settings, LogOut, Activity,
-    Calendar, MessageSquare, Kanban, ChevronRight, ShieldCheck, ChevronLeft
+    Calendar, MessageSquare, Kanban, ChevronRight, ShieldCheck, ChevronLeft, Home
 } from 'lucide-react';
 import './layout.css';
 
@@ -34,6 +34,8 @@ const MANAGER_LINKS = [
     {
         group: 'Other',
         items: [
+            { name: 'My Leave', path: '/employee/leave', icon: Calendar },
+            { name: 'Work From Home', path: '/employee/wfh', icon: Home },
             { name: 'Global Chat', path: '/chat', icon: MessageSquare },
             { name: 'Settings', path: '/settings', icon: Settings },
         ]
@@ -56,6 +58,7 @@ const EMPLOYEE_LINKS = [
         group: 'Other',
         items: [
             { name: 'My Leave', path: '/employee/leave', icon: Calendar },
+            { name: 'Work From Home', path: '/employee/wfh', icon: Home },
             { name: 'Global Chat', path: '/chat', icon: MessageSquare },
             { name: 'Settings', path: '/settings', icon: Settings },
         ]
@@ -87,11 +90,18 @@ const HR_LINKS = [
     },
     {
         group: 'Time Off',
-        items: [{ name: 'Leave Management', path: '/hr/leaves', icon: Calendar }]
+        items: [
+            { name: 'Leave Management', path: '/hr/leaves', icon: Calendar },
+            { name: 'Work From Home', path: '/hr/wfh', icon: Home }
+        ]
     },
     {
         group: 'Other',
-        items: [{ name: 'Settings', path: '/settings', icon: Settings }]
+        items: [
+            { name: 'My Leave', path: '/employee/leave', icon: Calendar },
+            { name: 'Work From Home', path: '/employee/wfh', icon: Home },
+            { name: 'Settings', path: '/settings', icon: Settings }
+        ]
     },
 ];
 
@@ -105,6 +115,8 @@ const COMPANY_LINKS = [
         items: [
             { name: 'C-Executives', path: '/company/c-executives', icon: ShieldCheck },
             { name: 'Teams', path: '/company/teams', icon: Users },
+            { name: 'Leave Management', path: '/hr/leaves', icon: Calendar },
+            { name: 'WFH Management', path: '/hr/wfh', icon: Home },
         ]
     },
     {
@@ -117,7 +129,11 @@ const COMPANY_LINKS = [
     },
     {
         group: 'Other',
-        items: [{ name: 'Settings', path: '/company/settings', icon: Settings }]
+        items: [
+            { name: 'My Leave', path: '/employee/leave', icon: Calendar },
+            { name: 'Work From Home', path: '/employee/wfh', icon: Home },
+            { name: 'Settings', path: '/company/settings', icon: Settings }
+        ]
     },
 ];
 

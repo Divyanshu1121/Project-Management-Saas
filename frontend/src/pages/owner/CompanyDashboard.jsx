@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
     Building, ShieldCheck, Calendar, Users, Briefcase, Layers,
     CheckSquare, UserPlus, Loader2, FolderOpen, ListTodo,
-    BarChart2, TrendingUp, Clock, LayoutDashboard, CheckCircle
+    BarChart2, TrendingUp, Clock, LayoutDashboard, CheckCircle, Home
 } from 'lucide-react';
 import CompanyTeamTable from './CompanyTeamTable';
 import CreateTeamMemberModal from './CreateTeamMemberModal';
@@ -475,6 +475,26 @@ const CompanyDashboard = ({ defaultSection = 'dashboard' }) => {
                             title="Company Overview"
                             subtitle={`Welcome back, ${user?.name}`}
                             icon={LayoutDashboard}
+                            actions={
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <Button 
+                                        variant="outline" 
+                                        icon={Home} 
+                                        onClick={() => navigate('/employee/wfh')}
+                                        style={{ fontSize: '0.85rem' }}
+                                    >
+                                        WFH Notice
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        icon={Calendar} 
+                                        onClick={() => navigate('/employee/leave')}
+                                        style={{ fontSize: '0.85rem' }}
+                                    >
+                                        Leave Notice
+                                    </Button>
+                                </div>
+                            }
                         />
 
                         {/* Top stat metrics */}

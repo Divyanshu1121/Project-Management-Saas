@@ -4,7 +4,7 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import {
     Users, Briefcase, UserPlus, ShieldCheck, Calendar, LayoutDashboard,
-    PieChart as PieIcon
+    PieChart as PieIcon, Home
 } from 'lucide-react';
 import HREmployees from './HREmployees';
 import CompanyTeamTable from '../owner/CompanyTeamTable';
@@ -84,11 +84,11 @@ const HRDashboard = ({ defaultSection = 'dashboard' }) => {
                 <div className="responsive-grid grid-sidebar-layout" style={{ marginBottom: 'var(--sp-6)' }}>
 
                     <PanelCard variant="section" title="Quick Actions" icon={Briefcase}>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', height: '100%', alignItems: 'center' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%' }}>
                             <Button
                                 icon={UserPlus}
                                 onClick={() => navigate('/hr/employees')}
-                                style={{ flex: 1, justifyContent: 'center' }}
+                                style={{ justifyContent: 'center' }}
                             >
                                 Manage Employees
                             </Button>
@@ -96,9 +96,25 @@ const HRDashboard = ({ defaultSection = 'dashboard' }) => {
                                 icon={ShieldCheck}
                                 variant="secondary"
                                 onClick={() => navigate('/hr/leadership')}
-                                style={{ flex: 1, justifyContent: 'center' }}
+                                style={{ justifyContent: 'center' }}
                             >
-                                View Leadership Team
+                                Leadership Team
+                            </Button>
+                            <Button
+                                icon={Home}
+                                variant="outline"
+                                onClick={() => navigate('/employee/wfh')}
+                                style={{ justifyContent: 'center', fontSize: '0.85rem' }}
+                            >
+                                My WFH
+                            </Button>
+                            <Button
+                                icon={Calendar}
+                                variant="outline"
+                                onClick={() => navigate('/employee/leave')}
+                                style={{ justifyContent: 'center', fontSize: '0.85rem' }}
+                            >
+                                My Leave
                             </Button>
                         </div>
                     </PanelCard>

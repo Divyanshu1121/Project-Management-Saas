@@ -14,7 +14,6 @@ const LeaveRequest = require('../models/LeaveRequest');
 const ActivityLog = require('../models/ActivityLog');
 const Notification = require('../models/Notification');
 
-// Services
 const { createCompany } = require('../services/companyService');
 
 const MOCK_PASSWORD = 'Test@1234';
@@ -83,7 +82,7 @@ const seedData = async () => {
                     companyResponse = await createCompany(companySignupData, ownerSignupData);
                 } else {
                     const existingUser = await User.findOne({ email: 'admin@technova.com' });
-                    if(existingUser) await User.findByIdAndDelete(existingUser._id);
+                    if (existingUser) await User.findByIdAndDelete(existingUser._id);
                     companyResponse = await createCompany(companySignupData, ownerSignupData);
                 }
             } else {
@@ -156,7 +155,7 @@ const seedData = async () => {
             // PMs create projects
             const creator = pms[Math.floor(Math.random() * pms.length)];
             const teamAssigned = p.teamIndex.map(i => createdTeams[i]._id);
-            
+
             const proj = await Project.create({
                 name: p.name,
                 description: `A highly anticipated ${p.name} initiative.`,
@@ -212,12 +211,12 @@ const seedData = async () => {
         for (const proj of createdProjects) {
             const isProjectActive = proj.status === 'ACTIVE';
             const projSprints = sprints.filter(s => s.projectId.toString() === proj._id.toString());
-            
+
             // Generate 8 tasks per project
             for (let i = 0; i < 8; i++) {
                 let sprintId = null;
                 let status = 'TODO';
-                
+
                 if (isProjectActive) {
                     const randomSprint = projSprints[Math.floor(Math.random() * projSprints.length)];
                     sprintId = randomSprint._id;
@@ -276,8 +275,8 @@ const seedData = async () => {
         console.log('\n[Step 8] Employees Requesting Leave...');
         let leaveRequestsCreated = 0;
         const hrId = hr ? hr._id : owner._id;
-        
-        for(let i=0; i<3; i++) {
+
+        for (let i = 0; i < 3; i++) {
             await LeaveRequest.create({
                 userId: emps[Math.floor(Math.random() * emps.length)]._id,
                 companyId,
@@ -329,7 +328,7 @@ const seedData = async () => {
                 isRead: false
             });
             notifsCreated++;
-            
+
             if (u.role === 'EMPLOYEE') {
                 await Notification.create({
                     recipient: u._id,
