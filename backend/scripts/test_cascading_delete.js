@@ -3,9 +3,6 @@ const API_URL = 'http://localhost:5000/api';
 const runTest = async () => {
     try {
         console.log('--- TEST 1: Project Deletion Cascade ---');
-        // 1. Setup Wrapper
-        // Need to login as Admin, Create Company, Login as Owner
-
         console.log('1. Logging in as Super Admin...');
         const adminLoginRes = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
@@ -80,23 +77,9 @@ const runTest = async () => {
         });
         if (!delProjRes.ok) throw new Error('Project delete failed');
         console.log('Project Deleted.');
-
         console.log('6. Verifying Task Deletion (by fetching tasks)...');
-        // Since we don't have getTaskById, we can list tasks for project (should be empty/error) or check DB logs.
-        // Actually, listing tasks by project might return empty now.
-        // Let's rely on the service logs or check if we can fetch all tasks.
-        // Assuming we can't easily fetch a deleted task directly if the API doesn't support it.
-        // But we can check if the task exists via checking project tasks. 
-        // Wait, if project is deleted, we can't fetch its tasks via /api/projects/:id/tasks properly if that endpoint existed.
-        // We'll trust the Project deletion for now, but to be sure, let's try the Company Cascade next.
-
         console.log('SUCCESS: Project Deletion executed (Check server logs for "Deleted 1 tasks").');
-
-
         console.log('\n--- TEST 2: Company Deletion Cascade ---');
-        // Re-using the company created above (which now has no projects)
-        // Let's create another project and task to verify Company Delete removes them.
-
         console.log('1. Creating new Project & Task for Company Delete Test...');
         const proj2Res = await fetch(`${API_URL}/projects`, {
             method: 'POST',

@@ -4,7 +4,6 @@ const runTest = async () => {
     try {
         console.log('--- TEST: Project Manager Creation ---');
 
-        // 1. Setup: Admin -> Company -> Owner
         console.log('1. Logging in as Super Admin...');
         const adminLoginRes = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
@@ -38,7 +37,6 @@ const runTest = async () => {
         const ownerLoginData = await ownerLoginRes.json();
         const ownerToken = ownerLoginData.token;
 
-        // 2. Create PM
         console.log('4. Creating Project Manager...');
         const pmEmail = `pm${Date.now()}@test.com`;
         const pmRes = await fetch(`${API_URL}/company/project-manager`, {
@@ -63,7 +61,6 @@ const runTest = async () => {
             throw new Error('Role mismatch!');
         }
 
-        // 3. Verify PM Login (to check password hashing)
         console.log('5. Verifying PM Login...');
         const pmLoginRes = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',

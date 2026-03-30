@@ -10,7 +10,6 @@ const recreateAmazon = async () => {
     try {
         await connectDB();
 
-        // Check if Amazon already exists
         const existingCompany = await Company.findOne({ companyName: /amazon/i });
         if (existingCompany) {
             console.log('Amazon already exists. No need to recreate.');
@@ -20,8 +19,7 @@ const recreateAmazon = async () => {
         console.log('Recreating Amazon Company...');
         const companyObjectId = new mongoose.Types.ObjectId();
         const ownerObjectId = new mongoose.Types.ObjectId();
-        const generatedCompanyId = 'COMP-2024-AMZ890'; // Use a fixed arbitrary string
-
+        const generatedCompanyId = 'COMP-2024-AMZ890';
         const company = new Company({
             _id: companyObjectId,
             companyId: generatedCompanyId,
