@@ -41,7 +41,6 @@ const seedData = async () => {
         await connectDB();
         console.log('--- Starting TechNova Data Seeding ---');
 
-        // 1. Simulate Public Signup (Owner & Company Creation)
         const companySignupData = {
             name: 'TechNova Solutions',
             companySize: '11-50',
@@ -58,7 +57,7 @@ const seedData = async () => {
         const ownerSignupData = {
             name: 'Alex CEO',
             email: 'admin@technova.com',
-            password: 'Admin@123', // Admin logic allows simple passwords
+            password: 'Admin@123',
             phone: '+1 555-0199',
             ownerRole: 'CEO'
         };
@@ -71,7 +70,6 @@ const seedData = async () => {
             console.log('✅ Owner created successfully:', companyResponse.owner.email);
         } catch (error) {
             console.error('Error creating company. It might already exist.');
-            // If already exists, delete the old one to allow a fresh seed
             if (error.message === 'Company already exists' || error.message.includes('already registered')) {
                 console.log('Cleaning up existing "TechNova Solutions" data to do a fresh seed...');
                 const existingCompany = await Company.findOne({ name: 'TechNova Solutions' });
@@ -93,10 +91,8 @@ const seedData = async () => {
         const companyId = companyResponse.company._id;
         const ownerId = companyResponse.owner._id;
 
-        // Fetch full owner object to get references
         const owner = await User.findById(ownerId);
 
-        // 2. Create Members
         console.log('\n[Step 2] Hiring Employees & Staff...');
         const createdUsers = [];
         for (const u of SEED_USERS) {

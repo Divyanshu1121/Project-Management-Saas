@@ -9,21 +9,18 @@ dotenv.config();
 const fixLinking = async () => {
     try {
         await connectDB();
-        
+
         let usersFixed = 0;
         let companiesFixed = 0;
 
         console.log('--- Fixing Users (Owners) Company Links ---');
-        // Get all owners
         const owners = await User.find({ role: { $in: ['owner', 'COMPANY_OWNER'] } });
-        
+
         for (const owner of owners) {
-            // Find the company they belong to
             const compId = owner.company || owner.companyId;
             if (compId) {
                 const company = await Company.findById(compId);
                 if (company) {
-                    // Make sure both fields are set
                     if (!owner.company || owner.company.toString() !== company._id.toString() ||
                         !owner.companyId || owner.companyId.toString() !== company._id.toString()) {
                         owner.company = company._id;
@@ -33,7 +30,6 @@ const fixLinking = async () => {
                         console.log(`Fixed User [${owner.email}] -> Linked to Company [${company.companyName}]`);
                     }
 
-                    // Ensure company has ownerId set to this user
                     if (!company.ownerId || company.ownerId.toString() !== owner._id.toString()) {
                         company.ownerId = owner._id;
                         await company.save();
@@ -43,11 +39,9 @@ const fixLinking = async () => {
                 }
             }
         }
-
         console.log('--- Fixing Companies Owner Links ---');
-        // Get all companies
         const companies = await Company.find({ isDeleted: { $ne: true } });
-        
+
         for (const company of companies) {
             if (company.ownerId) {
                 const owner = await User.findById(company.ownerId);
@@ -66,7 +60,6 @@ const fixLinking = async () => {
 
         console.log(`\n✅ Completed! Fixed ${usersFixed} Users and ${companiesFixed} Companies.`);
 
-        // Final Verification output
         const superAdmins = await User.find({ role: { $in: ['superadmin', 'SUPER_ADMIN'] } });
         console.log(`\nVerified Super Admins: ${superAdmins.length}`);
         superAdmins.forEach(u => console.log(` - ${u.email}`));
@@ -75,10 +68,10 @@ const fixLinking = async () => {
         console.log(`\nVerified Company Owners: ${finalOwners.length}`);
         let validOwners = 0;
         for (let user of finalOwners) {
-             const cId = user.company || user.companyId;
-             const hasValidCompany = cId ? ((await Company.countDocuments({ _id: cId })) > 0) : false;
-             if (hasValidCompany) validOwners++;
-             console.log(` - ${user.email} (Linked to valid company: ${hasValidCompany})`);
+            const cId = user.company || user.companyId;
+            const hasValidCompany = cId ? ((await Company.countDocuments({ _id: cId })) > 0) : false;
+            if (hasValidCompany) validOwners++;
+            console.log(` - ${user.email} (Linked to valid company: ${hasValidCompany})`);
         }
         console.log(`\nOwners correctly linked: ${validOwners} / ${finalOwners.length}`);
 
@@ -90,3 +83,7 @@ const fixLinking = async () => {
 };
 
 fixLinking();
+
+
+
+

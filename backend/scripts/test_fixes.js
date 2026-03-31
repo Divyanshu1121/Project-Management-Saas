@@ -32,7 +32,7 @@ const runTest = async () => {
                 ownerName: 'FixTest Owner',
                 ownerEmail: `fixtest_${Date.now()}@test.com`,
                 ownerPassword: 'password123',
-                plan: 'Pro' // Testing if this is respected
+                plan: 'Pro'
             })
         });
         const companyData = await companyRes.json();
@@ -61,7 +61,6 @@ const runTest = async () => {
         console.log('Delete Response:', deleteData.message);
 
         console.log('4. Verifying User Deletion...');
-        // Try to login as that owner, should fail
         const ownerLoginRes = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -70,7 +69,6 @@ const runTest = async () => {
                 password: 'password123'
             })
         });
-        // We expect 401 or user not found
         if (ownerLoginRes.ok) {
             throw new Error('FAILURE: User still exists and can login!');
         } else {
